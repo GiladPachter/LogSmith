@@ -1,0 +1,45 @@
+# 🤝 Contributing
+
+Contributions are welcome — SmartLogger grows with the community.
+
+---
+
+```
+## 🧩 How to Contribute
+
+1. Fork the repository  
+2. Create a feature branch  
+3. Make your changes  
+4. Add or update tests  
+5. Submit a pull request  
+
+```
+## 🧪 Development Setup
+```
+git clone https://github.com/yourname/SmartLogger.git
+
+cd SmartLogger
+
+pip install -e .
+```
+
+---
+
+## 📏 Code Style
+- PEP 8  
+- type hints  
+- descriptive naming  
+- small modules  
+
+---
+
+## 💬 Need help?
+
+Open an issue with details and reproduction steps.
+
+---
+
+## ❤️ Thank You
+
+Every contribution helps.
+```
