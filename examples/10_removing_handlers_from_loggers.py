@@ -2,7 +2,14 @@
 import os
 import shutil
 import time
+
+# ----------------------------------------------------------------------------------------------------------
+# Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
+# ----------------------------------------------------------------------------------------------------------
+import sys
 from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+# ----------------------------------------------------------------------------------------------------------
 
 from project_definitions import ROOT_DIR
 
@@ -28,9 +35,6 @@ logger_b.add_console()
 log_dir = (Path(ROOT_DIR) / "logs" / "removing_handlers_demo").resolve()
 
 if os.path.exists(log_dir):
-    os.remove(log_dir)
-
-if log_dir.exists():
     shutil.rmtree(log_dir)
 
 logger_a.add_file(log_dir = str(log_dir), logfile_name = "A.log")
