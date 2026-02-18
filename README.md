@@ -46,7 +46,26 @@ All documentation is available in the `docs/` directory:
 
 ---
 
+## 🔧 Install Package Builder
+
+Execute fro PyCharm:
+```
+tools/install_build_tools.py
+```
+
+---
+
+## 🔧 Build Package
+
+Execute fro PyCharm:
+```bash
+tools/build_wheel.py
+```
+
+---
+
 ## 🔧 Quick Install
 
 ```bash
-pip install smartlogger
+pip install LogSmith
+```
