@@ -17,13 +17,13 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import threading
 import time
+from pathlib import Path
 
 from LogSmith import SmartLogger
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 from project_definitions import ROOT_DIR
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
@@ -32,17 +32,13 @@ levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nStress test demo\n================")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Prepare log directory
 # ----------------------------------------------------------------------------------------------------------
 print("\nPreparing log directory...")
-# time.sleep(0.1)
 
 log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "stress_test"
-# log_dir.mkdir(parents=True, exist_ok=True)
 
 # Clean previous files
 if log_dir.exists():
@@ -51,18 +47,14 @@ if log_dir.exists():
             f.unlink()
 
 print("Old stress-test files removed.")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create logger
 # ----------------------------------------------------------------------------------------------------------
 print("\nCreating logger 'stress'...")
-time.sleep(0.1)
 
 logger = SmartLogger.get("stress", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 4. Add rotating file handler
@@ -102,14 +94,12 @@ logger.add_file(
 logger.info("Stress-test logger ready.")
 time.sleep(0.1)
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 5. Worker thread
 # ----------------------------------------------------------------------------------------------------------
 def worker(thread_Number: int, iterations: int):
     for i in range(iterations):
         logger.info(f"[thread number {thread_Number}] message {i}")
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. Stress test runner
@@ -139,7 +129,6 @@ def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
 
     print(f"\nStress test completed in {end - start:.2f} seconds")
     time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 7. Entry point

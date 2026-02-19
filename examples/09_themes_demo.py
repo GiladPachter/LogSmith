@@ -20,13 +20,10 @@ levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 # ----------------------------------------------------------------------------------------------------------
 
-
 logger = SmartLogger.get("themes_logger", levels["TRACE"])
 logger.add_console()
 
-
 def demo_theme(name, theme):
-    # logger.set_level_styles(theme)
     SmartLogger.apply_color_theme(theme)
 
     logger.trace(f"{name}: trace message")
@@ -35,7 +32,6 @@ def demo_theme(name, theme):
     logger.warning(f"{name}: warning message")
     logger.error(f"{name}: error message")
     logger.critical(f"{name}: critical message")
-
 
 print("\n--- LIGHT THEME ---")
 time.sleep(0.2)

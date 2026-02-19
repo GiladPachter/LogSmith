@@ -19,8 +19,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
 import time
-import json
-import os
+from pathlib import Path
 
 from LogSmith import SmartLogger
 from LogSmith import LogRecordDetails, OptionalRecordFields
@@ -29,7 +28,6 @@ from LogSmith import CPrint
 
 from project_definitions import ROOT_DIR
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
@@ -37,18 +35,14 @@ levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nFile output demo\n================")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create logger
 # ----------------------------------------------------------------------------------------------------------
 print("\nCreating logger 'file_demo'...")
-time.sleep(0.1)
 
 logger = SmartLogger.get("file_demo", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])   # console for visibility
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Prepare log directory and clean old files
@@ -75,15 +69,13 @@ for fname in files_to_delete:
     if f.exists():
         f.unlink()
 
-print("Old demo files removed.")
 time.sleep(0.1)
-
+print("Old demo files removed.")
 
 # ----------------------------------------------------------------------------------------------------------
 # 4. File handler with basic formatting
 # ----------------------------------------------------------------------------------------------------------
 print("\nAdding file handler (plain formatting)...")
-
 time.sleep(0.1)
 
 file_details = LogRecordDetails(
@@ -110,14 +102,12 @@ logger.add_file(
 )
 
 logger.info("This message goes to both console and file.")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 5. Demonstrate rotation basics
 # ----------------------------------------------------------------------------------------------------------
-print("\nAdding rotating file handler...")
 time.sleep(0.1)
+print("\nAdding rotating file handler...")
 
 rotation = RotationLogic(
     when=When.SECOND,   # rotate every second
@@ -134,20 +124,18 @@ logger.add_file(
 )
 
 print(logger.handler_info_json)
+time.sleep(0.1)
 
 logger.info("Rotation handler attached.")
-time.sleep(0.1)
 
 for i in range(20):
     logger.debug(f"Rotating message {i}")
-    time.sleep(0.05)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. Demonstrate color-preserving file output
 # ----------------------------------------------------------------------------------------------------------
-print("\nAdding color-preserving file handler...")
 time.sleep(0.1)
+print("\nAdding color-preserving file handler...")
 
 color_file = log_dir / "color_preserved.log"
 
@@ -159,61 +147,47 @@ logger.add_file(
     do_not_sanitize_colors_from_string=True,
 )
 
-colored = CPrint.colorize("This text contains ANSI colors", fg=CPrint.FG.BRIGHT_MAGENTA)
-
 print("\nWriting colored text via logger.raw():")
 time.sleep(0.1)
+colored = CPrint.colorize("This text contains ANSI colors", fg=CPrint.FG.BRIGHT_MAGENTA)
 logger.raw(colored)
-time.sleep(0.1)
 
-print("\nEscaped version (for inspection):")
 time.sleep(0.1)
+print("\nEscaped version of colored text (for inspection):")
 print(CPrint.escape_ansi_for_display(colored))
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 7. Read the color-preserved file back
 # ----------------------------------------------------------------------------------------------------------
-print("\nReading color-preserved file back...")
+print("\nReading color-preserved text back frm file:")
 time.sleep(0.1)
 
 with open(color_file, "r", encoding="utf-8") as fh:
     file_content = fh.read().rstrip()
 
-print("\nRaw file content:")
 time.sleep(0.1)
+print("---------------------------------------------")
 print(file_content)
-time.sleep(0.1)
+print("---------------------------------------------")
 
 print("\nEscaped file content:")
-time.sleep(0.1)
 print(CPrint.escape_ansi_for_display(file_content))
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 8. Show handler_info (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
-print("\nHandler info:\n-------------")
-time.sleep(0.1)
-
+print("\nHandlers details:\n-----------------")
 print(logger.handler_info_json)
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 9. SmartLogger safeguards (contextually relevant here)
 # ----------------------------------------------------------------------------------------------------------
-print("\nSmartLogger file-output safeguards:\n-----------------------------------")
-time.sleep(0.1)
-
-print(
-    "- log_dir must be an absolute, normalized path (prevents accidental use of relative paths)\n"
-    "- log_dir created if not exists\n"
-    "- prevents multiple handlers writing to the same file\n"
-    "- protects against invalid rotation configurations\n"
+print("\nSmartLogger file-output safeguards:"
+      "\n-----------------------------------\n"
+      "- log_dir must be an absolute, normalized path (prevents accidental use of relative paths)\n"
+      "- log_dir created if not exists\n"
+      "- prevents multiple handlers writing to the same file\n"
+      "- protects against invalid rotation configurations\n"
+      "\n\n"
+      "File output demo complete."
 )
-
-time.sleep(0.1)
-print("\nFile output demo complete.\n")

@@ -13,19 +13,18 @@ Demonstrates SmartLogger auditing:
 # ----------------------------------------------------------------------------------------------------------
 import sys
 from pathlib import Path
-from typing import Dict
-
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
 import time
+from pathlib import Path
+from typing import Dict
 
 from LogSmith import SmartLogger
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 from project_definitions import ROOT_DIR
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
@@ -34,14 +33,11 @@ levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nAuditing demo\n=============")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Prepare audit directory
 # ----------------------------------------------------------------------------------------------------------
 print("\nPreparing audit directory...")
-time.sleep(0.1)
 
 audit_dir = Path(ROOT_DIR) / "Logs" / "examples" / "auditing_demo"
 audit_dir.mkdir(parents=True, exist_ok=True)
@@ -53,7 +49,6 @@ for f in audit_dir.iterdir():
 
 print("Old audit files removed.")
 time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create several loggers with different handler setups
@@ -104,7 +99,6 @@ loggers["two_files"] = lg4
 print("Loggers created.")
 time.sleep(0.1)
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 4. Show logger configurations (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
@@ -117,7 +111,6 @@ for name, lg in loggers.items():
         print(f"\t\t{target}")
 
 time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 5. Enable auditing
@@ -154,8 +147,6 @@ SmartLogger.audit_everything(
 )
 
 print("Auditing enabled.")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. Exercise all loggers
@@ -168,45 +159,33 @@ for name, lg in loggers.items():
     lg.warning(f"[audit] logger '{name}' warning example")
     lg.error(f"[audit] logger '{name}' error example")
 
-# Give time-based rotation a chance to tick
-time.sleep(1.2)
-
-
 # ----------------------------------------------------------------------------------------------------------
 # 7. Disable auditing
 # ----------------------------------------------------------------------------------------------------------
+time.sleep(1.2)
 print("\nDisabling auditing...")
-time.sleep(0.1)
 
 SmartLogger.terminate_auditing()
 
 print("Auditing disabled.")
-time.sleep(0.1)
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 8. Show audit handler info
 # ----------------------------------------------------------------------------------------------------------
 print("\nAudit handler info:")
-time.sleep(0.1)
-
 audit_logger = SmartLogger.get("_audit", levels["TRACE"])  # internal audit logger
 print(audit_logger.handler_info_json)
-time.sleep(0.1)
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 9. Notes on adapting this demo
 # ----------------------------------------------------------------------------------------------------------
-print("\nNotes:")
-time.sleep(0.1)
-
-print(
-    "- To demonstrate size-only rotation: remove 'when' and 'interval'.\n"
-    "- To demonstrate time-only rotation: remove 'maxBytes'.\n"
-    "- To demonstrate long-term rotation (daily/weekly):\n"
-    "      use When.EVERYDAY or When.<WEEKDAY> and adjust timestamp.\n"
-    "- Auditing captures ALL loggers (each handler once), regardless of their own handlers.\n"
-)
-
-print("\nAuditing demo complete.\n")
+print("\nNotes:\n"
+      "- To demonstrate size-only rotation: remove 'when' and 'interval'.\n"
+      "- To demonstrate time-only rotation: remove 'maxBytes'.\n"
+      "- To demonstrate long-term rotation (daily/weekly):\n"
+      "      use When.EVERYDAY or When.<WEEKDAY> and adjust timestamp.\n"
+      "- Auditing captures ALL loggers (each handler once), regardless of their own handlers.\n"
+      "\n"
+      "Auditing demo complete.\n")

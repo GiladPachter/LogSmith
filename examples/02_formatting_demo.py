@@ -22,7 +22,6 @@ import time
 from LogSmith import SmartLogger
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
@@ -30,7 +29,6 @@ levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nGranular formatting demo\n========================")
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Logger with partial coloring (level + message)
@@ -66,7 +64,6 @@ def foo():
 lg_partial.info("Module-level log (func_name = <module>)")
 foo()
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 3. Logger with full-entry coloring
 # ----------------------------------------------------------------------------------------------------------
@@ -101,7 +98,6 @@ def bar():
 
 lg_full.info("Module-level log (full-entry coloring)")
 bar()
-
 
 time.sleep(0.1)
 print("\nGranular formatting demo complete.\n")

@@ -16,16 +16,14 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
+from pathlib import Path
 import time
-import json
-import os
 
 from LogSmith import SmartLogger
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 from project_definitions import ROOT_DIR
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
@@ -35,7 +33,6 @@ SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nRotation demo\n=============")
 time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Prepare log directory and clean old files
@@ -52,7 +49,6 @@ if log_dir.exists():
 
 print("Old rotation files removed.")
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create logger
 # ----------------------------------------------------------------------------------------------------------
@@ -61,7 +57,6 @@ time.sleep(0.1)
 
 logger = SmartLogger.get("rotation_demo", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 4. Common formatting for all file handlers
@@ -79,7 +74,6 @@ details = LogRecordDetails(
         "level",
     ],
 )
-
 
 # ==========================================================================================================
 # SIZE-BASED ROTATION
@@ -100,12 +94,9 @@ logger.add_file(
 
 for i in range(40):
     logger.info(f"[size] message {i}")
-    time.sleep(0.02)
 
 time.sleep(0.1)
 print("Size-based rotation complete.")
-time.sleep(0.1)
-
 
 # ==========================================================================================================
 # TIME-BASED ROTATION
@@ -129,12 +120,9 @@ logger.add_file(
 start = time.time()
 while time.time() - start < 3:
     logger.debug("[time] rotating...")
-    time.sleep(0.1)
 
 time.sleep(0.1)
 print("Time-based rotation complete.")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # NOTE ABOUT DAILY/WEEKLY ROTATION
@@ -148,8 +136,6 @@ print(
     "- interval=N means 'every N days' or 'every N weeks'.\n"
     "- These rotations occur even if the file is small.\n"
 )
-time.sleep(0.1)
-
 
 # ==========================================================================================================
 # COMBINED ROTATION (size + time)
@@ -173,28 +159,20 @@ logger.add_file(
 start = time.time()
 while time.time() - start < 2:
     logger.warning("[combined] rotating...")
-    time.sleep(0.05)
 
 time.sleep(0.1)
 print("Combined rotation complete.")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 5. Show handler_info (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
 print("\nHandler info:\n-------------")
-time.sleep(0.1)
-
 print(logger.handler_info_json)
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. SmartLogger rotation safeguards
 # ----------------------------------------------------------------------------------------------------------
 print("\nSmartLogger rotation safeguards:\n--------------------------------")
-time.sleep(0.1)
 
 print(
     "- Validates rotation parameters\n"
@@ -203,6 +181,5 @@ print(
     "- Ensures time-based rotation triggers reliably\n"
     "- Ensures size-based rotation triggers immediately when threshold is exceeded\n"
 )
-time.sleep(0.1)
 
 print("\nRotation demo complete.\n")

@@ -28,14 +28,11 @@ levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nHierarchy demo\n==============")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Explain hierarchy rules
 # ----------------------------------------------------------------------------------------------------------
 print("\nHierarchy rules:")
-time.sleep(0.1)
 
 print(
     "  - Logger names define hierarchy via dot notation\n"
@@ -50,12 +47,10 @@ print(
 )
 time.sleep(0.1)
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create loggers
 # ----------------------------------------------------------------------------------------------------------
 print("\nCreating loggers...")
-time.sleep(0.1)
 
 parent     = SmartLogger.get("myapp",           level=levels["DEBUG"])
 child      = SmartLogger.get("myapp.api",       level=levels["NOTSET"])
@@ -79,7 +74,6 @@ parent.add_console(level=levels["TRACE"], log_record_details=details)
 child.add_console(level=levels["TRACE"], log_record_details=details)
 grandchild.add_console(level=levels["TRACE"], log_record_details=details)
 
-
 # ----------------------------------------------------------------------------------------------------------
 # Helper: exercise all loggers
 # ----------------------------------------------------------------------------------------------------------
@@ -94,47 +88,42 @@ def exercise():
     grandchild.debug("grandchild DEBUG")
     grandchild.warning("grandchild WARNING")
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 4. Demonstrate inheritance
 # ----------------------------------------------------------------------------------------------------------
 print("\nInitial behavior (parent = DEBUG, children = NOTSET → inherit DEBUG):")
 time.sleep(0.1)
 exercise()
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 5. Change parent level → children inherit new level
 # ----------------------------------------------------------------------------------------------------------
+time.sleep(0.1)
 print("\nChanging parent level to INFO...")
 time.sleep(0.1)
 
 parent.setLevel(levels["INFO"])
 exercise()
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. Change parent level again
 # ----------------------------------------------------------------------------------------------------------
+time.sleep(0.1)
 print("\nChanging parent level to TRACE...")
 time.sleep(0.1)
 
 parent.setLevel(levels["TRACE"])
 exercise()
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 7. Change parent level to WARNING
 # ----------------------------------------------------------------------------------------------------------
+time.sleep(0.1)
 print("\nChanging parent level to WARNING...")
 time.sleep(0.1)
 
 parent.setLevel(levels["WARNING"])
 exercise()
 time.sleep(0.1)
-
 
 print("\nHierarchy demo complete.\n")

@@ -24,7 +24,6 @@ import json
 
 from LogSmith import SmartLogger, CPrint, LevelStyle
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
@@ -32,8 +31,7 @@ levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nBuiltin logger levels:")
-print(json.dumps(levels, indent=4))
-
+print(json.dumps(levels, indent = 4))
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create a logger and attach a console handler
@@ -46,7 +44,6 @@ logger.add_console(level=levels["TRACE"])
 # print() writes to stdout, SmartLogger console writes to stderr.
 # To avoid interleaving, we add tiny sleeps before/after print().
 time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Basic log messages
@@ -61,7 +58,6 @@ logger.warning("warning message")
 logger.error("error message")
 logger.critical("critical message")
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 4. Named arguments (structured message parameters)
 # ----------------------------------------------------------------------------------------------------------
@@ -71,7 +67,6 @@ time.sleep(0.1)
 
 logger.info("User login event", username="Gilad", action="login")
 logger.warning("Suspicious activity detected", reason="multiple failed attempts")
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 5. Dynamic level registration
@@ -98,41 +93,44 @@ SmartLogger.register_level(
 )
 logger.alert("This is an ALERT-level message")
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 6. RAW text (plain + colored)
 # ----------------------------------------------------------------------------------------------------------
 time.sleep(0.1)
 print("\nRAW text output:\n----------------")
 time.sleep(0.1)
-
-logger.raw("This is raw text (no formatting, no prefix).")
-logger.raw("RAW text syncs perfectly with other logging operations.")
+logger.raw("SmartLogger loggers can log raw text (no formatting, no prefix)."
+           "\nRAW text syncs perfectly with other logging operations."
+           "\nNote: DON'T SPAM !"
+           "\n      Meaning, don't use logger.raw() as convenient replacement for print()"
+           "\n      It's not good practice to call logger.raw() if your logger writes to a log file meant for parsing later on."
+           "\n      Use logger.raw() only in cases where you intentionally..."
+           "\n      ...mean for your log file to break the typical structure of   line = log-entry")
 
 time.sleep(0.1)
 print("\nRAW colored text:\n------------------")
 time.sleep(0.1)
 
 colored = [
-    CPrint.colorize("RAW", fg=CPrint.FG.BRIGHT_RED),
-    CPrint.colorize("text", fg=CPrint.FG.ORANGE),
-    CPrint.colorize("rocks", fg=CPrint.FG.BRIGHT_YELLOW),
-    CPrint.colorize("in", fg=CPrint.FG.BRIGHT_GREEN),
+    CPrint.colorize("RAW",      fg=CPrint.FG.BRIGHT_RED),
+    CPrint.colorize("text",     fg=CPrint.FG.ORANGE),
+    CPrint.colorize("rocks",    fg=CPrint.FG.BRIGHT_YELLOW),
+    CPrint.colorize("in",       fg=CPrint.FG.BRIGHT_GREEN),
     CPrint.colorize("multiple", fg=CPrint.FG.BRIGHT_BLUE),
-    CPrint.colorize("colors", fg=CPrint.FG.SOFT_PURPLE)
+    CPrint.colorize("colors",   fg=CPrint.FG.SOFT_PURPLE)
 ]
 
 logger.raw(" ".join(colored))
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 7. Safeguards & validations (informational)
 # ----------------------------------------------------------------------------------------------------------
-print("\nSmartLogger safeguards:\n-----------------------")
-print(
-    "- Prevents duplicate handlers\n"
-    "- Validates log_dir paths (absolute + normalized)\n"
-    "- Ensures consistent initialization\n"
-)
-
-print("\nBasic logging demo complete.\n")
+time.sleep(0.1)
+print("\nSmartLogger safeguards:"
+      "\n-----------------------\n"
+      "- Prevents duplicate handlers\n"
+      "- Validates log_dir paths (absolute + normalized)\n"
+      "- Ensures consistent initialization\n"
+      "\n\n"
+      "Basic logging demo complete."
+      )

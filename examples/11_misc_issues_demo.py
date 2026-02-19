@@ -23,14 +23,11 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 import json
+from pathlib import Path
 
 from LogSmith import SmartLogger
 from LogSmith import LogRecordDetails, OptionalRecordFields
 from LogSmith import RotationLogic, When
-from LogSmith import LevelStyle, CPrint
-
-from project_definitions import ROOT_DIR
-
 
 # ----------------------------------------------------------------------------------------------------------
 # JSON-safe serializer
@@ -46,7 +43,6 @@ def safe(obj):
         return {k: safe(v) for k, v in obj.items()}
     return str(obj)
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
@@ -55,7 +51,6 @@ SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nMiscellaneous SmartLogger Features\n=================================")
 time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create logger with exc_info + stack_info enabled
@@ -76,7 +71,6 @@ details = LogRecordDetails(
 logger = SmartLogger.get("misc", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"], log_record_details=details)
 
-
 # ==========================================================================================================
 # A. get_record()
 # ==========================================================================================================
@@ -90,7 +84,6 @@ print("\nRecord contents (JSON-safe):")
 time.sleep(0.1)
 print(json.dumps(safe(record.__dict__), indent=4))
 time.sleep(0.1)
-
 
 # ==========================================================================================================
 # B. exc_info and stack_info (now visible)
@@ -107,7 +100,6 @@ logger.raw("")
 
 logger.debug("Debug with Stack Info", stack_info=True)
 time.sleep(0.1)
-
 
 # ==========================================================================================================
 # C. retire() and destroy()
@@ -140,7 +132,6 @@ except Exception as e:
     print(f"Caught expected error:\n    {type(e).__name__}: {e}")
 time.sleep(0.1)
 
-
 # ==========================================================================================================
 # D. Invalid message_parts_order
 # ==========================================================================================================
@@ -155,7 +146,6 @@ except Exception as e:
     print(f"Caught expected error:\n    {type(e).__name__}: {e}")
 time.sleep(0.1)
 
-
 # ==========================================================================================================
 # E. Invalid log_dir
 # ==========================================================================================================
@@ -168,7 +158,6 @@ except Exception as e:
     print(f"Caught expected error:\n    {type(e).__name__}: {e}")
 time.sleep(0.1)
 
-
 # ==========================================================================================================
 # F. Invalid rotation logic
 # ==========================================================================================================
@@ -178,7 +167,6 @@ try:
 except Exception as e:
     print(f"Caught expected error:\n    {type(e).__name__}: {e}")
 time.sleep(0.1)
-
 
 # ==========================================================================================================
 # G. Invalid level registration
@@ -198,7 +186,6 @@ except Exception as e:
     print(f"Caught expected error:\n    {type(e).__name__}: {e}")
 time.sleep(0.1)
 
-
 # ==========================================================================================================
 # H. Invalid theme registration
 # ==========================================================================================================
@@ -210,7 +197,6 @@ try:
 except Exception as e:
     print(f"Caught expected error:\n    {type(e).__name__}: {e}")
 time.sleep(0.1)
-
 
 # ==========================================================================================================
 # I. Summary

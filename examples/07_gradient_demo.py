@@ -28,7 +28,6 @@ from LogSmith.colors import (
     blend_palettes,
 )
 
-
 # ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
@@ -36,8 +35,6 @@ levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nGradient demo\n=============")
-time.sleep(0.1)
-
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create logger with console handler
@@ -48,23 +45,22 @@ time.sleep(0.1)
 lg = SmartLogger.get("gradient.demo", level=levels["TRACE"])
 lg.add_console(level=levels["TRACE"])
 
-
 # ----------------------------------------------------------------------------------------------------------
 # Helper: section header
 # ----------------------------------------------------------------------------------------------------------
 def section(title: str):
-    print(f"\n{title}\n" + "-" * len(title))
     time.sleep(0.1)
-    lg.raw("")  # visual spacing
-
+    print(f"\n{title}\n" + "-" * len(title) + "\n")
+    time.sleep(0.1)
 
 # ----------------------------------------------------------------------------------------------------------
 # Helper: palette preview
 # ----------------------------------------------------------------------------------------------------------
 def preview_palette(name: str, colors: list[int]):
-    lg.raw(f"{name}:")
-    lg.raw(CPrint.gradient("█" * 40, fg_codes=colors))
-    lg.raw("")
+    time.sleep(0.1)
+    print(f"{name}:")
+    print(CPrint.gradient("█" * 40, fg_codes=colors) + "\n")
+    time.sleep(0.1)
 
 
 # ==========================================================================================================
@@ -93,7 +89,6 @@ lg.raw(CPrint.gradient(
     fg_codes=[GradientPalette.RED, GradientPalette.YELLOW],
 ))
 
-
 # ==========================================================================================================
 # 2. Three‑stop foreground gradient
 # ==========================================================================================================
@@ -104,7 +99,6 @@ lg.raw(CPrint.gradient(
     fg_codes=[GradientPalette.RED, GradientPalette.GREEN, GradientPalette.BLUE],
 ))
 
-
 # ==========================================================================================================
 # 3. Rainbow foreground gradient
 # ==========================================================================================================
@@ -114,7 +108,6 @@ lg.raw(CPrint.gradient(
     "Full rainbow gradient",
     fg_codes=GradientPalette.RAINBOW,
 ))
-
 
 # ==========================================================================================================
 # 4. Vertical foreground gradient
@@ -127,7 +120,6 @@ lg.raw(CPrint.gradient(
     direction=GradientDirection.VERTICAL,
 ))
 
-
 # ==========================================================================================================
 # 5. Background gradient
 # ==========================================================================================================
@@ -137,7 +129,6 @@ lg.raw(CPrint.gradient(
     "Background gradient example.",
     bg_codes=GradientPalette.ICE,
 ))
-
 
 # ==========================================================================================================
 # 6. Combined FG + BG gradient
@@ -150,7 +141,6 @@ lg.raw(CPrint.gradient(
     bg_codes=[GradientPalette.DEEP_BLUE, GradientPalette.BLUE_4, GradientPalette.CYAN],
 ))
 
-
 # ==========================================================================================================
 # 7. Rainbow FG + Greyscale BG
 # ==========================================================================================================
@@ -162,7 +152,6 @@ lg.raw(CPrint.gradient(
     bg_codes=GradientPalette.GREYSCALE,
 ))
 
-
 # ==========================================================================================================
 # 8. Palette blending
 # ==========================================================================================================
@@ -172,20 +161,18 @@ tropical = blend_palettes(GradientPalette.SUNSET, GradientPalette.OCEAN)
 preview_palette("Tropical (blended)", tropical)
 lg.raw(CPrint.gradient("Tropical blended gradient", fg_codes=tropical))
 
-
 section("9. Blended palette: NEON + FIRE → CyberFire")
 
 cyberfire = blend_palettes(GradientPalette.NEON, GradientPalette.FIRE, steps=12)
 preview_palette("CyberFire (blended)", cyberfire)
-lg.raw(CPrint.gradient("CyberFire blended gradient", fg_codes=cyberfire))
-
+print(CPrint.gradient("CyberFire blended gradient", fg_codes=cyberfire))
+time.sleep(0.1)
 
 # ==========================================================================================================
 # 10. Done
 # ==========================================================================================================
 section("10. Done")
 
-lg.raw("All gradient features demonstrated.")
-
 time.sleep(0.1)
-print("Gradient demo complete.\n")
+print("All gradient features demonstrated.\n")
+print("\nGradient demo complete.")
