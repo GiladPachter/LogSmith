@@ -98,7 +98,7 @@ Built‑in:
 Apply a color theme to log levels in the console output:
 
 ```python
-from smartlogger.themes import THEME_DARK
+from LogSmith.themes import THEME_DARK
 
 SmartLogger.apply_color_theme("dark", THEME_DARK)
 ```

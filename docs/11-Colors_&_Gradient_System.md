@@ -22,13 +22,13 @@ This makes SmartLogger ideal for expressive console output, banners, demos, and 
 Use `CPrint.colorize()` to apply foreground, background, intensity, and styles:
 
 ```python
-from smartlogger import CPrint
+from LogSmith import CPrint
 
 text = CPrint.colorize(
     "Hello",
-    fg = CPrint.FG.BRIGHT_RED,
-    bg = CPrint.BG.BLACK,
-    intensity = CPrint.Intensity.BOLD,
+    fg=CPrint.FG.BRIGHT_RED,
+    bg=CPrint.BG.BLACK,
+    intensity=CPrint.Intensity.BOLD,
 )
 logger.raw(text)
 ```
@@ -45,11 +45,11 @@ Supported style groups:
 # 🔹 Foreground Gradients
 
 ```python
-from smartlogger import CPrint, GradientPalette
+from LogSmith import CPrint, GradientPalette
 
 logger.raw(CPrint.gradient(
     "Rainbow text!",
-    fg_codes = GradientPalette.RAINBOW,
+    fg_codes=GradientPalette.RAINBOW,
 ))
 ```
 
@@ -125,10 +125,10 @@ logger.raw(CPrint.gradient("█████████████████�
 Blend two palettes into a new one:
 
 ```python
-from smartlogger import blend_palettes
+from LogSmith import blend_palettes
 
 tropical = blend_palettes(GradientPalette.SUNSET, GradientPalette.OCEAN)
-logger.raw(CPrint.gradient("Tropical!", fg_codes = tropical))
+logger.raw(CPrint.gradient("Tropical!", fg_codes=tropical))
 ```
 
 You can specify the number of steps:

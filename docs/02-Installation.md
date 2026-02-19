@@ -42,8 +42,9 @@ SmartLogger automatically detects platform capabilities and falls back gracefull
 ## 🧪 Verify installation
 
 ```python
-import smartlogger
-print(smartlogger.__version__)
+import LogSmith
+
+print(LogSmith.__version__)
 ```
 
 ---

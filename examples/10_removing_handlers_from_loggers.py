@@ -13,7 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from project_definitions import ROOT_DIR
 
-from smartlogger import SmartLogger
+from LogSmith import SmartLogger
 
 # ------------------------------------------------------------
 # SmartLogger initialization

@@ -17,13 +17,13 @@ All rotation behavior is configured through `RotationLogic`.
 ## 🔹 Creating Rotation Logic
 
 ```python
-from smartlogger import RotationLogic, When
+from LogSmith import RotationLogic, When
 
 rotation = RotationLogic(
-    maxBytes = 50_000,
-    when = When.SECOND,
-    interval = 1,
-    backupCount = 10,
+    maxBytes=50_000,
+    when=When.SECOND,
+    interval=1,
+    backupCount=10,
 )
 ```
 
@@ -85,11 +85,11 @@ RotationLogic(when = When.HOUR, interval = 1)
 ## 3. Daily Rotation (at a specific time)
 
 ```python
-from smartlogger import RotationTimestamp
+from LogSmith import RotationTimestamp
 
 RotationLogic(
-    when = When.EVERYDAY,
-    timestamp = RotationTimestamp(hour = 0, minute = 0, second = 0),  # midnight
+    when=When.EVERYDAY,
+    timestamp=RotationTimestamp(hour=0, minute=0, second=0),  # midnight
 )
 ```
 
@@ -133,15 +133,15 @@ This is ideal for high‑volume logs.
 SmartLogger can automatically delete old rotated files.
 
 ```python
-from smartlogger import ExpirationRule, ExpirationScale
+from LogSmith import ExpirationRule, ExpirationScale
 
 RotationLogic(
-    when = When.SECOND,
-    interval = 1,
-    backupCount = 10,
-    expiration_rule = ExpirationRule(
-        scale = ExpirationScale.Seconds,
-        interval = 5,   # delete rotated files older than 5 seconds
+    when=When.SECOND,
+    interval=1,
+    backupCount=10,
+    expiration_rule=ExpirationRule(
+        scale=ExpirationScale.Seconds,
+        interval=5,  # delete rotated files older than 5 seconds
     ),
 )
 ```

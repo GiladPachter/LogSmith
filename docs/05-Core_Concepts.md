@@ -97,9 +97,9 @@ SmartLogger integrates a powerful ANSI color engine:
 Example:
 
 ```python
-from smartlogger import CPrint, GradientPalette
+from LogSmith import CPrint, GradientPalette
 
-logger.raw(CPrint.gradient("Hello", fg_codes = GradientPalette.RAINBOW))
+logger.raw(CPrint.gradient("Hello", fg_codes=GradientPalette.RAINBOW))
 ```
 
 ---

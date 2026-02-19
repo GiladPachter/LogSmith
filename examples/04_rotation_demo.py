@@ -20,9 +20,9 @@ import time
 import json
 import os
 
-from smartlogger import SmartLogger
-from smartlogger import RotationLogic, When
-from smartlogger import LogRecordDetails, OptionalRecordFields
+from LogSmith import SmartLogger
+from LogSmith import RotationLogic, When
+from LogSmith import LogRecordDetails, OptionalRecordFields
 
 from project_definitions import ROOT_DIR
 

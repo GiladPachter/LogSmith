@@ -8,10 +8,10 @@ After that, you can create loggers, attach handlers, and start logging immediate
 ## 1. Initialize SmartLogger
 
 ```python
-from smartlogger import SmartLogger
+from LogSmith import SmartLogger
 
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level = levels["INFO"])
+SmartLogger.initialize_smartlogger(level=levels["INFO"])
 ```
 This is an essential preliminary step at the start of any process that makes use of smartlogger.</br>
 SmartLogger replaces Python’s root logger with a SmartLogger root and ensures consistent behavior across all loggers.
@@ -46,12 +46,12 @@ logger.error("Something *is* wrong")
 ## 5. Optional: Add a file handler
 
 ```python
-from smartlogger import RotationLogic
+from LogSmith import RotationLogic
 
 logger.add_file(
-    log_dir = "logs",
-    logfile_name = "demo.log",
-    rotation_logic = RotationLogic(maxBytes=50_000, backupCount=5),
+    log_dir="logs",
+    logfile_name="demo.log",
+    rotation_logic=RotationLogic(maxBytes=50_000, backupCount=5),
 )
 ```
 

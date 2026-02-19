@@ -36,13 +36,13 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/yourname/smartlogger"
-Documentation = "https://github.com/yourname/smartlogger#readme"
-Source = "https://github.com/yourname/smartlogger"
-Issues = "https://github.com/yourname/smartlogger/issues"
+Homepage = "https://github.com/yourname/LogSmith"
+Documentation = "https://github.com/yourname/LogSmith#readme"
+Source = "https://github.com/yourname/LogSmith"
+Issues = "https://github.com/yourname/LogSmith/issues"
 
 [tool.setuptools]
-packages = ["smartlogger"]
+packages = ["LogSmith"]
 
 [tool.setuptools.package-data]
-smartlogger = ["py.typed"]
+LogSmith = ["py.typed"]

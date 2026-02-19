@@ -62,8 +62,8 @@ THEME_DARK = {
 ## 🔹 Applying a Theme Globally
 
 ```python
-from smartlogger import SmartLogger
-from smartlogger.themes import DARK_THEME
+from LogSmith import SmartLogger
+from LogSmith.themes import DARK_THEME
 
 SmartLogger.apply_theme(DARK_THEME)
 ```
@@ -73,20 +73,20 @@ SmartLogger.apply_theme(DARK_THEME)
 ## 🔹 Creating Your Own Theme
 
 ```python
-from smartlogger import LevelStyle, CPrint
+from LogSmith import LevelStyle, CPrint
 
 MY_THEME = {
-    5:  LevelStyle(fg=CPrint.FG.CYAN),
+    5: LevelStyle(fg=CPrint.FG.CYAN),
     10: LevelStyle(fg=CPrint.FG.BLUE),
     20: LevelStyle(fg=CPrint.FG.GREEN),
     30: LevelStyle(fg=CPrint.FG.YELLOW),
     40: LevelStyle(fg=CPrint.FG.RED),
     50: LevelStyle(
-            fg=CPrint.FG.WHITE,
-            bg=CPrint.BG.RED,
-            intensity=CPrint.Intensity.BOLD,
-            styles=(CPrint.Style.UNDERLINE,)
-        ),
+        fg=CPrint.FG.WHITE,
+        bg=CPrint.BG.RED,
+        intensity=CPrint.Intensity.BOLD,
+        styles=(CPrint.Style.UNDERLINE,)
+    ),
 }
 ```
 

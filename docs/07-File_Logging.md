@@ -61,15 +61,15 @@ Rotation triggers when **either** condition is met.
 SmartLogger can automatically delete old rotated files:
 
 ```python
-from smartlogger import ExpirationRule, ExpirationScale
+from LogSmith import ExpirationRule, ExpirationScale
 
 rotation = RotationLogic(
-    when = When.SECOND,
-    interval = 1,
-    backupCount = 10,
-    expiration_rule = ExpirationRule(
-        scale = ExpirationScale.Seconds,
-        interval = 5,   # delete rotated files older than 5 seconds
+    when=When.SECOND,
+    interval=1,
+    backupCount=10,
+    expiration_rule=ExpirationRule(
+        scale=ExpirationScale.Seconds,
+        interval=5,  # delete rotated files older than 5 seconds
     ),
 )
 ```

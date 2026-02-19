@@ -17,12 +17,12 @@ Auditing is **opt‑in**, and can be enabled or disabled at any time.
 ## 🔹 Enabling Auditing
 
 ```python
-from smartlogger import SmartLogger, RotationLogic
+from LogSmith import SmartLogger, RotationLogic
 
 SmartLogger.audit_everything(
-    log_dir = "audit",
-    logfile_name = "audit.log",
-    rotation_logic = RotationLogic(maxBytes = 50_000, backupCount = 5),
+    log_dir="audit",
+    logfile_name="audit.log",
+    rotation_logic=RotationLogic(maxBytes=50_000, backupCount=5),
 )
 ```
 

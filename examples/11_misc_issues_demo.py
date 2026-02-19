@@ -24,10 +24,10 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import time
 import json
 
-from smartlogger import SmartLogger
-from smartlogger import LogRecordDetails, OptionalRecordFields
-from smartlogger import RotationLogic, When
-from smartlogger import LevelStyle, CPrint
+from LogSmith import SmartLogger
+from LogSmith import LogRecordDetails, OptionalRecordFields
+from LogSmith import RotationLogic, When
+from LogSmith import LevelStyle, CPrint
 
 from project_definitions import ROOT_DIR
 

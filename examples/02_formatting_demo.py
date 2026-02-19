@@ -19,8 +19,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 
-from smartlogger import SmartLogger
-from smartlogger import LogRecordDetails, OptionalRecordFields
+from LogSmith import SmartLogger
+from LogSmith import LogRecordDetails, OptionalRecordFields
 
 
 # ----------------------------------------------------------------------------------------------------------

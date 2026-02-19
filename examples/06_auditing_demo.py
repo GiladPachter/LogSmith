@@ -20,9 +20,9 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 
-from smartlogger import SmartLogger
-from smartlogger import RotationLogic, When
-from smartlogger import LogRecordDetails, OptionalRecordFields
+from LogSmith import SmartLogger
+from LogSmith import RotationLogic, When
+from LogSmith import LogRecordDetails, OptionalRecordFields
 
 from project_definitions import ROOT_DIR
 

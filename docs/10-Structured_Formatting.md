@@ -22,16 +22,17 @@ This system replaces fragile format strings with a clean, structured configurati
 Example:
 
 ```python
-from smartlogger import LogRecordDetails, OptionalRecordFields
+from LogSmith import LogRecordDetails, OptionalRecordFields
+
 details = LogRecordDetails(
-    datefmt = "%Y-%m-%d %H:%M:%S.%3f",
-    separator = "•",
-    optional_record_fields = OptionalRecordFields(
-        logger_name = True,
-        file_name = True,
-        lineno = True,
+    datefmt="%Y-%m-%d %H:%M:%S.%3f",
+    separator="•",
+    optional_record_fields=OptionalRecordFields(
+        logger_name=True,
+        file_name=True,
+        lineno=True,
     ),
-    message_parts_order = [
+    message_parts_order=[
         "level",
         "logger_name",
         "file_name",

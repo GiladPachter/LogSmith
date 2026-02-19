@@ -20,8 +20,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 
-from smartlogger import SmartLogger
-from smartlogger.colors import (
+from LogSmith import SmartLogger
+from LogSmith.colors import (
     CPrint,
     GradientDirection,
     GradientPalette,

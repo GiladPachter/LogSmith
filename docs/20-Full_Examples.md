@@ -8,7 +8,7 @@ Each subsection contains the essential code patterns you need to use SmartLogger
 # 1. Initialization & Basic Logging
 
 ```python
-from smartlogger import SmartLogger
+from LogSmith import SmartLogger
 
 levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["INFO"])
@@ -29,7 +29,7 @@ logger.critical("critical message")
 # 2. Formatting
 
 ```python
-from smartlogger import LogRecordDetails, OptionalRecordFields
+from LogSmith import LogRecordDetails, OptionalRecordFields
 
 details = LogRecordDetails(
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -73,7 +73,7 @@ logger.info("This goes to console and file")
 ### Color‑preserving file output
 
 ```python
-from smartlogger.colors import CPrint
+from LogSmith.colors import CPrint
 
 logger.add_file(
     log_dir=str(log_dir),
@@ -90,11 +90,11 @@ logger.raw(colored)
 # 4. Rotation
 
 ```python
-from smartlogger import RotationLogic, When
+from LogSmith import RotationLogic, When
 
 rotation = RotationLogic(
-    maxBytes=2000,        # size-based
-    when=When.SECOND,     # time-based
+    maxBytes=2000,  # size-based
+    when=When.SECOND,  # time-based
     interval=1,
     backupCount=5,
 )
@@ -133,7 +133,7 @@ grandchild.warning("now visible")
 # 6. Auditing
 
 ```python
-from smartlogger import RotationLogic, When, LogRecordDetails, OptionalRecordFields
+from LogSmith import RotationLogic, When, LogRecordDetails, OptionalRecordFields
 
 audit_details = LogRecordDetails(
     optional_record_fields=OptionalRecordFields(
@@ -167,7 +167,7 @@ SmartLogger.terminate_auditing()
 # 7. Themes
 
 ```python
-from smartlogger import NEON_THEME
+from LogSmith import NEON_THEME
 
 SmartLogger.apply_color_theme(NEON_THEME)
 
@@ -188,7 +188,7 @@ SmartLogger.apply_color_theme(None)
 # 8. Gradients
 
 ```python
-from smartlogger.colors import CPrint, GradientPalette, GradientDirection
+from LogSmith.colors import CPrint, GradientPalette, GradientDirection
 
 logger.raw(
     CPrint.gradient(
@@ -209,7 +209,7 @@ logger.raw(
 Palette blending:
 
 ```python
-from smartlogger.colors import blend_palettes
+from LogSmith.colors import blend_palettes
 
 tropical = blend_palettes(GradientPalette.SUNSET, GradientPalette.OCEAN)
 logger.raw(CPrint.gradient("Tropical", fg_codes=tropical))

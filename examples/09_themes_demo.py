@@ -10,8 +10,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 
-from smartlogger import SmartLogger
-from smartlogger import DARK_THEME, LIGHT_THEME, NEON_THEME, PASTEL_THEME, FIRE_THEME, OCEAN_THEME
+from LogSmith import SmartLogger
+from LogSmith import DARK_THEME, LIGHT_THEME, NEON_THEME, PASTEL_THEME, FIRE_THEME, OCEAN_THEME
 
 # ----------------------------------------------------------------------------------------------------------
 # critically essential initialization first thing at application entry point, for consistent logger behavior

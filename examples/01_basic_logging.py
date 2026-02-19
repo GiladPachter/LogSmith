@@ -22,8 +22,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import time
 import json
 
-from smartlogger import SmartLogger, CPrint, LevelStyle
-from project_definitions import ROOT_DIR
+from LogSmith import SmartLogger, CPrint, LevelStyle
 
 
 # ----------------------------------------------------------------------------------------------------------

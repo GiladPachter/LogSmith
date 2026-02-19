@@ -106,9 +106,9 @@ Raw output:
 SmartLogger integrates seamlessly with the gradient engine:
 
 ```python
-from smartlogger import CPrint, GradientPalette
+from LogSmith import CPrint, GradientPalette
 
-logger.raw(CPrint.gradient("Rainbow!", fg_codes = GradientPalette.RAINBOW))
+logger.raw(CPrint.gradient("Rainbow!", fg_codes=GradientPalette.RAINBOW))
 ```
 
 Gradients support:

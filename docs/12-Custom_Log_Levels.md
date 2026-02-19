@@ -14,7 +14,7 @@ This is far more flexible than Python’s built‑in logging system.
 # 🔹 Registering a New Level
 
 ```python
-from smartlogger import SmartLogger
+from LogSmith import SmartLogger
 
 SmartLogger.register_level("NOTICE", 25)
 ```
@@ -33,7 +33,7 @@ This creates:
 # 🔹 Customizing Level Style
 
 ```python
-from smartlogger import LevelStyle, CPrint
+from LogSmith import LevelStyle, CPrint
 
 SmartLogger.register_level(
     "ALERT",
