@@ -186,6 +186,6 @@ print("\nNotes:\n"
       "- To demonstrate time-only rotation: remove 'maxBytes'.\n"
       "- To demonstrate long-term rotation (daily/weekly):\n"
       "      use When.EVERYDAY or When.<WEEKDAY> and adjust timestamp.\n"
-      "- Auditing captures ALL loggers (each handler once), regardless of their own handlers.\n"
+      "- Auditing captures ALL loggers (each logger once), regardless of their own handlers.\n"
       "\n"
       "Auditing demo complete.\n")
