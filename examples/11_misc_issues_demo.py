@@ -79,10 +79,11 @@ time.sleep(0.1)
 
 logger.info("This is a test message for get_record()")
 record = logger.get_record()
+record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
 
-print("\nRecord contents (JSON-safe):")
+print("\nRecord contents:")
 time.sleep(0.1)
-print(json.dumps(safe(record.__dict__), indent=4))
+logger.raw(json.dumps(record.__dict__, indent=4))
 time.sleep(0.1)
 
 # ==========================================================================================================
