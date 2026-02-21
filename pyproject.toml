@@ -17,7 +17,7 @@ authors = [
 
 keywords = [
     "logging",
-    "log rotation & retention",
+    "log rotation and retention",
     "concurrency",
     "thread-safe",
     "python logging",
@@ -40,8 +40,8 @@ Documentation = "https://github.com/yourname/LogSmith#readme"
 Source = "https://github.com/yourname/LogSmith"
 Issues = "https://github.com/yourname/LogSmith/issues"
 
-[tool.setuptools]
-packages = ["LogSmith"]
+[tool.setuptools.packages.find]
+where = ["."]
 
 [tool.setuptools.package-data]
 LogSmith = ["py.typed"]
