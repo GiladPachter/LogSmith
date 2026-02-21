@@ -10,7 +10,7 @@ import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Protocol, Literal, cast, Union
+from typing import Any, Optional, Protocol, Literal, cast, Union, Callable
 
 from .formatter import (
     StructuredPlainFormatter,
@@ -31,7 +31,7 @@ class HandlerInfo:
     kind: Literal["console", "file"]
     handler: logging.Handler
     level: int
-    formatter: Union[StructuredPlainFormatter, StructuredColorFormatter, PassthroughFormatter]
+    formatter: Union[StructuredPlainFormatter, StructuredColorFormatter, PassthroughFormatter, AuditFormatter]
     path: str | None = None
     rotation_logic: RotationLogic | None = None
     do_not_sanitize_colors_from_string: bool = False
@@ -70,7 +70,7 @@ class RetrievedRecord:
     process_name: str | None = None
 
     # diagnostics
-    exc_info: tuple | None = None
+    exc_info: dict | None = None
     stack_info: str | None = None
 
 
@@ -224,20 +224,6 @@ class SmartLogger(logging.Logger):
         self.warning  = self._wrap_builtin(logging.WARNING)
         self.error    = self._wrap_builtin(logging.ERROR)
         self.critical = self._wrap_builtin(logging.CRITICAL)
-
-    # ------------------------------------------------------------------
-    #  GLOBAL INITIALIZATION
-    # ------------------------------------------------------------------
-    def _get_real_logger(self):
-        # Try common attribute names
-        for attr in ("_logger", "logger", "_log", "_inner_logger", "_base_logger"):
-            if hasattr(self, attr):
-                obj = getattr(self, attr)
-                if isinstance(obj, logging.Logger):
-                    return obj
-
-        # Fallback: use logger name
-        return logging.getLogger(self.name)
 
     @staticmethod
     def _bleach_non_colored_text(message: str) -> str:
@@ -422,7 +408,7 @@ class SmartLogger(logging.Logger):
             stacklevel=stacklevel + 1,
         )
 
-    def _wrap_builtin(self, level_value: int):
+    def _wrap_builtin(self, level_value: int) -> Callable[..., None]:
         def log_method(msg=None, *args, stacklevel=2, **kwargs):
             if msg is None:
                 msg = ""
@@ -1193,7 +1179,15 @@ class SmartLogger(logging.Logger):
             rec.process_name = self._get_process_name()
 
         if exc_info:
-            rec.exc_info = exc_val
+            exc_type, exc_value, exc_tb = exc_val
+            rec.exc_info = {
+                "exc_parts": {
+                    "err_type_name": None if exc_type  is None else exc_type.__name__,
+                    "error_text":    None if exc_value is None else exc_value.__str__(),
+                    "stack_trace":   None if exc_tb    is None else ''.join(traceback.format_tb(exc_tb)),
+                },
+                "full_trace_text":   None if exc_type  is None else ''.join(traceback.format_exception(exc_type, exc_value, exc_tb)),
+            }
 
         if stack_info:
             rec.stack_info = stack_val

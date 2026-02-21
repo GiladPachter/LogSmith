@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "LogSmith"
 version = "1.7.0"
 description = "A high-performance, structured, color-aware logging framework for Python"
-readme = "README.md"
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -27,18 +27,22 @@ keywords = [
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
     "Topic :: System :: Logging",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/yourname/LogSmith"
-Documentation = "https://github.com/yourname/LogSmith#readme"
-Source = "https://github.com/yourname/LogSmith"
-Issues = "https://github.com/yourname/LogSmith/issues"
+Homepage = "https://github.com/GiladPachter/LogSmith"
+Documentation = "https://github.com/GiladPachter/LogSmith#readme"
+Source = "https://github.com/GiladPachter/LogSmith"
+Issues = "https://github.com/GiladPachter/LogSmith/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
