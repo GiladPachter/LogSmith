@@ -1,6 +1,6 @@
 # 🧮 Versioning
 
-SmartLogger uses Semantic Versioning:
+LogSmith uses Semantic Versioning:
 
 MAJOR.MINOR.PATCH
 

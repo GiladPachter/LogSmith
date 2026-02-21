@@ -1,6 +1,6 @@
 # 📄 License
 
-SmartLogger is released under the **MIT License**, a permissive open‑source license.
+LogSmith is released under the **MIT License**, a permissive open‑source license.
 
 ---
 
@@ -8,7 +8,7 @@ SmartLogger is released under the **MIT License**, a permissive open‑source li
 
 You may:
 
-- use SmartLogger commercially or privately
+- use LogSmith commercially or privately
 - modify the code
 - distribute modified or unmodified versions
 - integrate it into proprietary systems

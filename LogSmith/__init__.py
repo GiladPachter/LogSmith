@@ -1,6 +1,6 @@
 """
-SmartLogger
-===========
+LogSmith
+========
 
 A high‑performance logging framework with:
 - structured formatting

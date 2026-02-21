@@ -1,7 +1,7 @@
 # 📘 How to Use SmartLogger
 
-This section provides a practical, code‑focused guide to SmartLogger, built directly from the examples in the `examples/` directory.  
-Each subsection contains the essential code patterns you need to use SmartLogger effectively.
+This section provides a practical, code‑focused guide to LogSmith, built directly from the examples in the `examples/` directory.  
+Each subsection contains the essential code patterns you need to use LogSmith effectively.
 
 ---
 

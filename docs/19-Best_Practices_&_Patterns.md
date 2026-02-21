@@ -1,6 +1,6 @@
 # 🧠 Best Practices & Patterns
 
-SmartLogger is designed to be expressive, predictable, and production‑ready.
+LogSmith is designed to be expressive, predictable, and production‑ready.
 These patterns help you get the most out of it.
 
 ---
@@ -114,7 +114,7 @@ logger.add_console(log_record_details=LogRecordDetails(...))
 
 # 🧩 Summary
 
-SmartLogger’s best practices emphasize:
+LogSmith’s best practices emphasize:
 
 - explicit configuration
 - structured metadata

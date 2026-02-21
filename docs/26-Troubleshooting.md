@@ -46,7 +46,7 @@ Do not use `extra`.
 Use:
 
 ```python
-SmartLogger.apply_color_theme("fire", THEME_FIRE)
+SmartLogger.apply_color_theme("fire", FIRE_THEME)
 ```
 
 ---

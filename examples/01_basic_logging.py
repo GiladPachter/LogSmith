@@ -1,7 +1,7 @@
 # examples/01_basic_logging.py
 
 """
-Basic demonstration of SmartLogger:
+Basic demonstration of LogSmith:
 - Initialization (critically important)
 - Creating a logger
 - Basic log messages

@@ -12,15 +12,15 @@ For a quick feel & touch of how to harness the full strength of smartlogger pack
 
 All documentation is available in the `docs/` directory:
 
-- [1. Overview](                    docs/01-Overview.md )
-- [2. Installation](                docs/02-Installation.md )
-- [3. Quickstart](                  docs/03-Quick_Start.md )
-- [4. Project Structure](           docs/04-Project_Structure.md )
-- [5. Core Concepts](               docs/05-Core_Concepts.md )
-- [6. Console Logging](             docs/06-Console_Logging.md )
-- [7. File Logging](                docs/07-File_Logging.md )
-- [8. Rotation Logic](              docs/08-Rotation_Logic.md )
-- [9. Auditing](                    docs/09-Auditing.md )
+- [1. Overview](                     docs/01-Overview.md )
+- [2. Installation](                 docs/02-Installation.md )
+- [3. Quickstart](                   docs/03-Quick_Start.md )
+- [4. Project Structure](            docs/04-Project_Structure.md )
+- [5. Core Concepts](                docs/05-Core_Concepts.md )
+- [6. Console Logging](              docs/06-Console_Logging.md )
+- [7. File Logging](                 docs/07-File_Logging.md )
+- [8. Rotation Logic](               docs/08-Rotation_Logic.md )
+- [9. Auditing](                     docs/09-Auditing.md )
 - [10. Structured Formatting](       docs/10-Structured_Formatting.md )
 - [11. Colors & Gradient System](    docs/11-Colors_&_Gradient_System.md )
 - [12. Custom Log Levels](           docs/12-Custom_Log_Levels.md )
@@ -46,26 +46,30 @@ All documentation is available in the `docs/` directory:
 
 ---
 
-## 🔧 Install Package Builder
+## 🔧 Building & Installing the Wheel (.whl)
+For installing the Package Builder (a one-time operation), execute from the project tree:
+```
+`tools/install_build_tools.py`
+```
 
-Execute fro PyCharm:
+For building the package, execute from the project tree.
 ```
-tools/install_build_tools.py
+`tools/build_wheel.py`
 ```
+Now you have generated the `.whl`<br/>
+So if the current project version is 1.7.0, then you have produced:
+```
+`dist/logsmith-1.7.0-py3-none-any.whl`
+```
+which you can pip install at your convenience.
+
 
 ---
 
-## 🔧 Build Package
+## 🔧 Classes diagram & Packages diagram
 
-Execute fro PyCharm:
-```bash
-tools/build_wheel.py
-```
-
----
-
-## 🔧 Quick Install
-
-```bash
-pip install LogSmith
-```
+1. pip install `pylint`
+2. install `graphviz` from https://graphviz.org/download/  (choose `add to PATH` &nbsp; - &nbsp; curren userr or all)
+3. restart PyCharm.
+4. run the following command from (active) terminal: `python -m pylint.pyreverse.main -o png -p MyProject .`
+5. result images: `classes_MyProject.png` , `packages_MyProject.png`

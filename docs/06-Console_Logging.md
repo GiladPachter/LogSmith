@@ -1,6 +1,6 @@
 # 🖥️ Console Logging
 
-SmartLogger provides a powerful, color‑aware console handler designed for clarity, structure, and expressiveness.</br>
+LogSmith provides a powerful, color‑aware console handler designed for clarity, structure, and expressiveness.</br>
 Console output uses ANSI colors, level‑aware styling, and optional structured metadata.
 
 ---
@@ -71,7 +71,7 @@ This produces a fully colorized, structured log entry.
 
 ## 🔹 Named Arguments (Structured Fields)
 
-SmartLogger supports structured fields via named arguments:
+LogSmith supports structured fields via named arguments:
 
 ```python
 logger.info("User login:", user = "Gilad", password = "Aa123456")
@@ -103,7 +103,7 @@ Raw output:
 
 ## 🔹 Gradient Output
 
-SmartLogger integrates seamlessly with the gradient engine:
+LogSmith integrates seamlessly with the gradient engine:
 
 ```python
 from LogSmith import CPrint, GradientPalette
@@ -123,7 +123,7 @@ Gradients support:
 
 ## 🔹 Handler Introspection
 
-You can inspect the handlers of a SmartLogger:
+You can inspect the handlers of a SmartLogger object:
 
 ```python
 print(logger.handler_info)
@@ -135,7 +135,7 @@ This returns a clean, human‑readable dictionary.
 
 # 🧩 Summary
 
-Console logging in SmartLogger provides:
+Console logging in LogSmith provides:
 
 - level‑aware color output
 - structured metadata

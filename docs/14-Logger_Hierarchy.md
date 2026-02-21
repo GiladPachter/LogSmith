@@ -1,8 +1,10 @@
 # 🌳 Logger Hierarchy
 
-SmartLogger follows the same hierarchical naming model as Python’s built‑in logging system, but with **cleaner behavior**, **no accidental handler inheritance**, and **predictable propagation rules**.
+SmartLogger follows the same hierarchical naming model as Python’s built‑in logging system, but with **cleaner behavior**:<br/>
+- **no accidental handler inheritance**
+- **predictable propagation rules**.
 
-Logger names define a tree structure:
+Logger names define a hierarchy tree structure:
 
 ```
 myapp
@@ -100,7 +102,7 @@ logger.destroy()  # removes logger entirely
 
 # 🧩 Summary
 
-SmartLogger’s hierarchy system provides:
+LogSmith’s hierarchy system provides:
 - predictable parent/child relationships
 - no accidental handler inheritance
 - explicit handler management

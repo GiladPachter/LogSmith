@@ -1,7 +1,7 @@
 # examples/07_gradient_demo.py
 
 """
-Demonstrates SmartLogger's gradient capabilities:
+Demonstrates LogSmith's gradient capabilities:
 - Palette previews
 - Foreground gradients (2‑stop, 3‑stop, multi‑stop)
 - Vertical gradients

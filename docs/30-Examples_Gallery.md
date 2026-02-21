@@ -15,7 +15,7 @@ ERROR • Something failed
 ## 🔹 Gradient Titles
 
 ```
-🔥🔥🔥 SMARTLOGGER 🔥🔥🔥
+🔥🔥🔥 LOGSMITH 🔥🔥🔥
 ```
 
 ---

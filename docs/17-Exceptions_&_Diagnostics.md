@@ -63,7 +63,7 @@ logger.error("Failure", exc_info=True)
 
 # 🧩 Summary
 
-SmartLogger’s diagnostics system provides:
+LogSmith’s diagnostics system provides:
 
 - clean exception logging
 - structured fields + tracebacks

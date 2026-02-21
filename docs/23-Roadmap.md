@@ -1,6 +1,6 @@
 # 🧭 Roadmap
 
-SmartLogger is actively evolving.
+LogSmith is actively evolving.
 This roadmap outlines planned improvements and long‑term goals.
 
 ---
@@ -70,7 +70,7 @@ This roadmap outlines planned improvements and long‑term goals.
 
 # 🧩 Summary
 
-SmartLogger’s roadmap focuses on:
+LogSmith’s roadmap focuses on:
 
 - async support
 - structured logging

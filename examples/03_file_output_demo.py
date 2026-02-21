@@ -1,13 +1,13 @@
 # examples/03_file_output_demo.py
 
 """
-Demonstrates SmartLogger file output:
+Demonstrates LogSmith file output:
 - add_file()
 - rotation basics
 - color-preserving file output
 - reading ANSI-colored content back from file
 - handler_info (JSON-safe)
-- SmartLogger's path validation safeguards
+- LogSmith's path validation safeguards
 """
 
 # ----------------------------------------------------------------------------------------------------------

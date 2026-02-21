@@ -86,7 +86,7 @@ logger.info("Event", id=42, type="heartbeat")
 
 # 🧩 Summary
 
-SmartLogger’s structured fields system provides:
+LogSmith’s structured fields system provides:
 
 - clean named‑argument metadata
 - optional `fields={}` merging

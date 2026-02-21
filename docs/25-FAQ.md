@@ -2,9 +2,9 @@
 
 ---
 
-## 🔹 1. Why SmartLogger instead of Python’s logging?
+## 🔹 1. Why LogSmith instead of Python’s logging?
 
-SmartLogger fixes common issues:
+LogSmith fixes common issues:
 
 - handler inheritance
 - confusing propagation
@@ -15,7 +15,7 @@ SmartLogger fixes common issues:
 
 ---
 
-## 🔹 2. Does SmartLogger replace Python logging?
+## 🔹 2. Does LogSmith replace Python logging?
 
 No — it wraps Python logging with a cleaner API.
 
@@ -36,7 +36,7 @@ To avoid duplicate logs and unpredictable behavior.
 ## 🔹 5. How do I change the colors of logged messages?
 
 ```python
-SmartLogger.apply_color_theme("fire", THEME_FIRE)
+SmartLogger.apply_color_theme("fire", FIRE_THEME)
 ```
 
 ---

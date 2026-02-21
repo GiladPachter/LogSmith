@@ -161,7 +161,7 @@ audit/audit.log
 
 # 🧩 Summary
 
-SmartLogger’s auditing system provides:
+SmartLogger’s auditing provides:
 
 - centralized logging for all SmartLogger instances
 - ANSI‑preserving audit output

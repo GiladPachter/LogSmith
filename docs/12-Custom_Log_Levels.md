@@ -105,7 +105,7 @@ logger.add_file(level=levels["ALERT"])
 
 # 🧩 Summary
 
-SmartLogger’s dynamic level system provides:
+LogSmith’s dynamic level system provides:
 
 - runtime level creation
 - custom color/style themes
@@ -113,4 +113,4 @@ SmartLogger’s dynamic level system provides:
 - full integration with handlers
 - ability to override built‑in levels
 
-This makes SmartLogger ideal for applications that need domain‑specific severity levels.
+This makes LogSmith ideal for applications that need domain‑specific severity levels.

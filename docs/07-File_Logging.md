@@ -1,6 +1,6 @@
 # 📁 File Logging
 
-SmartLogger provides a robust, concurrency‑safe file handler with support for:
+LogSmith provides a robust, concurrency‑safe file handler with support for:
 
 - size‑based rotation
 - time‑based rotation
@@ -132,7 +132,7 @@ logger.add_file(
 
 ## 🔹 Concurrency‑Safe Rotation
 
-SmartLogger’s file handler is:
+LogSmith’s file handler is:
 
 - thread‑safe
 - cross‑process‑safe
@@ -162,13 +162,13 @@ Each entry includes:
 
 # 🧩 Summary
 
-File logging in SmartLogger provides:
+File logging via LogSmith provides:
 
 - safe, reliable rotation
-- flexible retention
+- retention of rotating log files
 - structured formatting
 - optional ANSI preservation
 - concurrency‑safe writes
 - clean handler introspection
 
-This makes SmartLogger suitable for production‑grade logging in multi‑threaded and multi‑process environments.
+This makes LogSmith suitable for production‑grade logging in multi‑threaded and multi‑process environments.

@@ -1,6 +1,6 @@
 # 🎭 Themes
 
-SmartLogger includes a simple but powerful theming system that lets you instantly restyle the colors used for each log level.</br>
+LogSmith includes a simple but powerful theming system that lets you instantly restyle the colors used for each log level.</br>
 A theme is just a dictionary:
 
 ```
@@ -31,7 +31,7 @@ Themes apply globally and affect all SmartLogger instances unless overridden man
 
 ## 🔹 Built‑In Themes
 
-SmartLogger ships with several ready‑made themes:
+LogSmith ships with several ready‑made themes:
 
 - **LIGHT_THEME** — bright, readable colors for light terminals
 - **DARK_THEME** — high‑contrast colors for dark terminals

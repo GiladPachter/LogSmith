@@ -1,6 +1,6 @@
 # 📝 Changelog
 
-This section summarizes major changes across SmartLogger versions.
+This section summarizes major changes across LogSmith versions.
 
 ---
 

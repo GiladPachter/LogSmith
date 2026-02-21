@@ -1,6 +1,6 @@
 # 🔐 Security Notes
 
-SmartLogger is safe by design, but logging can expose sensitive data if misused.
+LogSmith is safe by design, but logging can expose sensitive data if misused.
 
 ---
 

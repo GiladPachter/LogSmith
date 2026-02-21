@@ -1,6 +1,6 @@
 # 🎨 Color & Gradient System
 
-SmartLogger includes a full ANSI color engine (`CPrint`) that supports:
+LogSmith includes a full ANSI color engine (`CPrint`) that supports:
 
 - solid foreground colors
 - solid background colors
@@ -13,7 +13,7 @@ SmartLogger includes a full ANSI color engine (`CPrint`) that supports:
 - reverse‑video transformations
 - ANSI stripping and escaping
 
-This makes SmartLogger ideal for expressive console output, banners, demos, and debugging tools.
+This makes LogSmith ideal for expressive console output, banners, demos, and debugging tools.
 
 ---
 
@@ -80,7 +80,7 @@ logger.raw(CPrint.gradient(
 ))
 ```
 
-SmartLogger automatically detects multi‑line text when using `AUTO`.
+GradientDirection automatically detects multi‑line text when using `AUTO`.
 
 ---
 
@@ -100,7 +100,7 @@ Foreground and background palettes are auto‑stretched independently.
 
 # 🔹 Named Palettes
 
-SmartLogger includes many built‑in palettes:
+LogSmith's color system includes many built‑in palettes:
 
 - `RAINBOW`
 - `SUNSET`
@@ -152,7 +152,7 @@ logger.raw(rev)
 
 # 🔹 ANSI Utilities
 
-SmartLogger includes helpers for debugging ANSI output:
+LogSmith includes helpers for debugging ANSI output:
 
 ```python
 CPrint.strip_ansi(text)              # remove ANSI codes
@@ -166,7 +166,7 @@ These are extremely useful when inspecting log files or debugging color issues.
 
 # 🧩 Summary
 
-SmartLogger’s color engine provides:
+LogSmith’s color engine provides:
 
 - expressive solid colors
 - powerful gradient rendering
@@ -175,4 +175,4 @@ SmartLogger’s color engine provides:
 - reverse‑video transformations
 - ANSI debugging utilities
 
-This makes SmartLogger ideal for demos, CLI tools, dashboards, and any application that benefits from expressive console output.
+This makes LogSmith ideal for demos, CLI tools, dashboards, and any application that benefits from expressive console output.

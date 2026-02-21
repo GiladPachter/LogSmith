@@ -1,6 +1,6 @@
 # 🔄 Rotation Logic
 
-SmartLogger provides a powerful, flexible, and concurrency‑safe rotation system that supports:
+LogSmith provides a powerful, flexible, and concurrency‑safe rotation system that supports:
 
 - **Size‑based rotation**
 - **Time‑based rotation** (second, minute, hour, daily, weekly)
@@ -119,7 +119,7 @@ SmartLogger rotates when **either** condition is met:
 ```python
 RotationLogic(
     maxBytes = 50_000,
-    when = When.SECOND,
+    when = When.HOUR,
     interval = 1,
 )
 ```
@@ -179,7 +179,7 @@ app_20240210_213045.log
 
 # 🔐 Concurrency‑Safe Rotation
 
-SmartLogger’s handler uses:
+LogSmith’s handler uses:
 
 - `fcntl` locks on Unix
 - `msvcrt` locks on Windows
@@ -192,7 +192,7 @@ This prevents corruption when multiple processes write to the same file.
 
 # 🧩 Summary
 
-SmartLogger’s rotation system provides:
+LogSmith’s rotation system provides:
 
 - flexible size / time rotation
 - daily / weekly scheduling

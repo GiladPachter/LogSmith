@@ -1,6 +1,6 @@
 # 🔄 Logger Lifecycle
 
-SmartLogger provides explicit lifecycle management for loggers.
+LogSmith provides explicit lifecycle management for loggers.
 This ensures that:
 - handlers are not leaked
 - stale loggers do not accumulate
@@ -76,7 +76,7 @@ logger.file_handlers
 ---
 
 # 🧩 Summary
-SmartLogger’s lifecycle management provides:
+LogSmith’s lifecycle management provides:
 - explicit control over logger creation
 - safe retirement and destruction
 - clean recreation without stale handlers

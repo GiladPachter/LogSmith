@@ -30,20 +30,6 @@ from LogSmith import LogRecordDetails, OptionalRecordFields
 from LogSmith import RotationLogic, When
 
 # ----------------------------------------------------------------------------------------------------------
-# JSON-safe serializer
-# ----------------------------------------------------------------------------------------------------------
-def safe(obj):
-    if isinstance(obj, (str, int, float, bool)) or obj is None:
-        return obj
-    if isinstance(obj, Path):
-        return str(obj)
-    if hasattr(obj, "name"):
-        return obj.name
-    if isinstance(obj, dict):
-        return {k: safe(v) for k, v in obj.items()}
-    return str(obj)
-
-# ----------------------------------------------------------------------------------------------------------
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
@@ -80,7 +66,6 @@ time.sleep(0.1)
 logger.info("This is a test message for get_record()")
 record = logger.get_record()
 record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
-
 print("\nRecord contents:")
 time.sleep(0.1)
 logger.raw(json.dumps(record.__dict__, indent=4))
@@ -95,6 +80,10 @@ time.sleep(0.1)
 try:
     1 / 0
 except ZeroDivisionError:
+    # ---------------------------
+    record = logger.get_record()
+    record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
+    # ---------------------------
     logger.error("Error with Captured Exception", exc_info=True)
 
 logger.raw("")

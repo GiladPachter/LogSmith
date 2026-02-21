@@ -197,7 +197,7 @@ Invalid formats (e.g., `%7f`) raise a clear error.
 
 # 🧩 Summary
 
-SmartLogger’s structured formatting system provides:
+SmartLogger’s structured formatting provides:
 
 - declarative configuration
 - strict validation

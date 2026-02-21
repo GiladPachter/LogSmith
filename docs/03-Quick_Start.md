@@ -1,11 +1,11 @@
 # 🚀 Quick Start
 
-SmartLogger requires a one‑time global initialization at application startup.</br>
+LogSmith requires a one‑time global initialization at application startup.</br>
 After that, you can create loggers, attach handlers, and start logging immediately.
 
 ---
 
-## 1. Initialize SmartLogger
+## 1. Initialize LogSmith
 
 ```python
 from LogSmith import SmartLogger
@@ -13,8 +13,8 @@ from LogSmith import SmartLogger
 levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["INFO"])
 ```
-This is an essential preliminary step at the start of any process that makes use of smartlogger.</br>
-SmartLogger replaces Python’s root logger with a SmartLogger root and ensures consistent behavior across all loggers.
+This is an essential preliminary step at the start of any process that makes use of LogSmith.</br>
+LogSmith replaces Python’s root logger with a SmartLogger root and ensures consistent behavior across all loggers.
 
 ---
 
@@ -30,13 +30,13 @@ Each logger has its own level and its own handlers.
 ```python
 logger.add_console(level = levels["INFO"])
 ```
-Console output is automatically colorized using SmartLogger’s structured formatter.
+Console output is automatically colorized using LogSmith’s structured formatter.
 
 ---
 
 ## 4. Log messages
 ```python
-logger.info("Hello from SmartLogger!")
+logger.info("Hello from LogSmith!")
 logger.warning("Something might be wrong")
 logger.error("Something *is* wrong")
 ```

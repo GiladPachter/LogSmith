@@ -1,13 +1,13 @@
 # 🧠 Core Concepts
 
-SmartLogger builds on Python’s `logging` module but introduces a structured, modernized architecture.</br>
+LogSmith builds on Python’s `logging` module but introduces a structured, modernized architecture.</br>
 Understanding these core concepts will help you use the framework effectively and confidently.
 
 ---
 
 ## 🔹 1. Global Initialization
 
-SmartLogger replaces Python’s root logger with a SmartLogger root.
+LogSmith replaces Python’s root logger with a SmartLogger root.
 This ensures consistent behavior across all loggers in the application.
 
 ```python
@@ -21,7 +21,7 @@ Initialization must happen **once**, at the very beginning of your application.
 
 ## 🔹 2. Logger Creation
 
-SmartLogger provides a clean, predictable way to create loggers:
+LogSmith provides a clean, predictable way to create loggers:
 
 ```python
 logger = SmartLogger.get("myapp.module", level = levels["DEBUG"])
@@ -86,7 +86,7 @@ This produces consistent, readable, structured logs.
 
 ## 🔹 5. Color & Gradient Output
 
-SmartLogger integrates a powerful ANSI color engine:
+LogSmith integrates a powerful ANSI color engine:
 
 - Solid colors
 - 256‑color gradients
@@ -150,7 +150,7 @@ Auditing:
 
 ## 🔹 8. Dynamic Log Levels
 
-SmartLogger allows registering new levels at runtime:
+LogSmith allows registering new levels at runtime:
 
 ```python
 SmartLogger.register_level("NOTICE", 25)
@@ -158,13 +158,13 @@ logger.notice("Hello")
 ```
 
 Dynamic levels automatically become methods via `__getattr__`.</br>
-This prevents the IED from indicating warnings regarding dynamically added level-methods being unknown SmartLogger members.
+This prevents the IDE from indicating warnings regarding dynamically added level-methods being unknown SmartLogger members.
 
 ---
 
 ## 🔹 9. Logger Lifecycle
 
-SmartLogger supports:
+LogSmith supports:
 
 ### ✔ Retiring a logger
 Closes handlers and marks the logger unusable.
@@ -204,7 +204,7 @@ Rules:
 
 # 🧩 Summary
 
-SmartLogger’s architecture is built around:
+LogSmith’s architecture is built around:
 
 - **Explicit initialization**
 - **Explicit handler attachment**

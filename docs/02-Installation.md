@@ -1,7 +1,7 @@
 ## 📦 Installation
 
-To begin using SmartLogger, install the package and initialize the logging system at application startup.</br>
-SmartLogger requires **Python 3.10+** and has **<u>no external dependencies</u>**.
+To begin using LogSmith, install the package and initialize the logging system at application startup.</br>
+LogSmith requires **Python 3.10+** and has **<u>no external dependencies</u>**.
 
 ---
 
@@ -10,7 +10,7 @@ SmartLogger requires **Python 3.10+** and has **<u>no external dependencies</u>*
 ---
 bash:
 ```
-pip install smartlogger‑0.1.0‑py3‑none‑any.whl
+pip install logsmith‑0.1.0‑py3‑none‑any.whl
 ```
 
 ---
@@ -23,7 +23,7 @@ If you are working with the source tree:
 pip install -e .
 ```
 
-This allows live editing of the SmartLogger codebase without reinstalling.
+This allows live editing of the LogSmith codebase without reinstalling.
 
 ---
 
@@ -35,7 +35,7 @@ This allows live editing of the SmartLogger codebase without reinstalling.
   - Linux/macOS: uses `fcntl`
   - Windows: uses `msvcrt`
 
-SmartLogger automatically detects platform capabilities and falls back gracefully when needed.
+LogSmith automatically detects platform capabilities and falls back gracefully when needed.
 
 ---
 
@@ -52,10 +52,10 @@ print(LogSmith.__version__)
 ## 📁 Project Layout (for development)
 
 ```
-LoggerEx/
+LogSmith/
 ├─ docs/          # documentation
 ├─ examples/      # usage demonstration
-├─ smartlogger/   # product logic
+├─ LogSmith/      # product logic
 ├─ tools/         # conversion to '.whl' & '.tar.gz'
 └─ pyproject.toml
 ```

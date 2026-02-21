@@ -1,6 +1,6 @@
 # ⚡ Performance & Efficiency
 
-SmartLogger is designed to be **fast**, **predictable**, and **low‑overhead**, even in high‑volume or multi‑process environments.
+LogSmith is designed to be **fast**, **predictable**, and **low‑overhead**, even in high‑volume or multi‑process environments.
 
 ---
 
@@ -82,7 +82,7 @@ If the logger’s level is above DEBUG, the message is never formatted and the f
 
 # 🧩 Summary
 
-SmartLogger provides:
+LogSmith provides:
 
 - lazy formatting
 - efficient structured fields

@@ -1,4 +1,4 @@
-# 🧠 SmartLogger Philosophy
+# 🧠 LogSmith Philosophy
 
 Logging should be expressive, predictable, and enjoyable.
 
@@ -23,7 +23,7 @@ Readable, beautiful logs.
 
 ---
 
-## 🧩 Why SmartLogger Exists
+## 🧩 Why LogSmith Exists
 
 Logging is storytelling.  
-SmartLogger helps you write logs that communicate and make working with logs to communicate.
+LogSmith helps you write logs that communicate and make working with logs to communicate.

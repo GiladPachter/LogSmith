@@ -1,6 +1,6 @@
 # 📚 API Reference Overview
 
-This section provides a high‑level overview of SmartLogger’s public API.
+This section provides a high‑level overview of LogSmith’s public API.
 
 ---
 

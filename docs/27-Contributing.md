@@ -1,6 +1,6 @@
 # 🤝 Contributing
 
-Contributions are welcome — SmartLogger grows with the community.
+Contributions are welcome — LogSmith grows with the community.
 
 ---
 
@@ -16,9 +16,9 @@ Contributions are welcome — SmartLogger grows with the community.
 ```
 ## 🧪 Development Setup
 ```
-git clone https://github.com/yourname/SmartLogger.git
+git clone https://github.com/yourname/LogSmith.git
 
-cd SmartLogger
+cd LogSmith
 
 pip install -e .
 ```
