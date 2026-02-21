@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "LogSmith"
 version = "1.7.0"
-description = "A high-performance, concurrency-safe logging system with rotation, retention, and optional PID suffixing."
+description = "A high-performance, structured, color-aware logging framework for Python"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -17,12 +17,11 @@ authors = [
 
 keywords = [
     "logging",
-    "log rotation",
+    "log rotation & retention",
     "concurrency",
     "thread-safe",
-    "process-safe",
-    "file handler",
-    "python logging"
+    "python logging",
+    "colored logging"
 ]
 
 classifiers = [

@@ -48,10 +48,17 @@ details = LogRecordDetails(
     datefmt="%Y-%m-%d %H:%M:%S",
     separator="|",
     optional_record_fields=OptionalRecordFields(
+        file_name=True,
+        lineno=True,
         exc_info=True,
         stack_info=True,
     ),
-    message_parts_order=None,   # REQUIRED when only diagnostics are enabled
+    message_parts_order=[
+        "level",      # colored by level style
+        "file_name",
+        "lineno",
+    ],
+    color_all_log_record_fields=True
 )
 
 logger = SmartLogger.get("misc", level=levels["TRACE"])
@@ -81,8 +88,7 @@ try:
     1 / 0
 except ZeroDivisionError:
     # ---------------------------
-    record = logger.get_record()
-    record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
+    record = logger.get_record()    # examine record.exc_info at your convenience
     # ---------------------------
     logger.error("Error with Captured Exception", exc_info=True)
 

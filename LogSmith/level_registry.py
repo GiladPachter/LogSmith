@@ -2,6 +2,7 @@
 
 from typing import Any, Dict
 import logging
+
 from .levels import LevelStyle
 
 class LevelRegistry:

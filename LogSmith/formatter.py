@@ -166,20 +166,23 @@ class LogRecordDetails:
                     raise ValueError(f"Optional field '{field_name}' is False but appears in message_parts_order")
 
         # ------------------------------------------------------------
-        # Diagnostics must NOT appear in message_parts_order
+        # Diagnostics may appear only if enabled
         # ------------------------------------------------------------
-        if "exc_info" in mpo or "stack_info" in mpo:
-            raise ValueError("exc_info and stack_info must not appear in message_parts_order")
+        if "exc_info" in mpo and not orf.exc_info:
+            raise ValueError("exc_info appears in message_parts_order but optional_record_fields.exc_info is False")
+
+        if "stack_info" in mpo and not orf.stack_info:
+            raise ValueError("stack_info appears in message_parts_order but optional_record_fields.stack_info is False")
 
         # ------------------------------------------------------------
         # Allowed message parts
         # ------------------------------------------------------------
-        allowed = set(inline_fields) | {"level"}
+        allowed = set(inline_fields) | {"level", "exc_info", "stack_info"}
         for part in mpo:
             if part not in allowed:
                 raise ValueError(
                     f"Invalid message part: {part!r}. "
-                    f"Allowed parts are OptionalRecordFields attributes or 'level'."
+                    f"Allowed parts are OptionalRecordFields attributes, 'level', 'exc_info', or 'stack_info'."
                 )
 
 
@@ -256,6 +259,11 @@ class StructuredPlainFormatter:
             details = LogRecordDetails()
         self._details = details
 
+    @staticmethod
+    def _format_exc_info(record: logging.LogRecord) -> str:
+        import traceback
+        return "".join(traceback.format_exception(*record.exc_info))
+
     def format(self, record: logging.LogRecord) -> str:
         rf = self._details.optional_record_fields
 
@@ -312,6 +320,10 @@ class StructuredPlainFormatter:
                     parts.append("P=" + str(record.process))
                 elif part == "process_name" and rf.process_name:
                     parts.append(record.processName)
+                elif part == "exc_info" and rf.exc_info and record.exc_info:
+                    parts.append(self._format_exc_info(record))
+                elif part == "stack_info" and rf.stack_info and record.stack_info:
+                    parts.append(str(record.stack_info))
 
         # Always last
         parts.append(record.getMessage())
@@ -323,10 +335,21 @@ class StructuredPlainFormatter:
             kv = " ".join(f"{k}={v!r}" for k, v in extras.items())
             line = f"{line} {kv}"
 
-        if record.exc_info and rf.exc_info:
-            line += "\n" + logging.Formatter().formatException(record.exc_info)
-        if record.stack_info and rf.stack_info:
-            line += "\n" + str(record.stack_info)
+        # Note: no extra exc_info/stack_info append here anymore;
+        # they are handled as structured fields above when enabled.
+
+        # ------------------------------------------------------------
+        # Fallback: diagnostics appended last if not in message_parts_order
+        # ------------------------------------------------------------
+        rf = self._details.optional_record_fields
+        mpo = self._details.message_parts_order or []
+
+        if rf:
+            if rf.exc_info and record.exc_info and "exc_info" not in mpo:
+                line += "\n" + self._format_exc_info(record)
+
+            if rf.stack_info and record.stack_info and "stack_info" not in mpo:
+                line += "\n" + str(record.stack_info)
 
         return line
 
@@ -374,6 +397,8 @@ class StructuredColorFormatter:
             "task_name":        self.render_task_name,
             "process_id":       self.render_process_id,
             "process_name":     self.render_process_name,
+            "exc_info":         self.render_exc_info,
+            "stack_info":       self.render_stack_info,
         }
 
     # ------------------------------------------------------------
@@ -447,6 +472,16 @@ class StructuredColorFormatter:
     def render_process_name(self, rec):
         return self.style_meta(rec.processName, self._current_style)
 
+    @staticmethod
+    def render_exc_info(rec):
+        import traceback
+        text = "".join(traceback.format_exception(*rec.exc_info))
+        return CPrint.colorize(text, fg=CPrint.FG.BRIGHT_RED)
+
+    @staticmethod
+    def render_stack_info(rec):
+        return CPrint.colorize(str(rec.stack_info), fg=CPrint.FG.BRIGHT_MAGENTA)
+
     def render_message(self, rec):
         return self.apply_level(rec.getMessage(), self._current_style)
 
@@ -493,6 +528,11 @@ class StructuredColorFormatter:
                 for part in self._details.message_parts_order:
                     renderer = self.FIELD_RENDERERS.get(part)
                     if renderer:
+                        # respect rf flags for diagnostics as well
+                        if part == "exc_info" and not (rf.exc_info and record.exc_info):
+                            continue
+                        if part == "stack_info" and not (rf.stack_info and record.stack_info):
+                            continue
                         parts.append(renderer(record))
             else:
                 # diagnostics-only mode → include level
@@ -512,11 +552,23 @@ class StructuredColorFormatter:
         if extras:
             line = f"{line} {self.render_extras_colored(extras)}"
 
-        # Diagnostics
-        if rf and record.exc_info and rf.exc_info:
-            line += "\n { exc_info }\n" + logging.Formatter().formatException(record.exc_info)
-        if rf and record.stack_info and rf.stack_info:
-            line += "\n { stack_info }\n" + str(record.stack_info)
+        # Note: no extra exc_info/stack_info append here;
+        # they are handled as structured fields when enabled.
+
+        # ------------------------------------------------------------
+        # Fallback: diagnostics appended last if not in message_parts_order
+        # ------------------------------------------------------------
+        rf = self._details.optional_record_fields
+        mpo = self._details.message_parts_order or []
+
+        if rf:
+            if rf.exc_info and record.exc_info and "exc_info" not in mpo:
+                import traceback
+                text = "".join(traceback.format_exception(*record.exc_info))
+                line += "\n" + CPrint.colorize(text, fg=CPrint.FG.BRIGHT_RED)
+
+            if rf.stack_info and record.stack_info and "stack_info" not in mpo:
+                line += "\n" + CPrint.colorize(str(record.stack_info), fg=CPrint.FG.BRIGHT_MAGENTA)
 
         return line
 

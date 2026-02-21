@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import Tuple
 
-from LogSmith.colors import Code
+from .colors import Code
 
 TRACE = 5
 logging.addLevelName(TRACE, "TRACE")
