@@ -1,4 +1,6 @@
 # LogSmith/LogSmith.py
+
+from __future__ import annotations
 import inspect
 import json
 import logging
@@ -208,10 +210,33 @@ class SmartLogger(logging.Logger):
 
     _file_handler_lock = threading.RLock()
 
+    @staticmethod
+    def _allowed_callers():
+        return {
+            ("LogSmith.smartlogger", "get"),
+            ("LogSmith.smartlogger", "initialize_smartlogger"),
+        }
+
+    @staticmethod
+    def _called_from_allowed() -> bool:
+        allowed = SmartLogger._allowed_callers()
+
+        for frame_info in inspect.stack()[2:8]:
+            frame = frame_info.frame
+            module = frame.f_globals.get("__name__")
+            func = frame_info.function
+
+            if (module, func) in allowed:
+                return True
+
+        return False
+
     def __init__(self, name: str) -> None:
-        if name == "root":
-            if isinstance(logging.root, SmartLogger):
-                raise ValueError("logger name 'root' in reserved for internal SmartLogger implementation. Choose a different name.")
+        if not SmartLogger._called_from_allowed():
+            raise RuntimeError(
+                "SmartLogger cannot be instantiated directly. "
+                "Use SmartLogger.get(name, level)."
+            )
 
         super().__init__(name)
         self._smart_state = _SmartLoggerState()
@@ -352,6 +377,9 @@ class SmartLogger(logging.Logger):
           - logger is a SmartLogger
           - stale loggers with the same name are removed
         """
+        if name == "root":
+                raise ValueError("logger name 'root' in reserved for internal SmartLogger implementation. Choose a different name.")
+
         logging.Logger.manager.loggerDict.pop(name, None)
 
         logging.setLoggerClass(cls)

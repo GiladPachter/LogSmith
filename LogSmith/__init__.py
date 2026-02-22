@@ -45,6 +45,10 @@ from .colors import CPrint, GradientDirection, GradientPalette, blend_palettes
 from .levels import LevelStyle
 from .themes import DARK_THEME, LIGHT_THEME, NEON_THEME, PASTEL_THEME, FIRE_THEME, OCEAN_THEME
 
+# async logger
+from .async_smartlogger import AsyncSmartLogger
+
+
 __all__ = [
     # Core
     "SmartLogger",
@@ -77,4 +81,7 @@ __all__ = [
 
     # Metadata
     "__version__",
+
+    # async
+    "AsyncSmartLogger",
 ]
