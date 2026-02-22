@@ -3,7 +3,7 @@
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, List, Optional, Callable, Mapping
 
 from .colors import CPrint, Code
 from .levels import LevelStyle
@@ -223,7 +223,7 @@ def _format_timestamp(record: logging.LogRecord, datefmt: str | None) -> str:
 # Extras extraction
 # ================================================================
 
-def _extract_extras(record: logging.LogRecord) -> Dict[str, Any]:
+def _extract_extras(record: logging.LogRecord) -> Mapping[str, Any]:
     standard = {
         "name", "msg", "args", "levelname", "levelno",
         "pathname", "filename", "module", "exc_info",
@@ -473,7 +473,7 @@ class StructuredColorFormatter:
         return self.style_meta(rec.processName, self._current_style)
 
     @staticmethod
-    def render_exc_info(rec):
+    def render_exc_info(rec) -> str:
         import traceback
         text = "".join(traceback.format_exception(*rec.exc_info))
         return CPrint.colorize(text, fg=CPrint.FG.BRIGHT_RED)
@@ -489,7 +489,7 @@ class StructuredColorFormatter:
     # Extras renderer
     # ------------------------------------------------------------
     @staticmethod
-    def render_extras_colored(named_arguments: dict) -> str:
+    def render_extras_colored(named_arguments: Dict[str, Any]) -> str:
         parts = []
         for k, v in named_arguments.items():
             colored_key = CPrint.colorize(

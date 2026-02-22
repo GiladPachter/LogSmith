@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from enum import Enum
 from logging.handlers import BaseRotatingHandler
 from datetime import datetime, timedelta
-from typing import Optional, IO
+from typing import Optional, IO, List
 
 try:
     import fcntl  # type: ignore[attr-defined]
@@ -507,7 +507,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
                 except OSError:
                     pass
 
-    def _list_rotated_files(self):
+    def _list_rotated_files(self) -> List[str]:
         base = self.baseFilename
         dir_name = os.path.dirname(base)
         prefix = os.path.basename(base)
