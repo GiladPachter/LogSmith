@@ -1,5 +1,6 @@
 # LogSmith/async_smartlogger.py
 
+from __future__ import annotations
 import asyncio
 import inspect
 import logging
