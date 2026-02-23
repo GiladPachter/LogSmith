@@ -1,17 +1,17 @@
 # LogSmith/async_smartlogger.py
 
 from __future__ import annotations
+
 import asyncio
 import inspect
 import logging
-from typing import Any, Optional, Callable, Awaitable, Union
+from typing import Any, Optional, Union
 
 from .smartlogger import SmartLogger, RetrievedRecord
 from .formatter import LogRecordDetails
 from .levels import TRACE, LevelStyle
 
 
-# Type for items in the queue: either a log tuple or a sentinel
 class _Sentinel:
     pass
 
@@ -61,9 +61,6 @@ class AsyncSmartLogger:
 
     @classmethod
     def get(cls, name: str, level: int) -> "AsyncSmartLogger":
-        # Enforce reserved-name rule at async layer too
-        # if name == "root":
-        #     raise ValueError("AsyncSmartLogger cannot wrap a logger named 'root'. Choose a different name.")
         inner = SmartLogger.get(name, level)
         return cls(inner)
 
@@ -80,45 +77,109 @@ class AsyncSmartLogger:
             item = await self._queue.get()
             try:
                 if isinstance(item, _Sentinel):
-                    return  # exit the worker
+                    return
                 level, msg, args, kwargs = item
-                await asyncio.to_thread(self._logger._log, level, msg, args, **kwargs)
+                if level == "RAW":
+                    await asyncio.to_thread(self._logger.raw, msg, **kwargs)
+                else:
+                    # noinspection PyProtectedMember
+                    await asyncio.to_thread(self._logger._log, level, msg, args, **kwargs)
+
             finally:
                 self._queue.task_done()
 
     # ------------------------------------------------------------
-    # Public async logging API
+    # Hybrid API: synchronous enqueue helper
     # ------------------------------------------------------------
-    async def log(self, level: int, msg: str, *args: Any, **kwargs: Any) -> None:
+    def _enqueue_sync(self, level: Union[int, str], msg: str, args: tuple, kwargs: dict) -> None:
         if self._stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
-        await self._queue.put((level, msg, args, kwargs))
 
-    async def trace(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.log(TRACE, msg, *args, **kwargs)
+        try:
+            # If we're already inside the event loop thread:
+            if asyncio.get_running_loop() is self._loop:
+                # Enqueue immediately
+                self._queue.put_nowait((level, msg, args, kwargs))
+                return
+        except RuntimeError:
+            # Not in an event loop → fall through to thread-safe scheduling
+            pass
 
-    async def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.log(logging.DEBUG, msg, *args, **kwargs)
-
-    async def info(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.log(logging.INFO, msg, *args, **kwargs)
-
-    async def warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.log(logging.WARNING, msg, *args, **kwargs)
-
-    async def error(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.log(logging.ERROR, msg, *args, **kwargs)
-
-    async def critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.log(logging.CRITICAL, msg, *args, **kwargs)
-
-    async def raw(self, message: str, end: str = "\n") -> None:
-        if self._stopped:
-            raise RuntimeError("AsyncSmartLogger has been shut down.")
-        await asyncio.to_thread(self._logger.raw, message, end=end)
+        # Called from outside the loop → schedule thread-safe
+        self._loop.call_soon_threadsafe(
+            lambda: self._queue.put_nowait((level, msg, args, kwargs))
+        )
 
     # ------------------------------------------------------------
-    # Handler management passthroughs
+    # Synchronous logging API (no await)
+    # ------------------------------------------------------------
+    def trace(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        extra = kwargs.pop("extra", {})
+        extra.update(kwargs)
+        self._enqueue_sync(TRACE, msg, args, {"extra": extra})
+
+    def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        extra = kwargs.pop("extra", {})
+        extra.update(kwargs)
+        self._enqueue_sync(logging.DEBUG, msg, args, {"extra": extra})
+
+    def info(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        extra = kwargs.pop("extra", {})
+        extra.update(kwargs)
+        self._enqueue_sync(logging.INFO, msg, args, {"extra": extra})
+
+    def warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        extra = kwargs.pop("extra", {})
+        extra.update(kwargs)
+        self._enqueue_sync(logging.WARNING, msg, args, {"extra": extra})
+
+    def error(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        extra = kwargs.pop("extra", {})
+        extra.update(kwargs)
+        self._enqueue_sync(logging.ERROR, msg, args, {"extra": extra})
+
+    def critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        extra = kwargs.pop("extra", {})
+        extra.update(kwargs)
+        self._enqueue_sync(logging.CRITICAL, msg, args, {"extra": extra})
+
+    def raw(self, message: str, end: str = "\n") -> None:
+        self._enqueue_sync("RAW", message, (), {"end": end})
+
+    # ------------------------------------------------------------
+    # Asynchronous logging API (awaitable)
+    # ------------------------------------------------------------
+    async def a_log(self, level: int, msg: str, *args: Any, **kwargs: Any) -> None:
+        if self._stopped:
+            raise RuntimeError("AsyncSmartLogger has been shut down.")
+
+        extra = kwargs.pop("extra", {})
+        extra.update(kwargs)
+        await self._queue.put((level, msg, args, {"extra": extra}))
+
+    async def a_trace(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        await self.a_log(TRACE, msg, *args, **kwargs)
+
+    async def a_debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        await self.a_log(logging.DEBUG, msg, *args, **kwargs)
+
+    async def a_info(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        await self.a_log(logging.INFO, msg, *args, **kwargs)
+
+    async def a_warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        await self.a_log(logging.WARNING, msg, *args, **kwargs)
+
+    async def a_error(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        await self.a_log(logging.ERROR, msg, *args, **kwargs)
+
+    async def a_critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        await self.a_log(logging.CRITICAL, msg, *args, **kwargs)
+
+    async def a_raw(self, message: str, end: str = "\n") -> None:
+        await self._queue.put(("RAW", message, (), {"end": end}))
+
+    # ------------------------------------------------------------
+    # Handler passthroughs
     # ------------------------------------------------------------
     def add_console(self, *args: Any, **kwargs: Any) -> None:
         self._logger.add_console(*args, **kwargs)
@@ -156,9 +217,6 @@ class AsyncSmartLogger:
     # Flush
     # ------------------------------------------------------------
     async def flush(self) -> None:
-        """
-        Drain all pending log records but keep the logger alive.
-        """
         if self._stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
         await self._queue.join()
@@ -171,13 +229,9 @@ class AsyncSmartLogger:
             return
         self._stopped = True
 
-        # Wait for all real log records to be processed
         await self._queue.join()
-
-        # Send sentinel to wake the worker and let it exit
         await self._queue.put(self._SENTINEL)
 
-        # Wait for the worker to finish
         if self._worker_task is not None:
             await self._worker_task
 
@@ -190,7 +244,6 @@ class AsyncSmartLogger:
 
     @staticmethod
     def __safeguard_internals(name: str):
-        # Prevent overriding internal AsyncSmartLogger methods/attributes
         if name in AsyncSmartLogger.__dict__:
             raise ValueError(f"Cannot override internal AsyncSmartLogger attribute '{name}'")
 
