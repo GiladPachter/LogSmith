@@ -80,3 +80,9 @@ This section summarizes major changes across LogSmith versions.
 - More robust file handling
 - Expanded structured field serialization
 - More consistent color behavior
+
+---
+
+## v1.8.0 — Miscellaneous Improvements
+
+- Safeguard SmartLogger & AsyncSmartLogger internals from accidental register_level(...) overrides
