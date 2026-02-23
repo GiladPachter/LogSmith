@@ -188,7 +188,14 @@ class AsyncSmartLogger:
         return SmartLogger.levels()
 
     @staticmethod
+    def __safeguard_internals(name: str):
+        # Prevent overriding internal AsyncSmartLogger methods/attributes
+        if name in AsyncSmartLogger.__dict__:
+            raise ValueError(f"Cannot override internal AsyncSmartLogger attribute '{name}'")
+
+    @staticmethod
     def register_level(name: str, value: int, style: Optional[LevelStyle] = None) -> None:
+        AsyncSmartLogger.__safeguard_internals(name)
         SmartLogger.register_level(name, value, style)
 
     @staticmethod

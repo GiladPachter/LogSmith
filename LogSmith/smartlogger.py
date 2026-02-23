@@ -757,7 +757,26 @@ class SmartLogger(logging.Logger):
         return levels
 
     @staticmethod
+    def __safeguard_internals(name: str, value: int):
+        # Prevent overriding internal SmartLogger methods/attributes
+        if name in SmartLogger.__dict__:
+            raise ValueError(f"Cannot override internal SmartLogger attribute '{name}'")
+
+        # Prevent overriding existing levels
+        # noinspection PyProtectedMember
+        if name in SmartLogger._level_registry:
+            raise ValueError(f"Level '{name}' already exists")
+        # noinspection PyProtectedMember
+        if value in SmartLogger._value_registry:
+            raise ValueError(f"Level value '{value}' already exists")
+
+        # Prevent overriding internal operation levels
+        if value < 0:
+            raise ValueError("Negative level values are reserved for internal operations")
+
+    @staticmethod
     def register_level(name: str, value: int, style: Optional[LevelStyle] = None) -> None:
+        SmartLogger.__safeguard_internals(name, value)
         LEVELS.register(name, value, style)
 
     @staticmethod
