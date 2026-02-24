@@ -1,0 +1,148 @@
+# examples/01_basic_async_logging.py
+
+"""
+Basic demonstration of AsyncSmartLogger:
+- Initialization (async-friendly)
+- Creating an async logger
+- Basic async log messages
+- Named arguments (structured fields)
+- Dynamic level registration
+- RAW text (plain + colored)
+- Synchronization between print() and async logger output
+"""
+
+# ----------------------------------------------------------------------------------------------------------
+# Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
+# ----------------------------------------------------------------------------------------------------------
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+# ----------------------------------------------------------------------------------------------------------
+
+import asyncio
+import time
+import json
+
+from LogSmith import CPrint, LevelStyle
+from LogSmith.async_smartlogger import AsyncSmartLogger
+
+
+async def main():
+    # ------------------------------------------------------------------------------------------------------
+    # 1. Initialization — AsyncSmartLogger does not require global init
+    # ------------------------------------------------------------------------------------------------------
+    levels = AsyncSmartLogger.levels()
+
+    print("\nBuiltin async logger levels:")
+    print(json.dumps(levels, indent=4))
+
+    # ------------------------------------------------------------------------------------------------------
+    # 2. Create an async logger and attach a console handler
+    # ------------------------------------------------------------------------------------------------------
+    print("\nCreating async logger 'basic_async'...\n")
+
+    logger = AsyncSmartLogger.get("basic_async", level=levels["TRACE"])
+    logger.add_console(level=levels["TRACE"])
+
+    # print() writes to stdout, logger writes to stderr → tiny sleeps avoid interleaving
+    await asyncio.sleep(0.1)
+
+    # ------------------------------------------------------------------------------------------------------
+    # 3. Basic async log messages
+    # ------------------------------------------------------------------------------------------------------
+    print("\nBasic async log messages:\n-------------------------")
+    await asyncio.sleep(0.1)
+
+    await logger.a_trace("trace message")
+    await logger.a_debug("debug message")
+    await logger.a_info("info message")
+    await logger.a_warning("warning message")
+    await logger.a_error("error message")
+    await logger.a_critical("critical message")
+
+    # ------------------------------------------------------------------------------------------------------
+    # 4. Named arguments (structured message parameters)
+    # ------------------------------------------------------------------------------------------------------
+    await asyncio.sleep(0.1)
+    print("\nMessages with named arguments:\n------------------------------")
+    await asyncio.sleep(0.1)
+
+    await logger.a_info("User login event", username="Gilad", action="login")
+    await logger.a_warning("Suspicious activity detected", reason="multiple failed attempts")
+
+    # ------------------------------------------------------------------------------------------------------
+    # 5. Dynamic level registration
+    # ------------------------------------------------------------------------------------------------------
+    await asyncio.sleep(0.1)
+    print("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
+    await asyncio.sleep(0.1)
+
+    AsyncSmartLogger.register_level(
+        name="NOTICE",
+        value=25,
+        style=LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA, intensity=CPrint.Intensity.BOLD),
+    )
+    await logger.a_notice("This is a NOTICE-level message")
+
+    AsyncSmartLogger.register_level(
+        name="ALERT",
+        value=45,
+        style=LevelStyle(
+            fg=CPrint.FG.BRIGHT_YELLOW,
+            bg=CPrint.BG.RED,
+            intensity=CPrint.Intensity.BOLD,
+        ),
+    )
+    await logger.a_alert("This is an ALERT-level message")
+
+    # ------------------------------------------------------------------------------------------------------
+    # 6. RAW text (plain + colored)
+    # ------------------------------------------------------------------------------------------------------
+    await asyncio.sleep(0.1)
+    print("\nRAW text output:\n----------------")
+    await asyncio.sleep(0.1)
+
+    await logger.a_raw(
+        "AsyncSmartLogger can log raw text (no formatting, no prefix)."
+        "\nRAW text syncs perfectly with other async logging operations."
+        "\nNote: DON'T SPAM !"
+        "\n      Meaning, don't use logger.a_raw() as a replacement for print()"
+        "\n      It's not good practice to call logger.a_raw() if your logger writes to a log file meant for parsing."
+        "\n      Use logger.a_raw() only when you intentionally break the structured log format."
+    )
+
+    await asyncio.sleep(0.1)
+    print("\nRAW colored text:\n------------------")
+    await asyncio.sleep(0.1)
+
+    colored = [
+        CPrint.colorize("RAW",      fg=CPrint.FG.BRIGHT_RED),
+        CPrint.colorize("text",     fg=CPrint.FG.ORANGE),
+        CPrint.colorize("rocks",    fg=CPrint.FG.BRIGHT_YELLOW),
+        CPrint.colorize("in",       fg=CPrint.FG.BRIGHT_GREEN),
+        CPrint.colorize("multiple", fg=CPrint.FG.BRIGHT_BLUE),
+        CPrint.colorize("colors",   fg=CPrint.FG.SOFT_PURPLE),
+    ]
+
+    await logger.a_raw(" ".join(colored))
+
+    # ------------------------------------------------------------------------------------------------------
+    # 7. Safeguards & validations (informational)
+    # ------------------------------------------------------------------------------------------------------
+    await asyncio.sleep(0.1)
+    print(
+        "\nAsyncSmartLogger safeguards:"
+        "\n----------------------------\n"
+        "- Prevents duplicate handlers\n"
+        "- Validates log_dir paths (absolute + normalized)\n"
+        "- Ensures consistent async behavior\n"
+        "\n\n"
+        "Basic async logging demo complete."
+    )
+
+    # Ensure all logs are flushed before exit
+    await logger.flush()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

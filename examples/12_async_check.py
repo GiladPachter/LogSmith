@@ -17,8 +17,6 @@ async def main():
     logger = AsyncSmartLogger.get("async-demo", logging.DEBUG)
     logger.add_console()
 
-    logger.info("Hello from sync", user="Gilad")
-    logger.error("Something sync went wrong", code=123)
     await logger.a_info("Hello from a_sync", user="Gilad")
     await logger.a_error("Something a_sync went wrong", code=123)
 
@@ -30,7 +28,6 @@ async def main():
         CPrint.colorize("multiple", fg=CPrint.FG.BRIGHT_BLUE),
         CPrint.colorize("colors", fg=CPrint.FG.SOFT_PURPLE)
     ]
-    logger.raw("raw: " + " ".join(colored))
     await logger.a_raw("a_raw: " + " ".join(colored))
 
     await logger.flush()

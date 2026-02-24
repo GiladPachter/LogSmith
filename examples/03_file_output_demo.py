@@ -159,7 +159,7 @@ print(CPrint.escape_ansi_for_display(colored))
 # ----------------------------------------------------------------------------------------------------------
 # 7. Read the color-preserved file back
 # ----------------------------------------------------------------------------------------------------------
-print("\nReading color-preserved text back frm file:")
+print("\nReading color-preserved text back from file:")
 time.sleep(0.1)
 
 with open(color_file, "r", encoding="utf-8") as fh:
