@@ -7,6 +7,7 @@ import inspect
 import logging
 from dataclasses import dataclass, asdict
 from enum import Enum, auto
+from pathlib import Path
 from typing import Any, ClassVar, Dict, Optional
 import json
 
@@ -355,6 +356,17 @@ class AsyncSmartLogger:
         )
         self._real_handlers.append(handler)
 
+    def remove_console(self) -> None:
+        to_remove = [
+            h for h in self._py_logger.handlers
+            if isinstance(h, logging.StreamHandler)
+               and not hasattr(h, "baseFilename")
+        ]
+
+        for h in to_remove:
+            self._py_logger.removeHandler(h)
+            h.close()
+
     def add_file(
         self,
         log_dir: str,
@@ -429,6 +441,21 @@ class AsyncSmartLogger:
         )
         self._real_handlers.append(handler)
 
+    from logging import FileHandler
+
+    def remove_file_handler(self, logfile_name: str, log_dir: str) -> None:
+        target_path = Path(log_dir) / logfile_name
+
+        to_remove = [
+            h for h in self._py_logger.handlers
+            if isinstance(h, logging.FileHandler)
+               and Path(h.baseFilename) == target_path
+        ]
+
+        for h in to_remove:
+            h.close()
+            self._py_logger.removeHandler(h)
+
     @property
     def handler_info(self) -> list[dict[str, Any]]:
         info: list[dict[str, Any]] = []
@@ -499,11 +526,10 @@ class AsyncSmartLogger:
             return
 
         self._loop.call_soon_threadsafe(
-            lambda: self._queue.put_nowait(
-                _QueueItem(
-                    op=AsyncOp.ROTATE,
-                    payload={"handler": handler},
-                )
+            self._queue.put_nowait,
+            _QueueItem(
+                op=AsyncOp.ROTATE,
+                payload={"handler": handler},
             )
         )
 
