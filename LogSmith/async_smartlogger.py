@@ -59,13 +59,22 @@ class AsyncSmartLogger:
     • Supports TRACE and dynamically registered levels
     """
 
-    _instances: ClassVar[Dict[str, "AsyncSmartLogger"]] = {}
-    _default_level: ClassVar[int] = logging.INFO
+    __instances: ClassVar[Dict[str, "AsyncSmartLogger"]] = {}
+    __default_level: ClassVar[int] = logging.INFO
 
     # auditing state
-    _audit_enabled: ClassVar[bool] = False
-    _audit_logger: ClassVar[Optional["AsyncSmartLogger"]] = None
-    _audit_handler: ClassVar[Optional[logging.Handler]] = None
+    __audit_enabled: ClassVar[bool] = False
+    __audit_logger: ClassVar[Optional["AsyncSmartLogger"]] = None
+    __audit_handler: ClassVar[Optional[logging.Handler]] = None
+
+    __messages_processed: ClassVar[int] = 0
+
+    @classmethod
+    def messages_processed(cls) -> int:
+        return cls.__messages_processed
+
+    def queue_depth(self) -> int:
+        return self._queue.qsize()
 
     # ------------------------------------------------------------------
     # INIT
@@ -99,13 +108,13 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     @classmethod
     def get(cls, name: str, level: int) -> "AsyncSmartLogger":
-        if name in cls._instances:
-            logger = cls._instances[name]
+        if name in cls.__instances:
+            logger = cls.__instances[name]
             logger.set_level(level)
             return logger
 
         inst = cls(name, level)
-        cls._instances[name] = inst
+        cls.__instances[name] = inst
         return inst
 
     # ------------------------------------------------------------------
@@ -153,9 +162,9 @@ class AsyncSmartLogger:
 
         # Forward to audit logger if auditing is enabled and this is NOT the audit logger itself
         if (
-            AsyncSmartLogger._audit_enabled
-            and AsyncSmartLogger._audit_logger is not None
-            and AsyncSmartLogger._audit_logger is not self
+            AsyncSmartLogger.__audit_enabled
+            and AsyncSmartLogger.__audit_logger is not None
+            and AsyncSmartLogger.__audit_logger is not self
         ):
             audit_extra = extra.copy()
             audit_extra.setdefault("fields", {}).update(fields)
@@ -163,7 +172,7 @@ class AsyncSmartLogger:
             # preserve original logger name for AuditFormatter (uses record.name)
             audit_extra["force_logger_name"] = self._name
 
-            await AsyncSmartLogger._audit_logger._enqueue_log(
+            await AsyncSmartLogger.__audit_logger._enqueue_log(
                 level, msg, args, audit_extra, {}
             )
 
@@ -184,6 +193,8 @@ class AsyncSmartLogger:
         record.__dict__.update(extra)
 
         await asyncio.to_thread(self._py_logger.handle, record)
+
+        AsyncSmartLogger.__messages_processed += 1
 
     # ------------------------------------------------------------------
     # PROCESS RAW
@@ -231,7 +242,8 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # PROCESS ROTATION
     # ------------------------------------------------------------------
-    async def _process_rotate(self, payload: dict[str, Any]) -> None:
+    @staticmethod
+    async def _process_rotate(payload: dict[str, Any]) -> None:
         handler: Async_TimedSizedRotatingFileHandler = payload["handler"]
         await asyncio.to_thread(handler.perform_rotation)
 
@@ -390,7 +402,7 @@ class AsyncSmartLogger:
         setattr(handler, "do_not_sanitize_colors_from_string", do_not_sanitize_colors_from_string)
 
         if isinstance(handler, Async_TimedSizedRotatingFileHandler):
-            handler.rotation_callback = self._enqueue_rotation  # type: ignore[attr-defined]
+            handler.rotation_callback = self.__enqueue_rotation  # type: ignore[attr-defined]
             handler.resolved_path = resolved_path               # for introspection/debugging
 
         self._py_logger.addHandler(handler)
@@ -479,9 +491,13 @@ class AsyncSmartLogger:
             )
         )
 
-    def _enqueue_rotation(self, handler: Async_TimedSizedRotatingFileHandler) -> None:
+    def __enqueue_rotation(self, handler: Async_TimedSizedRotatingFileHandler) -> None:
         if self._stopped:
             return
+
+        if not self._py_logger.handlers:
+            return
+
         self._loop.call_soon_threadsafe(
             lambda: self._queue.put_nowait(
                 _QueueItem(
@@ -542,6 +558,7 @@ class AsyncSmartLogger:
 
         if name in LEVELS.all():
             raise ValueError(f"Level '{name}' already exists")
+
         for meta in LEVELS.all().values():
             if meta["value"] == value:
                 raise ValueError(f"Level value '{value}' already exists")
@@ -575,6 +592,45 @@ class AsyncSmartLogger:
                 return dynamic_level_method
 
         raise AttributeError(f"{type(self).__name__!s} object has no attribute {item!r}")
+
+    # ------------------------------------------------------------------
+    # COLOR THEMES (parity with SmartLogger)
+    # ------------------------------------------------------------------
+    @staticmethod
+    def apply_color_theme(theme: dict[int, LevelStyle]) -> None:
+        # Reset to defaults
+        if theme is None:
+            for name, meta in LEVELS.all().items():
+                meta["style"] = meta["default_style"]
+            return
+
+        # Validate type
+        if not isinstance(theme, dict):
+            raise TypeError("Theme must be a dict mapping level numbers to LevelStyle instances")
+
+        # Validate keys and values
+        for level, style in theme.items():
+            if not isinstance(level, int):
+                raise TypeError(f"Theme key '{level}' must be an int (log level number)")
+            if not isinstance(style, LevelStyle):
+                raise TypeError(f"Theme value for level {level} must be a LevelStyle instance")
+
+        # Apply custom theme
+        for level_name, meta in LEVELS.all().items():
+            value = meta["value"]
+
+            if value not in theme:
+                continue
+
+            style = theme[value]
+
+            if not isinstance(style, LevelStyle):
+                raise TypeError(
+                    f"Theme entry for level {value} must be a LevelStyle, "
+                    f"got {type(style).__name__}"
+                )
+
+            meta["style"] = style
 
     # ------------------------------------------------------------------
     # FLUSH & SHUTDOWN
@@ -614,14 +670,14 @@ class AsyncSmartLogger:
         • Uses AuditFormatter internally
         """
 
-        if cls._audit_enabled:
+        if cls.__audit_enabled:
             return
 
-        cls._audit_enabled = True
+        cls.__audit_enabled = True
 
         # Create the dedicated audit logger
-        audit_logger = cls.get("_async_audit", cls._default_level)
-        cls._audit_logger = audit_logger
+        audit_logger = cls.get("_async_audit", cls.__default_level)
+        cls.__audit_logger = audit_logger
 
         # Prepare formatter
         if details is None:
@@ -638,26 +694,26 @@ class AsyncSmartLogger:
         )
 
         # Save handler reference for removal later
-        cls._audit_handler = audit_logger._py_logger.handlers[-1]
+        cls.__audit_handler = audit_logger._py_logger.handlers[-1]
 
     @classmethod
     async def terminate_auditing(cls) -> None:
         """
         Disable async auditing and remove the audit handler.
         """
-        if not cls._audit_enabled:
+        if not cls.__audit_enabled:
             return
 
-        cls._audit_enabled = False
+        cls.__audit_enabled = False
 
-        if cls._audit_logger and cls._audit_handler:
+        if cls.__audit_logger and cls.__audit_handler:
             try:
-                cls._audit_logger._py_logger.removeHandler(cls._audit_handler)
+                cls.__audit_logger._py_logger.removeHandler(cls.__audit_handler)
             except Exception:
                 pass
 
-        cls._audit_logger = None
-        cls._audit_handler = None
+        cls.__audit_logger = None
+        cls.__audit_handler = None
 
     # ------------------------------------------------------------------
     # END OF CLASS
