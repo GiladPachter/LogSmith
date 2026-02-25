@@ -753,6 +753,7 @@ class AsyncSmartLogger:
     def get_record(cls, *, exc_info: bool = False, stack_info: bool = False) -> RetrievedRecord:
         now = datetime.now()
 
+        # Caller frame
         frame = inspect.stack()[1]
         frame_info = frame.frame
         file_path = frame_info.f_code.co_filename
@@ -760,9 +761,11 @@ class AsyncSmartLogger:
         lineno = frame_info.f_lineno
         func_name = frame_info.f_code.co_name
 
+        # Thread / task / process
         thread = threading.current_thread()
         task = asyncio.current_task()
 
+        # Exception metadata (only inside except block)
         exc = None
         if exc_info:
             exc_type, exc_val, tb = sys.exc_info()
@@ -773,6 +776,7 @@ class AsyncSmartLogger:
                     "traceback": traceback.format_exception(exc_type, exc_val, tb),
                 }
 
+        # Stack metadata
         stack = None
         if stack_info:
             stack = "".join(traceback.format_stack())

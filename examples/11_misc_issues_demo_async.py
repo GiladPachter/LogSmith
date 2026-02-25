@@ -77,7 +77,7 @@ async def main():
     await asyncio.sleep(0.1)
 
     await logger.a_info("This is a test message for get_record()")
-    record = logger.get_record()
+    record = logger.get_record(exc_info = True, stack_info = True)
 
     # Clean stack_info for display
     if record.stack_info:
@@ -99,7 +99,7 @@ async def main():
     try:
         1 / 0
     except ZeroDivisionError:
-        record = logger.get_record()  # examine record.exc_info if desired
+        record = logger.get_record(exc_info = True, stack_info = True)  # examine record.exc_info if desired
         await logger.a_error("Error with Captured Exception", exc_info=True)
 
     await logger.a_raw("")

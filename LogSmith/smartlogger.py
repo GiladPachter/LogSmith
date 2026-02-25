@@ -12,7 +12,7 @@ import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Protocol, Literal, cast, Union, Callable
+from typing import Any, Optional, Protocol, Literal, cast, Union, Callable, List
 
 from .formatter import (
     StructuredPlainFormatter,
@@ -73,7 +73,7 @@ class RetrievedRecord:
 
     # diagnostics
     exc_info: dict | None = None
-    stack_info: str | None = None
+    stack_info: List[str] | None = None
 
 
 # ======================================================================
