@@ -71,7 +71,7 @@ print("\nDemonstrating get_record()...")
 time.sleep(0.1)
 
 logger.info("This is a test message for get_record()")
-record = logger.get_record()
+record = SmartLogger.get_record()
 record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
 print("\nRecord contents:")
 time.sleep(0.1)
@@ -88,7 +88,7 @@ try:
     1 / 0
 except ZeroDivisionError:
     # ---------------------------
-    record = logger.get_record()    # examine record.exc_info at your convenience
+    record = SmartLogger.get_record()    # examine record.exc_info at your convenience
     # ---------------------------
     logger.error("Error with Captured Exception", exc_info=True)
 

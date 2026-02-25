@@ -1020,10 +1020,11 @@ class SmartLogger(logging.Logger):
             if isinstance(logger, SmartLogger):
                 logger.propagate = False
 
-    def get_record(self):
-        return self.get_record_parts(timestamp = True,
-                                     level = True,
-                                     logger_name = True,
+    @staticmethod
+    def get_record():
+        return SmartLogger.get_record_parts(timestamp = True,
+                                     # level = True,
+                                     # logger_name = True,
                                      relative_created = True,
                                      file_path = True,
                                      file_name = True,
@@ -1038,12 +1039,12 @@ class SmartLogger(logging.Logger):
                                      stack_info = True,
                                      )
 
+    @staticmethod
     def get_record_parts(
-        self,
         *,
         timestamp: bool = False,
-        level: bool = False,
-        logger_name: bool = False,
+        # level: bool = False,
+        # logger_name: bool = False,
         relative_created: bool = False,
         file_path: bool = False,
         file_name: bool = False,
@@ -1124,7 +1125,8 @@ class SmartLogger(logging.Logger):
         # 1. Validate that at least one field is requested
         # ---------------------------------------------------------------
         if not any([
-            timestamp, level, logger_name, relative_created,
+            # timestamp, level, logger_name, relative_created,
+            timestamp, relative_created,
             file_path, file_name, lineno, func_name,
             thread_id, thread_name, task_name,
             process_id, process_name,
@@ -1186,11 +1188,11 @@ class SmartLogger(logging.Logger):
             dt = datetime.fromtimestamp(now)
             rec.timestamp = dt.isoformat(timespec="milliseconds").replace("T", " ")
 
-        if level:
-            rec.level = logging.getLevelName(self.level)
-
-        if logger_name:
-            rec.logger_name = self.name
+        # if level:
+        #     rec.level = logging.getLevelName(self.level)
+        #
+        # if logger_name:
+        #     rec.logger_name = self.name
 
         if relative_created:
             # noinspection PyUnresolvedReferences,PyProtectedMember
@@ -1223,7 +1225,7 @@ class SmartLogger(logging.Logger):
             rec.process_id = pid
 
         if process_name:
-            rec.process_name = self._get_process_name()
+            rec.process_name = SmartLogger._get_process_name()
 
         if exc_info:
             exc_type, exc_value, exc_tb = exc_val
