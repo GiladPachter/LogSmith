@@ -4,6 +4,7 @@
 Demonstrates SmartLogger under multi-threaded load:
 - Thread safety
 - Rotation under heavy logging
+- Live progress bar (imported from async demo style)
 - Clean, focused, non-duplicative example
 """
 
@@ -25,13 +26,14 @@ from LogSmith import LogRecordDetails, OptionalRecordFields
 
 from project_definitions import ROOT_DIR
 
+
 # ----------------------------------------------------------------------------------------------------------
-# 1. Initialization — MUST be done at application entry point
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nStress test demo\n================")
+
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Prepare log directory
@@ -48,13 +50,15 @@ if log_dir.exists():
 
 print("Old stress-test files removed.")
 
+
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create logger
 # ----------------------------------------------------------------------------------------------------------
 print("\nCreating logger 'stress'...")
 
 logger = SmartLogger("stress", level=levels["TRACE"])
-logger.add_console(level=levels["TRACE"])
+# logger.add_console(level=levels["TRACE"])
+
 
 # ----------------------------------------------------------------------------------------------------------
 # 4. Add rotating file handler
@@ -94,24 +98,80 @@ logger.add_file(
 logger.info("Stress-test logger ready.")
 time.sleep(0.1)
 
+
 # ----------------------------------------------------------------------------------------------------------
 # 5. Worker thread
 # ----------------------------------------------------------------------------------------------------------
-def worker(thread_Number: int, iterations: int):
+def worker(thread_number: int, iterations: int, progress_dict, lock):
     for i in range(iterations):
-        logger.info(f"[thread number {thread_Number}] message {i}")
+        logger.info(f"[thread number {thread_number}] message {i}")
+
+        # update progress counter
+        with lock:
+            progress_dict["count"] += 1
+
 
 # ----------------------------------------------------------------------------------------------------------
-# 6. Stress test runner
+# 6. Progress bar monitor (threaded)
+# ----------------------------------------------------------------------------------------------------------
+def start_progress_monitor(total_messages, progress_dict, lock):
+    bar_width = 40
+    start_time = time.time()
+
+    def monitor():
+        while True:
+            time.sleep(0.2)
+
+            with lock:
+                done = progress_dict["count"]
+
+            pct = done / total_messages
+            filled = int(pct * bar_width)
+            bar = "█" * filled + "-" * (bar_width - filled)     #   Alt+219 = "█"   (filled progress-bar character)
+
+            elapsed = time.time() - start_time
+            rate = done / elapsed if elapsed > 0 else 0
+            eta = (total_messages - done) / rate if rate > 0 else 0
+
+            print(
+                f"\r[{bar}] {pct*100:5.1f}%  "
+                f"done={done}/{total_messages}  "
+                f"{rate:7.1f} msg/s  "
+                f"ETA {eta:5.1f}s",
+                end="",
+                flush=True,
+            )
+
+            if done >= total_messages:
+                break
+
+        print()  # newline after finishing
+
+    t = threading.Thread(target=monitor, daemon=True)
+    t.start()
+    return t
+
+
+# ----------------------------------------------------------------------------------------------------------
+# 7. Stress test runner
 # ----------------------------------------------------------------------------------------------------------
 def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
-    print(f"\nStarting stress test with {thread_count} threads...")
+    print(f"\nStarting stress test with {thread_count} threads and {5000} logs per thread...")
+    print(f"(Writing logs to {logger.handler_info[0]["path"]})")
     time.sleep(0.1)
+
+    total_messages = thread_count * iterations_per_thread
+
+    progress = {"count": 0}
+    lock = threading.Lock()
+
+    # Start progress monitor
+    monitor_thread = start_progress_monitor(total_messages, progress, lock)
 
     threads = [
         threading.Thread(
             target=worker,
-            args=(t, iterations_per_thread),
+            args=(t, iterations_per_thread, progress, lock),
             daemon=True,
         )
         for t in range(thread_count)
@@ -125,13 +185,16 @@ def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
     for t in threads:
         t.join()
 
+    monitor_thread.join()
+
     end = time.time()
 
     print(f"\nStress test completed in {end - start:.2f} seconds")
     time.sleep(0.1)
 
+
 # ----------------------------------------------------------------------------------------------------------
-# 7. Entry point
+# 8. Entry point
 # ----------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     run_stress_test()
