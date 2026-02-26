@@ -32,7 +32,7 @@ from project_definitions import ROOT_DIR
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nFile output demo\n================")
 
@@ -41,7 +41,7 @@ print("\nFile output demo\n================")
 # ----------------------------------------------------------------------------------------------------------
 print("\nCreating logger 'file_demo'...")
 
-logger = SmartLogger.get("file_demo", level=levels["TRACE"])
+logger = SmartLogger("file_demo", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])   # console for visibility
 
 # ----------------------------------------------------------------------------------------------------------

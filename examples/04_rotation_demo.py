@@ -29,7 +29,7 @@ from project_definitions import ROOT_DIR
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nRotation demo\n=============")
 time.sleep(0.1)
@@ -55,7 +55,7 @@ print("Old rotation files removed.")
 print("\nCreating logger 'rotation_demo'...")
 time.sleep(0.1)
 
-logger = SmartLogger.get("rotation_demo", level=levels["TRACE"])
+logger = SmartLogger("rotation_demo", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])
 
 # ----------------------------------------------------------------------------------------------------------

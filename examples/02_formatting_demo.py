@@ -26,7 +26,7 @@ from LogSmith import LogRecordDetails, OptionalRecordFields
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nGranular formatting demo\n========================")
 
@@ -36,7 +36,7 @@ print("\nGranular formatting demo\n========================")
 print("\nCreating logger 'granular_partial' (partial coloring)...")
 time.sleep(0.1)
 
-lg_partial = SmartLogger.get("granular_partial", level=levels["TRACE"])
+lg_partial = SmartLogger("granular_partial", level=levels["TRACE"])
 
 partial_details = LogRecordDetails(
     datefmt="%Y-%m-%d %H:%M:%S.%2f",   # milliseconds
@@ -71,7 +71,7 @@ time.sleep(0.1)
 print("\nCreating logger 'granular_full' (full-entry coloring)...")
 time.sleep(0.1)
 
-lg_full = SmartLogger.get("granular_full", level=levels["TRACE"])
+lg_full = SmartLogger("granular_full", level=levels["TRACE"])
 
 full_details = LogRecordDetails(
     datefmt="%Y-%m-%d %H:%M:%S.%2f",

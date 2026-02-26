@@ -28,7 +28,7 @@ from LogSmith import SmartLogger, CPrint, LevelStyle
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nBuiltin logger levels:")
 print(json.dumps(levels, indent = 4))
@@ -37,7 +37,7 @@ print(json.dumps(levels, indent = 4))
 # 2. Create a logger and attach a console handler
 # ----------------------------------------------------------------------------------------------------------
 print("\nCreating logger 'basic'...\n")
-logger = SmartLogger.get("basic", level=levels["TRACE"])
+logger = SmartLogger("basic", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])
 
 # NOTE:

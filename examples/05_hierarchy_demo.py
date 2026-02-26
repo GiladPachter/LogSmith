@@ -25,7 +25,7 @@ from LogSmith import LogRecordDetails, OptionalRecordFields
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nHierarchy demo\n==============")
 
@@ -52,9 +52,9 @@ time.sleep(0.1)
 # ----------------------------------------------------------------------------------------------------------
 print("\nCreating loggers...")
 
-parent     = SmartLogger.get("myapp",           level=levels["DEBUG"])
-child      = SmartLogger.get("myapp.api",       level=levels["NOTSET"])
-grandchild = SmartLogger.get("myapp.api.users", level=levels["NOTSET"])
+parent     = SmartLogger("myapp",           level=levels["DEBUG"])
+child      = SmartLogger("myapp.api",       level=levels["NOTSET"])
+grandchild = SmartLogger("myapp.api.users", level=levels["NOTSET"])
 
 # All loggers share the same formatting
 details = LogRecordDetails(

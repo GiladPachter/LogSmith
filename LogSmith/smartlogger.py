@@ -112,14 +112,6 @@ class SmartLogger(logging.Logger):
         • multiple processes writing to the same base log file on Windows
 
     ---------------------------------------------------------------------------
-    Initialization
-    ---------------------------------------------------------------------------
-    SmartLogger.initialize_smartlogger(level=...)
-        Must be called once at application startup.
-        Establishes global logging configuration, default levels, and ensures
-        consistent behavior across all SmartLogger instances.
-
-    ---------------------------------------------------------------------------
     Creating loggers
     ---------------------------------------------------------------------------
     SmartLogger.get(name, level=None)
@@ -210,44 +202,38 @@ class SmartLogger(logging.Logger):
 
     _file_handler_lock = threading.RLock()
 
-    @staticmethod
-    def _allowed_callers():
-        return {
-            ("LogSmith.smartlogger", "get"),
-            ("LogSmith.smartlogger", "initialize_smartlogger"),
-        }
-
-    @staticmethod
-    def _called_from_allowed() -> bool:
-        allowed = SmartLogger._allowed_callers()
-
-        for frame_info in inspect.stack()[2:8]:
-            frame = frame_info.frame
-            module = frame.f_globals.get("__name__")
-            func = frame_info.function
-
-            if (module, func) in allowed:
-                return True
-
-        return False
-
-    def __init__(self, name: str) -> None:
-        if not SmartLogger._called_from_allowed():
-            raise RuntimeError(
-                "SmartLogger cannot be instantiated directly. "
-                "Use SmartLogger.get(name, level)."
-            )
-
+    def __init__(self, name: str, level: int = logging.NOTSET) -> None:
         super().__init__(name)
         self._smart_state = _SmartLoggerState()
 
+        # Register this logger in the global logging manager so that
+        # logging.getLogger(name) returns THIS instance from now on.
+        manager = logging.Logger.manager
+        manager.loggerDict[name] = self
+
+        # Restore natural logging hierarchy:
+        #   "myapp.api.users" -> parent "myapp"
+        #   "myapp"           -> parent "root"
+        if "." in name:
+            parent_name = name.rpartition(".")[0]
+            parent = manager.loggerDict.get(parent_name)
+            if parent is None:
+                parent = logging.getLogger(parent_name)
+            self.parent = parent
+        else:
+            self.parent = logging.getLogger()  # root
+
+        # Set this logger's own level
+        self.setLevel(level)
+
+        # Auditing still controls propagation
         self.propagate = SmartLogger._audit_enabled
 
-        # Override builtin logging methods
-        self.debug    = self._wrap_builtin(logging.DEBUG)
-        self.info     = self._wrap_builtin(logging.INFO)
-        self.warning  = self._wrap_builtin(logging.WARNING)
-        self.error    = self._wrap_builtin(logging.ERROR)
+        # Override builtin logging methods to preserve SmartLogger semantics
+        self.debug = self._wrap_builtin(logging.DEBUG)
+        self.info = self._wrap_builtin(logging.INFO)
+        self.warning = self._wrap_builtin(logging.WARNING)
+        self.error = self._wrap_builtin(logging.ERROR)
         self.critical = self._wrap_builtin(logging.CRITICAL)
 
     @staticmethod
@@ -328,66 +314,6 @@ class SmartLogger(logging.Logger):
             stream.write(text + end)
             stream.flush()
 
-    @staticmethod
-    def initialize_smartlogger(
-        *,
-        level: int,
-        default_details: LogRecordDetails | None = None,
-        log_record_details: Optional[LogRecordDetails] = None,
-    ) -> SmartLogger:
-        # 1. Ensure SmartLogger is the logger class for future loggers
-        logging.setLoggerClass(SmartLogger)
-
-        # 2. Create a new SmartLogger root
-        new_root = SmartLogger("root")
-
-        # 3. Replace ALL references to the old root logger
-        logging.root = new_root
-        # noinspection PyTypeChecker
-        logging.Logger.root = new_root
-        # noinspection PyTypeChecker
-        logging.Logger.manager.root = new_root
-        logging.Logger.manager.loggerDict["root"] = new_root
-
-        # 4. Remove any default handlers
-        for h in new_root.handlers[:]:
-            new_root.removeHandler(h)
-
-        # 5. Root should not propagate further
-        new_root.propagate = False
-
-        # 6. Set root level
-        new_root.setLevel(level)
-
-        SmartLogger._default_level = level
-        if default_details is not None:
-            SmartLogger._default_log_record_details = default_details
-
-        return new_root
-
-    # ------------------------------------------------------------------
-    #  LOGGER CREATION
-    # ------------------------------------------------------------------
-    @classmethod
-    def get(cls, name: str, level: int) -> SmartLogger:
-        """
-        Get (or create) a SmartLogger with the given name and level.
-
-        Ensures:
-          - logger is a SmartLogger
-          - stale loggers with the same name are removed
-        """
-        if name == "root":
-                raise ValueError("logger name 'root' in reserved for internal SmartLogger implementation. Choose a different name.")
-
-        logging.Logger.manager.loggerDict.pop(name, None)
-
-        logging.setLoggerClass(cls)
-        logger = logging.getLogger(name)
-        logger.setLevel(level)
-
-        return cast(SmartLogger, logger)
-
     # ------------------------------------------------------------------
     #  CORE LOGGING BEHAVIOR
     # ------------------------------------------------------------------
@@ -444,19 +370,6 @@ class SmartLogger(logging.Logger):
                 self._log(level_value, msg, args, stacklevel=stacklevel, **kwargs)
 
         return log_method
-
-    # ------------------------------------------------------------------
-    #  HANDLER MANAGEMENT (PER-LOGGER)
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _get_root_smartlogger() -> SmartLogger:
-        root = logging.getLogger()
-        if not isinstance(root, SmartLogger):
-            raise RuntimeError(
-                "SmartLogger root not initialized. "
-                "Call SmartLogger.initialize_smartlogger(...) first."
-            )
-        return cast(SmartLogger, root)
 
     @staticmethod
     def set_global_log_record_details(details: LogRecordDetails) -> None:
@@ -758,19 +671,20 @@ class SmartLogger(logging.Logger):
 
     @staticmethod
     def __safeguard_internals(name: str, value: int):
-        # Prevent overriding internal SmartLogger methods/attributes
+        # Prevent overriding internal SmartLogger attributes
         if name in SmartLogger.__dict__:
             raise ValueError(f"Cannot override internal SmartLogger attribute '{name}'")
 
-        # Prevent overriding existing levels
-        # noinspection PyProtectedMember
-        if name in SmartLogger._level_registry:
+        # Prevent duplicate level names
+        if name in LEVELS.all():
             raise ValueError(f"Level '{name}' already exists")
-        # noinspection PyProtectedMember
-        if value in SmartLogger._value_registry:
-            raise ValueError(f"Level value '{value}' already exists")
 
-        # Prevent overriding internal operation levels
+        # Prevent duplicate numeric values
+        for meta in LEVELS.all().values():
+            if meta["value"] == value:
+                raise ValueError(f"Level value '{value}' already exists")
+
+        # Prevent negative values (reserved for internal operations)
         if value < 0:
             raise ValueError("Negative level values are reserved for internal operations")
 
