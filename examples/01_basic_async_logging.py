@@ -20,7 +20,6 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
 import asyncio
-import time
 import json
 
 from LogSmith import CPrint, LevelStyle

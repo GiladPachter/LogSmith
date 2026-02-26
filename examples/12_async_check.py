@@ -8,11 +8,9 @@ import asyncio
 import logging
 
 from LogSmith import CPrint
-from LogSmith.smartlogger import SmartLogger
 from LogSmith.async_smartlogger import AsyncSmartLogger
 
 async def main():
-    # SmartLogger.initialize_smartlogger(level=logging.DEBUG)
 
     logger = AsyncSmartLogger.get("async-demo", logging.DEBUG)
     logger.add_console()

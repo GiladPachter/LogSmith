@@ -15,14 +15,12 @@ from pathlib import Path
 
 from project_definitions import ROOT_DIR
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 
-# ------------------------------------------------------------
-# SmartLogger initialization
-# ------------------------------------------------------------
-
+# ----------------------------------------------------------------------------------------------------------
+# 1. Initialization
+# ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["INFO"])
 
 # ------------------------------------------------------------
 # Setup: two loggers, each with console + file handler
@@ -70,9 +68,9 @@ for i in range(1, 4):
 # ------------------------------------------------------------
 
 def print_file(label: str, path: Path):
-    print(f"\n=== {label} ({path}) ===")
+    stdout(f"\n=== {label} ({path}) ===")
     if not path.exists():
-        print("    <file missing>")
+        stdout("    <file missing>")
         return
 
     raw = path.read_bytes()
@@ -80,14 +78,13 @@ def print_file(label: str, path: Path):
 
     # Print lines
     for line in decoded.splitlines():
-        print("    " + line)
+        stdout("    " + line)
 
-    print("\n    NOTE:")
+    stdout("\n    NOTE:")
     if label.startswith("Logger A"):
-        print("    - Logger A's file is missing the *after removal* lines")
+        stdout("    - Logger A's file is missing the *after removal* lines")
     else:
-        print("    - Logger B's file contains all lines (console was removed instead)")
+        stdout("    - Logger B's file contains all lines (console was removed instead)")
 
-time.sleep(0.1)
 print_file("Logger A file", Path(log_dir) / "A.log")
 print_file("Logger B file", Path(log_dir) / "B.log")

@@ -20,7 +20,7 @@ import threading
 import time
 from pathlib import Path
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
@@ -32,13 +32,13 @@ from project_definitions import ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
 
-print("\nStress test demo\n================")
+stdout("\nStress test demo\n================")
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Prepare log directory
 # ----------------------------------------------------------------------------------------------------------
-print("\nPreparing log directory...")
+stdout("\nPreparing log directory...")
 
 log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "stress_test"
 
@@ -48,13 +48,13 @@ if log_dir.exists():
         if f.is_file():
             f.unlink()
 
-print("Old stress-test files removed.")
+stdout("Old stress-test files removed.")
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create logger
 # ----------------------------------------------------------------------------------------------------------
-print("\nCreating logger 'stress'...")
+stdout("\nCreating logger 'stress'...")
 
 logger = SmartLogger("stress", level=levels["TRACE"])
 # logger.add_console(level=levels["TRACE"])
@@ -63,8 +63,7 @@ logger = SmartLogger("stress", level=levels["TRACE"])
 # ----------------------------------------------------------------------------------------------------------
 # 4. Add rotating file handler
 # ----------------------------------------------------------------------------------------------------------
-print("\nAdding rotating file handler...")
-time.sleep(0.1)
+stdout("\nAdding rotating file handler...")
 
 details = LogRecordDetails(
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -96,7 +95,6 @@ logger.add_file(
 )
 
 logger.info("Stress-test logger ready.")
-time.sleep(0.1)
 
 
 # ----------------------------------------------------------------------------------------------------------
@@ -133,19 +131,18 @@ def start_progress_monitor(total_messages, progress_dict, lock):
             rate = done / elapsed if elapsed > 0 else 0
             eta = (total_messages - done) / rate if rate > 0 else 0
 
-            print(
+            stdout(
                 f"\r[{bar}] {pct*100:5.1f}%  "
                 f"done={done}/{total_messages}  "
                 f"{rate:7.1f} msg/s  "
                 f"ETA {eta:5.1f}s",
                 end="",
-                flush=True,
             )
 
             if done >= total_messages:
                 break
 
-        print()  # newline after finishing
+        stdout()  # newline after finishing
 
     t = threading.Thread(target=monitor, daemon=True)
     t.start()
@@ -156,9 +153,9 @@ def start_progress_monitor(total_messages, progress_dict, lock):
 # 7. Stress test runner
 # ----------------------------------------------------------------------------------------------------------
 def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
-    print(f"\nStarting stress test with {thread_count} threads and {5000} logs per thread...")
-    print(f"(Writing logs to {logger.handler_info[0]["path"]})")
-    time.sleep(0.1)
+    stdout(f"\nStarting stress test with {thread_count} threads and {5000} logs per thread...")
+    stdout(f"(Writing logs to: '{logger.handler_info[0]["path"]}')")
+
 
     total_messages = thread_count * iterations_per_thread
 
@@ -189,8 +186,7 @@ def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
 
     end = time.time()
 
-    print(f"\nStress test completed in {end - start:.2f} seconds")
-    time.sleep(0.1)
+    stdout(f"\nStress test completed in {end - start:.2f} seconds")
 
 
 # ----------------------------------------------------------------------------------------------------------
@@ -199,5 +195,4 @@ def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
 if __name__ == "__main__":
     run_stress_test()
 
-    time.sleep(0.1)
-    print("\nStress test demo complete.\n")
+    stdout("\nStress test demo complete.\n")

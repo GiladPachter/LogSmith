@@ -10,14 +10,14 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 from LogSmith import DARK_THEME, LIGHT_THEME, NEON_THEME, PASTEL_THEME, FIRE_THEME, OCEAN_THEME
 
 # ----------------------------------------------------------------------------------------------------------
-# critically essential initialization first thing at application entry point, for consistent logger behavior
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+
 # ----------------------------------------------------------------------------------------------------------
 
 logger = SmartLogger("themes_logger", levels["TRACE"])
@@ -33,37 +33,23 @@ def demo_theme(name, theme):
     logger.error(f"{name}: error message")
     logger.critical(f"{name}: critical message")
 
-print("\n--- LIGHT THEME ---")
-time.sleep(0.2)
+stdout("\n--- LIGHT THEME ---")
 demo_theme("light", LIGHT_THEME)
-time.sleep(0.2)
 
-print("\n--- DARK THEME ---")
-time.sleep(0.2)
+stdout("\n--- DARK THEME ---")
 demo_theme("dark", DARK_THEME)
-time.sleep(0.2)
 
-print("\n--- NEON THEME ---")
-time.sleep(0.2)
+stdout("\n--- NEON THEME ---")
 demo_theme("neon", NEON_THEME)
-time.sleep(0.2)
 
-print("\n--- PASTEL THEME ---")
-time.sleep(0.2)
+stdout("\n--- PASTEL THEME ---")
 demo_theme("pastel", PASTEL_THEME)
-time.sleep(0.2)
 
-print("\n--- FIRE THEME ---")
-time.sleep(0.2)
+stdout("\n--- FIRE THEME ---")
 demo_theme("fire", FIRE_THEME)
-time.sleep(0.2)
 
-print("\n--- OCEAN THEME ---")
-time.sleep(0.2)
+stdout("\n--- OCEAN THEME ---")
 demo_theme("ocean", OCEAN_THEME)
-time.sleep(0.2)
 
-print("\n--- RESTORING DEFAULTS ---")
-time.sleep(0.2)
+stdout("\n--- RESTORING DEFAULTS ---")
 demo_theme("default", None)
-time.sleep(0.2)

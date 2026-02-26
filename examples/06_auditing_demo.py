@@ -20,24 +20,23 @@ import time
 from pathlib import Path
 from typing import Dict
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 from project_definitions import ROOT_DIR
 
 # ----------------------------------------------------------------------------------------------------------
-# 1. Initialization — MUST be done at application entry point
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
-print("\nAuditing demo\n=============")
+stdout("\nAuditing demo\n=============")
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Prepare audit directory
 # ----------------------------------------------------------------------------------------------------------
-print("\nPreparing audit directory...")
+stdout("\nPreparing audit directory...")
 
 audit_dir = Path(ROOT_DIR) / "Logs" / "examples" / "auditing_demo"
 audit_dir.mkdir(parents=True, exist_ok=True)
@@ -47,14 +46,12 @@ for f in audit_dir.iterdir():
     if f.is_file():
         f.unlink()
 
-print("Old audit files removed.")
-time.sleep(0.1)
+stdout("Old audit files removed.")
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create several loggers with different handler setups
 # ----------------------------------------------------------------------------------------------------------
-print("\nCreating loggers...")
-time.sleep(0.1)
+stdout("\nCreating loggers...")
 
 loggers: Dict[str, SmartLogger] = {}
 
@@ -96,21 +93,17 @@ lg4.add_file(
 )
 loggers["two_files"] = lg4
 
-print("Loggers created.")
-time.sleep(0.1)
+stdout("Loggers created.")
 
 # ----------------------------------------------------------------------------------------------------------
 # 4. Show logger configurations (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
-print("\nOutput Targets by logger \"<NAME>\":")
-time.sleep(0.1)
+stdout("\nOutput Targets by logger \"<NAME>\":")
 
 for name, lg in loggers.items():
-    print(f"\t\"{lg.name}\": ")
+    stdout(f"\t\"{lg.name}\": ")
     for target in lg.output_targets:
-        print(f"\t\t{target}")
-
-time.sleep(0.1)
+        stdout(f"\t\t{target}")
 
 # ----------------------------------------------------------------------------------------------------------
 # 5. Enable auditing
@@ -136,8 +129,7 @@ rotation = RotationLogic(
     backupCount=5,
 )
 
-print(f"\nEnabling auditing of 4 loggers... into '{audit_dir / 'audit.log'}'")
-time.sleep(0.1)
+stdout(f"\nEnabling auditing of 4 loggers... into '{audit_dir / 'audit.log'}'")
 
 SmartLogger.audit_everything(
     log_dir=str(audit_dir),
@@ -146,13 +138,12 @@ SmartLogger.audit_everything(
     details=audit_details,
 )
 
-print("Auditing enabled.")
+stdout("Auditing enabled.")
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. Exercise all loggers
 # ----------------------------------------------------------------------------------------------------------
-print("\nLogging from all loggers...")
-time.sleep(0.1)
+stdout("\nLogging from all loggers...")
 
 for name, lg in loggers.items():
     lg.info(f"[audit] logger '{name}' says hello")
@@ -162,26 +153,25 @@ for name, lg in loggers.items():
 # ----------------------------------------------------------------------------------------------------------
 # 7. Disable auditing
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(1.2)
-print("\nDisabling auditing...")
+stdout("\nDisabling auditing...")
 
 SmartLogger.terminate_auditing()
 
-print("Auditing disabled.")
+stdout("Auditing disabled.")
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 8. Show audit handler info
 # ----------------------------------------------------------------------------------------------------------
-print("\nAudit handler info:")
+stdout("\nAudit handler info:")
 audit_logger = SmartLogger("_audit", levels["TRACE"])  # internal audit logger
-print(audit_logger.handler_info_json)
+stdout(audit_logger.handler_info_json)
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 9. Notes on adapting this demo
 # ----------------------------------------------------------------------------------------------------------
-print("\nNotes:\n"
+stdout("\nNotes:\n"
       "- To demonstrate size-only rotation: remove 'when' and 'interval'.\n"
       "- To demonstrate time-only rotation: remove 'maxBytes'.\n"
       "- To demonstrate long-term rotation (daily/weekly):\n"

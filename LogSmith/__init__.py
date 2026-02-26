@@ -24,7 +24,7 @@ except Exception:
 # ----------------------------------------------------------------------
 
 # Core logger
-from .smartlogger import SmartLogger
+from .smartlogger import SmartLogger, stdout
 
 # Formatting
 from .formatter import LogRecordDetails, OptionalRecordFields
@@ -52,6 +52,7 @@ from .async_smartlogger import AsyncSmartLogger
 __all__ = [
     # Core
     "SmartLogger",
+    "stdout",
 
     # Formatting
     "LogRecordDetails",

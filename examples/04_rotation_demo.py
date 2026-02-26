@@ -19,25 +19,23 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from pathlib import Path
 import time
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 from project_definitions import ROOT_DIR
 
 # ----------------------------------------------------------------------------------------------------------
-# 1. Initialization — MUST be done at application entry point
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
-print("\nRotation demo\n=============")
-time.sleep(0.1)
+stdout("\nRotation demo\n=============")
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Prepare log directory and clean old files
 # ----------------------------------------------------------------------------------------------------------
-print("\nPreparing log directory...")
+stdout("\nPreparing log directory...")
 
 log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "rotation_demo"
 
@@ -47,13 +45,12 @@ if log_dir.exists():
         if f.is_file():
             f.unlink()
 
-print("Old rotation files removed.")
+stdout("Old rotation files removed.")
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create logger
 # ----------------------------------------------------------------------------------------------------------
-print("\nCreating logger 'rotation_demo'...")
-time.sleep(0.1)
+stdout("\nCreating logger 'rotation_demo'...")
 
 logger = SmartLogger("rotation_demo", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])
@@ -78,8 +75,7 @@ details = LogRecordDetails(
 # ==========================================================================================================
 # SIZE-BASED ROTATION
 # ==========================================================================================================
-print("\nSize-based rotation (maxBytes=2000)...")
-time.sleep(0.1)
+stdout("\nSize-based rotation (maxBytes=2000)...")
 
 logger.add_file(
     log_dir=str(log_dir),
@@ -95,14 +91,12 @@ logger.add_file(
 for i in range(40):
     logger.info(f"[size] message {i}")
 
-time.sleep(0.1)
-print("Size-based rotation complete.")
+stdout("Size-based rotation complete.")
 
 # ==========================================================================================================
 # TIME-BASED ROTATION
 # ==========================================================================================================
-print("\nTime-based rotation (rotate every second)...")
-time.sleep(0.1)
+stdout("\nTime-based rotation (rotate every second)...")
 
 logger.add_file(
     log_dir=str(log_dir),
@@ -121,16 +115,14 @@ start = time.time()
 while time.time() - start < 3:
     logger.debug("[time] rotating...")
 
-time.sleep(0.1)
-print("Time-based rotation complete.")
+stdout("Time-based rotation complete.")
 
 # ----------------------------------------------------------------------------------------------------------
 # NOTE ABOUT DAILY/WEEKLY ROTATION
 # ----------------------------------------------------------------------------------------------------------
-print("\nDaily/Weekly rotation behavior:")
-time.sleep(0.1)
+stdout("\nDaily/Weekly rotation behavior:")
 
-print(
+stdout(
     "- When=When.DAY rotates at midnight local time.\n"
     "- When=When.WEEK rotates at the start of the week (Monday).\n"
     "- interval=N means 'every N days' or 'every N weeks'.\n"
@@ -140,8 +132,7 @@ print(
 # ==========================================================================================================
 # COMBINED ROTATION (size + time)
 # ==========================================================================================================
-print("\nCombined rotation (maxBytes + time)...")
-time.sleep(0.1)
+stdout("\nCombined rotation (maxBytes + time)...")
 
 logger.add_file(
     log_dir=str(log_dir),
@@ -160,21 +151,20 @@ start = time.time()
 while time.time() - start < 2:
     logger.warning("[combined] rotating...")
 
-time.sleep(0.1)
-print("Combined rotation complete.")
+stdout("Combined rotation complete.")
 
 # ----------------------------------------------------------------------------------------------------------
 # 5. Show handler_info (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
-print("\nHandler info:\n-------------")
-print(logger.handler_info_json)
+stdout("\nHandler info:\n-------------")
+stdout(logger.handler_info_json)
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. SmartLogger rotation safeguards
 # ----------------------------------------------------------------------------------------------------------
-print("\nSmartLogger rotation safeguards:\n--------------------------------")
+stdout("\nSmartLogger rotation safeguards:\n--------------------------------")
 
-print(
+stdout(
     "- Validates rotation parameters\n"
     "- Prevents invalid combinations (e.g., negative sizes)\n"
     "- Ensures backupCount is respected\n"
@@ -182,4 +172,4 @@ print(
     "- Ensures size-based rotation triggers immediately when threshold is exceeded\n"
 )
 
-print("\nRotation demo complete.\n")
+stdout("\nRotation demo complete.\n")

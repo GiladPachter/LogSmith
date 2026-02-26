@@ -23,26 +23,22 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 import json
-from pathlib import Path
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 from LogSmith import LogRecordDetails, OptionalRecordFields
-from LogSmith import RotationLogic, When
+from LogSmith import RotationLogic
 
 # ----------------------------------------------------------------------------------------------------------
-# 1. Initialization — MUST be done at application entry point
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
-print("\nMiscellaneous SmartLogger Features\n=================================")
-time.sleep(0.1)
+stdout("\nMiscellaneous SmartLogger Features\n=================================")
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create logger with exc_info + stack_info enabled
 # ----------------------------------------------------------------------------------------------------------
-print("\nCreating logger 'misc'...")
-time.sleep(0.1)
+stdout("\nCreating logger 'misc'...")
 
 details = LogRecordDetails(
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -67,22 +63,18 @@ logger.add_console(level=levels["TRACE"], log_record_details=details)
 # ==========================================================================================================
 # A. get_record()
 # ==========================================================================================================
-print("\nDemonstrating get_record()...")
-time.sleep(0.1)
+stdout("\nDemonstrating get_record()...")
 
 logger.info("This is a test message for get_record()")
 record = SmartLogger.get_record()
 record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
-print("\nRecord contents:")
-time.sleep(0.1)
+stdout("\nRecord contents:")
 logger.raw(json.dumps(record.__dict__, indent=4))
-time.sleep(0.1)
 
 # ==========================================================================================================
 # B. exc_info and stack_info (now visible)
 # ==========================================================================================================
-print("\nDemonstrating exc_info and stack_info...\n")
-time.sleep(0.1)
+stdout("\nDemonstrating exc_info and stack_info...\n")
 
 try:
     1 / 0
@@ -95,13 +87,11 @@ except ZeroDivisionError:
 logger.raw("")
 
 logger.debug("Debug with Stack Info", stack_info=True)
-time.sleep(0.1)
 
 # ==========================================================================================================
 # C. retire() and destroy()
 # ==========================================================================================================
-print("\nDemonstrating retire() and destroy()...")
-time.sleep(0.1)
+stdout("\nDemonstrating retire() and destroy()...")
 
 temp_logger = SmartLogger("temp_logger", level=levels["INFO"])
 temp_logger.add_console(level=levels["INFO"])
@@ -109,93 +99,78 @@ temp_logger.add_console(level=levels["INFO"])
 temp_logger.info("This logger will be retired.")
 temp_logger.retire()
 
-print("\nLogger retired. Further handler additions will fail.\n")
-time.sleep(0.1)
+stdout("\nLogger retired. Further handler additions will fail.\n")
 
 try:
     temp_logger.add_console()
 except Exception as e:
-    print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-time.sleep(0.1)
+    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 temp_logger.destroy()
-print("\n\nLogger destroyed. Further usage will fail.")
-time.sleep(0.1)
+stdout("\n\nLogger destroyed. Further usage will fail.")
 
 try:
     temp_logger.info("This should fail.")
 except Exception as e:
-    print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-time.sleep(0.1)
+    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # D. Invalid message_parts_order
 # ==========================================================================================================
-print("\nTesting invalid message_parts_order...")
-time.sleep(0.1)
+stdout("\nTesting invalid message_parts_order...")
 
 try:
     LogRecordDetails(
         message_parts_order=["timestamp", "message"],  # forbidden
     )
 except Exception as e:
-    print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-time.sleep(0.1)
+    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # E. Invalid log_dir
 # ==========================================================================================================
-print("\nTesting invalid log_dir...")
-time.sleep(0.1)
+stdout("\nTesting invalid log_dir...")
 
 try:
     logger.add_file(log_dir="relative/path/not/allowed")
 except Exception as e:
-    print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-time.sleep(0.1)
+    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # F. Invalid rotation logic
 # ==========================================================================================================
-print("\nTesting invalid rotation logic...")
+stdout("\nTesting invalid rotation logic...")
 try:
     RotationLogic(maxBytes=-5)  # invalid
 except Exception as e:
-    print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-time.sleep(0.1)
+    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # G. Invalid level registration
 # ==========================================================================================================
-print("\nTesting invalid level registration...")
-time.sleep(0.1)
+stdout("\nTesting invalid level registration...")
 
 try:
     SmartLogger.register_level("INFO", 20)  # duplicate
 except Exception as e:
-    print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-time.sleep(0.1)
+    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 try:
     SmartLogger.register_level("BAD LEVEL NAME!", 55)  # invalid name
 except Exception as e:
-    print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-time.sleep(0.1)
+    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # H. Invalid theme registration
 # ==========================================================================================================
-print("\nTesting invalid theme registration...")
-time.sleep(0.1)
+stdout("\nTesting invalid theme registration...")
 
 try:
     SmartLogger.apply_color_theme({"INFO": "not a LevelStyle"})
 except Exception as e:
-    print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-time.sleep(0.1)
+    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # I. Summary
 # ==========================================================================================================
-print("\nSmartLogger safeguards demonstrated successfully.\n")
-time.sleep(0.1)
+stdout("\nSmartLogger safeguards demonstrated successfully.\n")

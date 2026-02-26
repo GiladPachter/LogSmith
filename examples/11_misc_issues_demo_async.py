@@ -39,7 +39,6 @@ async def main():
     # 1. Initialization
     # ------------------------------------------------------------------------------------------------------
     levels = AsyncSmartLogger.levels()
-    # AsyncSmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
     print("\nMiscellaneous AsyncSmartLogger Features\n=======================================")
     await asyncio.sleep(0.1)

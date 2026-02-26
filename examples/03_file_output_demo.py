@@ -21,7 +21,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import time
 from pathlib import Path
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 from LogSmith import LogRecordDetails, OptionalRecordFields
 from LogSmith import RotationLogic, When
 from LogSmith import CPrint
@@ -29,17 +29,16 @@ from LogSmith import CPrint
 from project_definitions import ROOT_DIR
 
 # ----------------------------------------------------------------------------------------------------------
-# 1. Initialization — MUST be done at application entry point
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
-print("\nFile output demo\n================")
+stdout("\nFile output demo\n================")
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create logger
 # ----------------------------------------------------------------------------------------------------------
-print("\nCreating logger 'file_demo'...")
+stdout("\nCreating logger 'file_demo'...")
 
 logger = SmartLogger("file_demo", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])   # console for visibility
@@ -47,8 +46,7 @@ logger.add_console(level=levels["TRACE"])   # console for visibility
 # ----------------------------------------------------------------------------------------------------------
 # 3. Prepare log directory and clean old files
 # ----------------------------------------------------------------------------------------------------------
-print("\nPreparing log directory...")
-time.sleep(0.1)
+stdout("\nPreparing log directory...")
 
 log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "file_demo"
 log_dir.mkdir(parents=True, exist_ok=True)
@@ -69,14 +67,12 @@ for fname in files_to_delete:
     if f.exists():
         f.unlink()
 
-time.sleep(0.1)
-print("Old demo files removed.")
+stdout("Old demo files removed.")
 
 # ----------------------------------------------------------------------------------------------------------
 # 4. File handler with basic formatting
 # ----------------------------------------------------------------------------------------------------------
-print("\nAdding file handler (plain formatting)...")
-time.sleep(0.1)
+stdout("\nAdding file handler (plain formatting)...")
 
 file_details = LogRecordDetails(
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -106,8 +102,7 @@ logger.info("This message goes to both console and file.")
 # ----------------------------------------------------------------------------------------------------------
 # 5. Demonstrate rotation basics
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nAdding rotating file handler...")
+stdout("\nAdding rotating file handler...")
 
 rotation = RotationLogic(
     when=When.SECOND,   # rotate every second
@@ -123,8 +118,7 @@ logger.add_file(
     rotation_logic=rotation,
 )
 
-print(logger.handler_info_json)
-time.sleep(0.1)
+stdout(logger.handler_info_json)
 
 logger.info("Rotation handler attached.")
 
@@ -134,8 +128,7 @@ for i in range(20):
 # ----------------------------------------------------------------------------------------------------------
 # 6. Demonstrate color-preserving file output
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nAdding color-preserving file handler...")
+stdout("\nAdding color-preserving file handler...")
 
 color_file = log_dir / "color_preserved.log"
 
@@ -147,42 +140,38 @@ logger.add_file(
     do_not_sanitize_colors_from_string=True,
 )
 
-print("\nWriting colored text via logger.raw():")
-time.sleep(0.1)
+stdout("\nWriting colored text via logger.raw():")
 colored = CPrint.colorize("This text contains ANSI colors", fg=CPrint.FG.BRIGHT_MAGENTA)
 logger.raw(colored)
 
-time.sleep(0.1)
-print("\nEscaped version of colored text (for inspection):")
-print(CPrint.escape_ansi_for_display(colored))
+stdout("\nEscaped version of colored text (for inspection):")
+stdout(CPrint.escape_ansi_for_display(colored))
 
 # ----------------------------------------------------------------------------------------------------------
 # 7. Read the color-preserved file back
 # ----------------------------------------------------------------------------------------------------------
-print("\nReading color-preserved text back from file:")
-time.sleep(0.1)
+stdout("\nReading color-preserved text back from file:")
 
 with open(color_file, "r", encoding="utf-8") as fh:
     file_content = fh.read().rstrip()
 
-time.sleep(0.1)
-print("---------------------------------------------")
-print(file_content)
-print("---------------------------------------------")
+stdout("---------------------------------------------")
+stdout(file_content)
+stdout("---------------------------------------------")
 
-print("\nEscaped file content:")
-print(CPrint.escape_ansi_for_display(file_content))
+stdout("\nEscaped file content:")
+stdout(CPrint.escape_ansi_for_display(file_content))
 
 # ----------------------------------------------------------------------------------------------------------
 # 8. Show handler_info (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
-print("\nHandlers details:\n-----------------")
-print(logger.handler_info_json)
+stdout("\nHandlers details:\n-----------------")
+stdout(logger.handler_info_json)
 
 # ----------------------------------------------------------------------------------------------------------
 # 9. SmartLogger safeguards (contextually relevant here)
 # ----------------------------------------------------------------------------------------------------------
-print("\nSmartLogger file-output safeguards:"
+stdout("\nSmartLogger file-output safeguards:"
       "\n-----------------------------------\n"
       "- log_dir must be an absolute, normalized path (prevents accidental use of relative paths)\n"
       "- log_dir created if not exists\n"

@@ -17,24 +17,23 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 
 # ----------------------------------------------------------------------------------------------------------
-# 1. Initialization — MUST be done at application entry point
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
-print("\nHierarchy demo\n==============")
+stdout("\nHierarchy demo\n==============")
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Explain hierarchy rules
 # ----------------------------------------------------------------------------------------------------------
-print("\nHierarchy rules:")
+stdout("\nHierarchy rules:")
 
-print(
+stdout(
     "  - Logger names define hierarchy via dot notation\n"
     "      parent\n"
     "      parent.child\n"
@@ -45,12 +44,11 @@ print(
     "      • If parent is NOTSET → inherit from grandparent\n"
     "      • Ultimately falls back to root logger level\n"
 )
-time.sleep(0.1)
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create loggers
 # ----------------------------------------------------------------------------------------------------------
-print("\nCreating loggers...")
+stdout("\nCreating loggers...")
 
 parent     = SmartLogger("myapp",           level=levels["DEBUG"])
 child      = SmartLogger("myapp.api",       level=levels["NOTSET"])
@@ -91,16 +89,13 @@ def exercise():
 # ----------------------------------------------------------------------------------------------------------
 # 4. Demonstrate inheritance
 # ----------------------------------------------------------------------------------------------------------
-print("\nInitial behavior (parent = DEBUG, children = NOTSET → inherit DEBUG):")
-time.sleep(0.1)
+stdout("\nInitial behavior (parent = DEBUG, children = NOTSET → inherit DEBUG):")
 exercise()
 
 # ----------------------------------------------------------------------------------------------------------
 # 5. Change parent level → children inherit new level
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nChanging parent level to INFO...")
-time.sleep(0.1)
+stdout("\nChanging parent level to INFO...")
 
 parent.setLevel(levels["INFO"])
 exercise()
@@ -108,9 +103,7 @@ exercise()
 # ----------------------------------------------------------------------------------------------------------
 # 6. Change parent level again
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nChanging parent level to TRACE...")
-time.sleep(0.1)
+stdout("\nChanging parent level to TRACE...")
 
 parent.setLevel(levels["TRACE"])
 exercise()
@@ -118,12 +111,9 @@ exercise()
 # ----------------------------------------------------------------------------------------------------------
 # 7. Change parent level to WARNING
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nChanging parent level to WARNING...")
-time.sleep(0.1)
+stdout("\nChanging parent level to WARNING...")
 
 parent.setLevel(levels["WARNING"])
 exercise()
-time.sleep(0.1)
 
-print("\nHierarchy demo complete.\n")
+stdout("\nHierarchy demo complete.\n")

@@ -19,22 +19,20 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import time
 
-from LogSmith import SmartLogger
+from LogSmith import SmartLogger, stdout
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 # ----------------------------------------------------------------------------------------------------------
-# 1. Initialization — MUST be done at application entry point
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
-print("\nGranular formatting demo\n========================")
+stdout("\nGranular formatting demo\n========================")
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Logger with partial coloring (level + message)
 # ----------------------------------------------------------------------------------------------------------
-print("\nCreating logger 'granular_partial' (partial coloring)...")
-time.sleep(0.1)
+stdout("\nCreating logger 'granular_partial' (partial coloring)...")
 
 lg_partial = SmartLogger("granular_partial", level=levels["TRACE"])
 
@@ -67,9 +65,7 @@ foo()
 # ----------------------------------------------------------------------------------------------------------
 # 3. Logger with full-entry coloring
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nCreating logger 'granular_full' (full-entry coloring)...")
-time.sleep(0.1)
+stdout("\nCreating logger 'granular_full' (full-entry coloring)...")
 
 lg_full = SmartLogger("granular_full", level=levels["TRACE"])
 
@@ -99,5 +95,4 @@ def bar():
 lg_full.info("Module-level log (full-entry coloring)")
 bar()
 
-time.sleep(0.1)
-print("\nGranular formatting demo complete.\n")
+stdout("\nGranular formatting demo complete.\n")

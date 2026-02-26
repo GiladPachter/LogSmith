@@ -22,34 +22,27 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import time
 import json
 
-from LogSmith import SmartLogger, CPrint, LevelStyle
+from LogSmith import SmartLogger, stdout, CPrint, LevelStyle
 
 # ----------------------------------------------------------------------------------------------------------
-# 1. Initialization — MUST be done at application entry point
+# 1. Initialization
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
-print("\nBuiltin logger levels:")
-print(json.dumps(levels, indent = 4))
+stdout("\nBuiltin logger levels:")
+stdout(json.dumps(levels, indent = 4))
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create a logger and attach a console handler
 # ----------------------------------------------------------------------------------------------------------
-print("\nCreating logger 'basic'...\n")
+stdout("\nCreating logger 'basic'...\n")
 logger = SmartLogger("basic", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])
-
-# NOTE:
-# print() writes to stdout, SmartLogger console writes to stderr.
-# To avoid interleaving, we add tiny sleeps before/after print().
-time.sleep(0.1)
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Basic log messages
 # ----------------------------------------------------------------------------------------------------------
-print("\nBasic log messages:\n-------------------")
-time.sleep(0.1)
+stdout("\nBasic log messages:\n-------------------")
 
 logger.trace("trace message")
 logger.debug("debug message")
@@ -61,9 +54,7 @@ logger.critical("critical message")
 # ----------------------------------------------------------------------------------------------------------
 # 4. Named arguments (structured message parameters)
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nMessages with named arguments:\n------------------------------")
-time.sleep(0.1)
+stdout("\nMessages with named arguments:\n------------------------------")
 
 logger.info("User login event", username="Gilad", action="login")
 logger.warning("Suspicious activity detected", reason="multiple failed attempts")
@@ -71,9 +62,7 @@ logger.warning("Suspicious activity detected", reason="multiple failed attempts"
 # ----------------------------------------------------------------------------------------------------------
 # 5. Dynamic level registration
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
-time.sleep(0.1)
+stdout("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
 
 SmartLogger.register_level(
     name="NOTICE",
@@ -96,9 +85,7 @@ logger.alert("This is an ALERT-level message")
 # ----------------------------------------------------------------------------------------------------------
 # 6. RAW text (plain + colored)
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nRAW text output:\n----------------")
-time.sleep(0.1)
+stdout("\nRAW text output:\n----------------")
 logger.raw("SmartLogger loggers can log raw text (no formatting, no prefix)."
            "\nRAW text syncs perfectly with other logging operations."
            "\nNote: DON'T SPAM !"
@@ -107,9 +94,7 @@ logger.raw("SmartLogger loggers can log raw text (no formatting, no prefix)."
            "\n      Use logger.raw() only in cases where you intentionally..."
            "\n      ...mean for your log file to break the typical structure of   line = log-entry")
 
-time.sleep(0.1)
-print("\nRAW colored text:\n------------------")
-time.sleep(0.1)
+stdout("\nRAW colored text:\n------------------")
 
 colored = [
     CPrint.colorize("RAW",      fg=CPrint.FG.BRIGHT_RED),
@@ -125,8 +110,7 @@ logger.raw(" ".join(colored))
 # ----------------------------------------------------------------------------------------------------------
 # 7. Safeguards & validations (informational)
 # ----------------------------------------------------------------------------------------------------------
-time.sleep(0.1)
-print("\nSmartLogger safeguards:"
+stdout("\nSmartLogger safeguards:"
       "\n-----------------------\n"
       "- Prevents duplicate handlers\n"
       "- Validates log_dir paths (absolute + normalized)\n"

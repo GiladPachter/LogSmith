@@ -24,6 +24,14 @@ from .level_registry import LEVELS
 from .colors import CPrint
 from .rotation import RotationLogic
 
+"""
+console printing utility
+"stdout()" function replaces print()
+it has the same effect, only it synchronizes with console logs
+"""
+import io
+import contextlib
+
 
 # ======================================================================
 #  INTERNAL STATE HOLDER & HANDLER METADATA
@@ -1225,3 +1233,55 @@ class SmartLoggerProtocol(Protocol):
     def warning(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
     def error(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
     def critical(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+
+
+# ======================================================================
+#  Global stdout logger (lazy initialization)
+# ======================================================================
+_stdout_logger = None
+_stdout_lock = threading.Lock()
+
+
+def _get_stdout_logger() -> "SmartLogger":
+    """
+    Internal helper that creates a dedicated SmartLogger instance
+    for stdout redirection. It has exactly one console handler and
+    does not propagate or write to files.
+    """
+    global _stdout_logger
+
+    if _stdout_logger is not None:
+        return _stdout_logger
+
+    with _stdout_lock:
+        if _stdout_logger is None:
+            lg = SmartLogger("_stdout", level=logging.INFO)
+            lg.add_console(level=logging.INFO)
+            lg.propagate = False
+            _stdout_logger = lg
+
+    return _stdout_logger
+
+
+def stdout(*args, sep=" ", end="\n"):
+    """
+    A SmartLogger‑synchronized replacement for print().
+
+    Behaves exactly like print(), including handling of sep and end,
+    but routes output through SmartLogger.raw() so console output is
+    perfectly synchronized with all SmartLogger log messages.
+
+    This function auto‑flushes for synchronization purposes.
+    """
+    lg = _get_stdout_logger()
+
+    # Capture print() output exactly as Python formats it
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        print(*args, sep=sep, end=end)
+
+    text = buffer.getvalue()
+
+    # Forward the fully formatted text to SmartLogger.raw()
+    # raw() already flushes, and we intentionally set end=""
+    lg.raw(text, end="")
