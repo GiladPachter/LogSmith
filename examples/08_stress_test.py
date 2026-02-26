@@ -29,7 +29,7 @@ from project_definitions import ROOT_DIR
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nStress test demo\n================")
 
@@ -53,7 +53,7 @@ print("Old stress-test files removed.")
 # ----------------------------------------------------------------------------------------------------------
 print("\nCreating logger 'stress'...")
 
-logger = SmartLogger.get("stress", level=levels["TRACE"])
+logger = SmartLogger("stress", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])
 
 # ----------------------------------------------------------------------------------------------------------

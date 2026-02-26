@@ -9,7 +9,7 @@ This section provides a high‑level overview of LogSmith’s public API.
 ## SmartLogger
 
 - `SmartLogger.levels()`
-- `SmartLogger.get(name, level)`
+- `SmartLogger(name, level)`
 - 
 - `logger.add_console(...)`
 - `logger.add_file(...)`

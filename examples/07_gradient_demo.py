@@ -32,7 +32,7 @@ from LogSmith.colors import (
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nGradient demo\n=============")
 
@@ -42,7 +42,7 @@ print("\nGradient demo\n=============")
 print("\nCreating logger 'gradient.demo'...")
 time.sleep(0.1)
 
-lg = SmartLogger.get("gradient.demo", level=levels["TRACE"])
+lg = SmartLogger("gradient.demo", level=levels["TRACE"])
 lg.add_console(level=levels["TRACE"])
 
 # ----------------------------------------------------------------------------------------------------------

@@ -17,9 +17,9 @@ myapp.api.users
 ## 🔹 Creating Loggers in a Hierarchy
 
 ```python
-root_logger   = SmartLogger.get("myapp")
-api_logger    = SmartLogger.get("myapp.api")
-users_logger  = SmartLogger.get("myapp.api.users")
+root_logger   = SmartLogger("myapp")
+api_logger    = SmartLogger("myapp.api")
+users_logger  = SmartLogger("myapp.api.users")
 ```
 
 Each logger is independent unless you explicitly enable propagation.</br>
@@ -68,8 +68,8 @@ This:
 
 Example:
 ```python
-root = SmartLogger.get("myapp", level = levels["INFO"])
-child = SmartLogger.get("myapp.api")  # NOTSET → inherits INFO
+root = SmartLogger("myapp", level = levels["INFO"])
+child = SmartLogger("myapp.api")  # NOTSET → inherits INFO
 ```
 
 ---
@@ -77,10 +77,10 @@ child = SmartLogger.get("myapp.api")  # NOTSET → inherits INFO
 # 🔹 Independent Handlers
 
 ```python
-api = SmartLogger.get("myapp.api")
+api = SmartLogger("myapp.api")
 api.add_console()
 
-users = SmartLogger.get("myapp.api.users")
+users = SmartLogger("myapp.api.users")
 users.add_file(log_dir="logs", logfile_name="users.log")
 ```
 

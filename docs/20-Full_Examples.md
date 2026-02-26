@@ -13,7 +13,7 @@ from LogSmith import SmartLogger
 levels = SmartLogger.levels()
 SmartLogger.initialize_smartlogger(level=levels["INFO"])
 
-logger = SmartLogger.get("demo")
+logger = SmartLogger("demo")
 logger.add_console()
 
 logger.trace("trace message")
@@ -111,9 +111,9 @@ logger.add_file(
 # 5. Hierarchy
 
 ```python
-parent = SmartLogger.get("myapp", level=levels["DEBUG"])
-child = SmartLogger.get("myapp.api", level=levels["NOTSET"])
-grandchild = SmartLogger.get("myapp.api.users", level=levels["NOTSET"])
+parent = SmartLogger("myapp", level=levels["DEBUG"])
+child = SmartLogger("myapp.api", level=levels["NOTSET"])
+grandchild = SmartLogger("myapp.api.users", level=levels["NOTSET"])
 
 parent.add_console()
 child.add_console()
@@ -171,7 +171,7 @@ from LogSmith import NEON_THEME
 
 SmartLogger.apply_color_theme(NEON_THEME)
 
-logger = SmartLogger.get("themes")
+logger = SmartLogger("themes")
 logger.add_console()
 
 logger.info("Neon theme active")
@@ -251,7 +251,7 @@ logger.debug("Stack info example", stack_info=True)
 ## retire() and destroy()
 
 ```python
-temp = SmartLogger.get("temp")
+temp = SmartLogger("temp")
 temp.add_console()
 
 temp.retire()

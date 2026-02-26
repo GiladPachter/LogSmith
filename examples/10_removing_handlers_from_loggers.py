@@ -22,14 +22,14 @@ from LogSmith import SmartLogger
 # ------------------------------------------------------------
 
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["INFO"])
+# SmartLogger.initialize_smartlogger(level=levels["INFO"])
 
 # ------------------------------------------------------------
 # Setup: two loggers, each with console + file handler
 # ------------------------------------------------------------
 
-logger_a = SmartLogger.get("A", level=levels["INFO"])
-logger_b = SmartLogger.get("B", level=levels["INFO"])
+logger_a = SmartLogger("A", level=levels["INFO"])
+logger_b = SmartLogger("B", level=levels["INFO"])
 
 logger_a.add_console()
 logger_b.add_console()

@@ -114,7 +114,7 @@ class SmartLogger(logging.Logger):
     ---------------------------------------------------------------------------
     Creating loggers
     ---------------------------------------------------------------------------
-    SmartLogger.get(name, level=None)
+    SmartLogger(name, level=None)
         Returns a SmartLogger instance bound to the given name.
         Each logger may have its own level and its own handlers.
 

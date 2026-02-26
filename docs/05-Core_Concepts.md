@@ -24,7 +24,7 @@ Initialization must happen **once**, at the very beginning of your application.
 LogSmith provides a clean, predictable way to create loggers:
 
 ```python
-logger = SmartLogger.get("myapp.module", level = levels["DEBUG"])
+logger = SmartLogger("myapp.module", level = levels["DEBUG"])
 ```
 
 Features:

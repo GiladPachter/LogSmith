@@ -20,7 +20,7 @@ LogSmith replaces Python’s root logger with a SmartLogger root and ensures con
 
 ## 2. Create a logger
 ```python
-logger = SmartLogger.get("demo", level = levels["INFO"])
+logger = SmartLogger("demo", level = levels["INFO"])
 ```
 Each logger has its own level and its own handlers.
 

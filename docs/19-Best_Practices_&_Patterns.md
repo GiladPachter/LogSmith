@@ -8,7 +8,7 @@ These patterns help you get the most out of it.
 ## 🔹 1. Create Loggers by Module or Component
 
 ```python
-logger = SmartLogger.get("myapp.api.users")
+logger = SmartLogger("myapp.api.users")
 ```
 
 ---

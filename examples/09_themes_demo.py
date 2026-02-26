@@ -17,10 +17,10 @@ from LogSmith import DARK_THEME, LIGHT_THEME, NEON_THEME, PASTEL_THEME, FIRE_THE
 # critically essential initialization first thing at application entry point, for consistent logger behavior
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 # ----------------------------------------------------------------------------------------------------------
 
-logger = SmartLogger.get("themes_logger", levels["TRACE"])
+logger = SmartLogger("themes_logger", levels["TRACE"])
 logger.add_console()
 
 def demo_theme(name, theme):

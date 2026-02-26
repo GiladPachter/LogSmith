@@ -12,10 +12,10 @@ This ensures that:
 # 🔹 Creating a Logger
 
 ```python
-logger = SmartLogger.get("myapp.module")
+logger = SmartLogger("myapp.module")
 ```
 
-`SmartLogger.get()` ensures:
+`SmartLogger()` ensures:
 - the logger is a **SmartLogger** instance
 - stale loggers with the same name are cleaned up
 - the logger is registered in the SmartLogger registry
@@ -55,7 +55,7 @@ Destroying a logger:
 
 ```python
 logger.destroy()
-logger = SmartLogger.get("myapp.module")
+logger = SmartLogger("myapp.module")
 ```
 
 ---

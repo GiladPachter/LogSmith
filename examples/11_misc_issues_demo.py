@@ -33,7 +33,7 @@ from LogSmith import RotationLogic, When
 # 1. Initialization — MUST be done at application entry point
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
-SmartLogger.initialize_smartlogger(level=levels["TRACE"])
+# SmartLogger.initialize_smartlogger(level=levels["TRACE"])
 
 print("\nMiscellaneous SmartLogger Features\n=================================")
 time.sleep(0.1)
@@ -61,7 +61,7 @@ details = LogRecordDetails(
     color_all_log_record_fields=True
 )
 
-logger = SmartLogger.get("misc", level=levels["TRACE"])
+logger = SmartLogger("misc", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"], log_record_details=details)
 
 # ==========================================================================================================
@@ -103,7 +103,7 @@ time.sleep(0.1)
 print("\nDemonstrating retire() and destroy()...")
 time.sleep(0.1)
 
-temp_logger = SmartLogger.get("temp_logger", level=levels["INFO"])
+temp_logger = SmartLogger("temp_logger", level=levels["INFO"])
 temp_logger.add_console(level=levels["INFO"])
 
 temp_logger.info("This logger will be retired.")
