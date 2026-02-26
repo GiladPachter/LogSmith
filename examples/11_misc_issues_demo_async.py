@@ -26,7 +26,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import asyncio
 import json
 
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
 from LogSmith.rotation import RotationLogic
 
@@ -37,14 +37,12 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     levels = AsyncSmartLogger.levels()
 
-    print("\nMiscellaneous AsyncSmartLogger Features\n=======================================")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nMiscellaneous AsyncSmartLogger Features\n=======================================")
 
     # ------------------------------------------------------------------------------------------------------
     # 2. Create logger with exc_info + stack_info enabled
     # ------------------------------------------------------------------------------------------------------
-    print("\nCreating logger 'misc.async'...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nCreating logger 'misc.async'...")
 
     details = LogRecordDetails(
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -63,14 +61,13 @@ async def main():
         color_all_log_record_fields=True
     )
 
-    logger = AsyncSmartLogger.get("misc.async", level=levels["TRACE"])
+    logger = AsyncSmartLogger("misc.async", level=levels["TRACE"])
     logger.add_console(level=levels["TRACE"], log_record_details=details)
 
     # ======================================================================================================
     # A. get_record()
     # ======================================================================================================
-    print("\nDemonstrating get_record()...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nDemonstrating get_record()...")
 
     await logger.a_info("This is a test message for get_record()")
     record = logger.get_record(exc_info = True, stack_info = True)
@@ -81,16 +78,13 @@ async def main():
             line[2:].replace('"', "'") for line in record.stack_info.splitlines()
         ]
 
-    print("\nRecord contents:")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nRecord contents:")
     await logger.a_raw(json.dumps(record.__dict__, indent=4))
-    await asyncio.sleep(0.1)
 
     # ======================================================================================================
     # B. exc_info and stack_info
     # ======================================================================================================
-    print("\nDemonstrating exc_info and stack_info...\n")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nDemonstrating exc_info and stack_info...\n")
 
     try:
         1 / 0
@@ -105,105 +99,90 @@ async def main():
     # ======================================================================================================
     # C. retire() and destroy()
     # ======================================================================================================
-    print("\nDemonstrating retire() and destroy()...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nDemonstrating retire() and destroy()...")
 
-    temp_logger = AsyncSmartLogger.get("temp_logger.async", level=levels["INFO"])
+    temp_logger = AsyncSmartLogger("temp_logger.async", level=levels["INFO"])
     temp_logger.add_console(level=levels["INFO"])
 
     await temp_logger.a_info("This logger will be retired.")
     temp_logger.retire()
 
-    print("\nLogger retired. Further handler additions will fail.\n")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nLogger retired. Further handler additions will fail.\n")
 
     try:
         temp_logger.add_console()
     except Exception as e:
-        print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-    await asyncio.sleep(0.1)
+        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     temp_logger.destroy()
-    print("\nLogger destroyed. Further usage will fail.")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nLogger destroyed. Further usage will fail.")
 
     try:
         await temp_logger.a_info("This should fail.")
     except Exception as e:
-        print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-    await asyncio.sleep(0.1)
+        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # D. Invalid message_parts_order
     # ======================================================================================================
-    print("\nTesting invalid message_parts_order...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nTesting invalid message_parts_order...")
 
     try:
         LogRecordDetails(
             message_parts_order=["timestamp", "message"],  # forbidden
         )
     except Exception as e:
-        print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-    await asyncio.sleep(0.1)
+        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # E. Invalid log_dir
     # ======================================================================================================
-    print("\nTesting invalid log_dir...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nTesting invalid log_dir...")
 
     try:
         logger.add_file(log_dir="relative/path/not/allowed")
     except Exception as e:
-        print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-    await asyncio.sleep(0.1)
+        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # F. Invalid rotation logic
     # ======================================================================================================
-    print("\nTesting invalid rotation logic...")
+    await a_stdout("\nTesting invalid rotation logic...")
     try:
         RotationLogic(maxBytes=-5)
     except Exception as e:
-        print(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
     await asyncio.sleep(0.1)
 
     # ======================================================================================================
     # G. Invalid level registration
     # ======================================================================================================
-    print("\nTesting invalid level registration...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nTesting invalid level registration...")
 
     try:
         AsyncSmartLogger.register_level("INFO", 20)  # duplicate
     except Exception as e:
-        print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-    await asyncio.sleep(0.1)
+        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     try:
         AsyncSmartLogger.register_level("BAD LEVEL NAME!", 55)  # invalid name
     except Exception as e:
-        print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-    await asyncio.sleep(0.1)
+        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # H. Invalid theme registration
     # ======================================================================================================
-    print("\nTesting invalid theme registration...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nTesting invalid theme registration...")
 
     try:
         AsyncSmartLogger.apply_color_theme({"INFO": "not a LevelStyle"})
     except Exception as e:
-        print(f"Caught expected error:\n    {type(e).__name__}: {e}")
-    await asyncio.sleep(0.1)
+        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # I. Summary
     # ======================================================================================================
-    print("\nAsyncSmartLogger safeguards demonstrated successfully.\n")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nAsyncSmartLogger safeguards demonstrated successfully.\n")
 
 
 if __name__ == "__main__":

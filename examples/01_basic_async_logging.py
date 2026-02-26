@@ -23,7 +23,7 @@ import asyncio
 import json
 
 from LogSmith import CPrint, LevelStyle
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 
 
 async def main():
@@ -32,25 +32,21 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     levels = AsyncSmartLogger.levels()
 
-    print("\nBuiltin async logger levels:")
-    print(json.dumps(levels, indent=4))
+    await a_stdout("\nBuiltin async logger levels:")
+    await a_stdout(json.dumps(levels, indent=4))
 
     # ------------------------------------------------------------------------------------------------------
     # 2. Create an async logger and attach a console handler
     # ------------------------------------------------------------------------------------------------------
-    print("\nCreating async logger 'basic_async'...\n")
+    await a_stdout("\nCreating async logger 'basic_async'...\n")
 
-    logger = AsyncSmartLogger.get("basic_async", level=levels["TRACE"])
+    logger = AsyncSmartLogger("basic_async", level=levels["TRACE"])
     logger.add_console(level=levels["TRACE"])
-
-    # print() writes to stdout, logger writes to stderr → tiny sleeps avoid interleaving
-    await asyncio.sleep(0.1)
 
     # ------------------------------------------------------------------------------------------------------
     # 3. Basic async log messages
     # ------------------------------------------------------------------------------------------------------
-    print("\nBasic async log messages:\n-------------------------")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nBasic async log messages:\n-------------------------")
 
     await logger.a_trace("trace message")
     await logger.a_debug("debug message")
@@ -62,9 +58,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 4. Named arguments (structured message parameters)
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nMessages with named arguments:\n------------------------------")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nMessages with named arguments:\n------------------------------")
 
     await logger.a_info("User login event", username="Gilad", action="login")
     await logger.a_warning("Suspicious activity detected", reason="multiple failed attempts")
@@ -72,9 +66,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 5. Dynamic level registration
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
 
     AsyncSmartLogger.register_level(
         name="NOTICE",
@@ -97,9 +89,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 6. RAW text (plain + colored)
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nRAW text output:\n----------------")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nRAW text output:\n----------------")
 
     await logger.a_raw(
         "AsyncSmartLogger can log raw text (no formatting, no prefix)."
@@ -110,9 +100,7 @@ async def main():
         "\n      Use logger.a_raw() only when you intentionally break the structured log format."
     )
 
-    await asyncio.sleep(0.1)
-    print("\nRAW colored text:\n------------------")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nRAW colored text:\n------------------")
 
     colored = [
         CPrint.colorize("RAW",      fg=CPrint.FG.BRIGHT_RED),
@@ -128,8 +116,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 7. Safeguards & validations (informational)
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print(
+    await a_stdout(
         "\nAsyncSmartLogger safeguards:"
         "\n----------------------------\n"
         "- Prevents duplicate handlers\n"

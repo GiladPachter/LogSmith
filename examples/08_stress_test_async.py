@@ -16,7 +16,7 @@ import asyncio
 import time
 from pathlib import Path
 
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 from LogSmith.rotation import RotationLogic, When
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
 
@@ -26,12 +26,12 @@ from project_definitions import ROOT_DIR
 async def main():
     levels = AsyncSmartLogger.levels()
 
-    print("\nAsync Stress Test demo\n======================")
+    await a_stdout("\nAsync Stress Test demo\n======================")
 
     # --------------------------------------------------------------
     # Prepare log directory
     # --------------------------------------------------------------
-    print("\nPreparing log directory...")
+    await a_stdout("\nPreparing log directory...")
 
     log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "stress_test_async"
     if log_dir.exists():
@@ -39,20 +39,20 @@ async def main():
             if f.is_file():
                 f.unlink()
 
-    print("Old stress-test files removed.")
+    await a_stdout("Old stress-test files removed.")
 
     # --------------------------------------------------------------
     # Create logger
     # --------------------------------------------------------------
-    print("\nCreating async logger 'stress.async'...")
+    await a_stdout("\nCreating async logger 'stress.async'...")
 
-    logger = AsyncSmartLogger.get("stress.async", level=levels["TRACE"])
+    logger = AsyncSmartLogger("stress.async", level=levels["TRACE"])
     # logger.add_console(level=levels["TRACE"])
 
     # --------------------------------------------------------------
     # Rotating file handler
     # --------------------------------------------------------------
-    print("\nAdding rotating file handler...")
+    await a_stdout("\nAdding rotating file handler...")
     await asyncio.sleep(0.1)
 
     details = LogRecordDetails(
@@ -109,6 +109,9 @@ async def main():
             async with lock:
                 progress["count"] += 1
 
+            if i % 50 == 0:
+                await asyncio.sleep(0.02)
+
     # --------------------------------------------------------------
     # Progress monitor
     # --------------------------------------------------------------
@@ -131,25 +134,24 @@ async def main():
             rate = done / elapsed if elapsed > 0 else 0
             eta = (TOTAL - done) / rate if rate > 0 else 0
 
-            print(
+            await a_stdout(
                 f"\r[{bar}] {pct*100:5.1f}%  "
                 f"done={done}/{TOTAL}  "
                 f"backlog={backlog}  "
                 f"{rate:7.1f} msg/s  "
                 f"ETA {eta:5.1f}s",
                 end="",
-                flush=True,
             )
 
             if done >= TOTAL:
                 break
 
-        print()  # newline after progress bar
+        await a_stdout()  # newline after progress bar
 
     # --------------------------------------------------------------
     # Run workers + monitor
     # --------------------------------------------------------------
-    print(f"\nStarting async stress test with {TASK_COUNT} tasks...\n")
+    await a_stdout(f"\nStarting async stress test with {TASK_COUNT} tasks...\n")
 
     start = time.time()
 
@@ -165,7 +167,7 @@ async def main():
     await logger.flush()
 
     end = time.time()
-    print(f"\nStress test completed in {end - start:.2f} seconds\n")
+    await a_stdout(f"\nStress test completed in {end - start:.2f} seconds\n")
 
 
 if __name__ == "__main__":

@@ -57,7 +57,7 @@ async def main():
     print("\nCreating async logger 'rotation_async_demo'...")
     await asyncio.sleep(0.1)
 
-    logger = AsyncSmartLogger.get("rotation_async_demo", level=levels["TRACE"])
+    logger = AsyncSmartLogger("rotation_async_demo", level=levels["TRACE"])
     logger.add_console(level=levels["TRACE"])
 
     # ------------------------------------------------------------------------------------------------------

@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 from LogSmith import (
     DARK_THEME,
     LIGHT_THEME,
@@ -27,12 +27,12 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     levels = AsyncSmartLogger.levels()
 
-    print("\nAsync Themes demo\n=================")
+    await a_stdout("\nAsync Themes demo\n=================")
 
     # ------------------------------------------------------------------------------------------------------
     # Create logger with console handler
     # ------------------------------------------------------------------------------------------------------
-    logger = AsyncSmartLogger.get("themes_logger_async", levels["TRACE"])
+    logger = AsyncSmartLogger("themes_logger_async", levels["TRACE"])
     logger.add_console()
 
     # ------------------------------------------------------------------------------------------------------
@@ -51,42 +51,28 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # Theme demonstrations
     # ------------------------------------------------------------------------------------------------------
-    print("\n--- LIGHT THEME ---")
-    await asyncio.sleep(0.2)
+    await a_stdout("\n--- LIGHT THEME ---")
     await demo_theme("light", LIGHT_THEME)
-    await asyncio.sleep(0.2)
 
-    print("\n--- DARK THEME ---")
-    await asyncio.sleep(0.2)
+    await a_stdout("\n--- DARK THEME ---")
     await demo_theme("dark", DARK_THEME)
-    await asyncio.sleep(0.2)
 
-    print("\n--- NEON THEME ---")
-    await asyncio.sleep(0.2)
+    await a_stdout("\n--- NEON THEME ---")
     await demo_theme("neon", NEON_THEME)
-    await asyncio.sleep(0.2)
 
-    print("\n--- PASTEL THEME ---")
-    await asyncio.sleep(0.2)
+    await a_stdout("\n--- PASTEL THEME ---")
     await demo_theme("pastel", PASTEL_THEME)
-    await asyncio.sleep(0.2)
 
-    print("\n--- FIRE THEME ---")
-    await asyncio.sleep(0.2)
+    await a_stdout("\n--- FIRE THEME ---")
     await demo_theme("fire", FIRE_THEME)
-    await asyncio.sleep(0.2)
 
-    print("\n--- OCEAN THEME ---")
-    await asyncio.sleep(0.2)
+    await a_stdout("\n--- OCEAN THEME ---")
     await demo_theme("ocean", OCEAN_THEME)
-    await asyncio.sleep(0.2)
 
-    print("\n--- RESTORING DEFAULTS ---")
-    await asyncio.sleep(0.2)
+    await a_stdout("\n--- RESTORING DEFAULTS ---")
     await demo_theme("default", None)
-    await asyncio.sleep(0.2)
 
-    print("\nAsync Themes demo complete.\n")
+    await a_stdout("\nAsync Themes demo complete.\n")
 
     # Ensure all logs are flushed
     await logger.flush()

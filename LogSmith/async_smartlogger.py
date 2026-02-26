@@ -32,6 +32,14 @@ from .rotation import RotationLogic
 from .async_rotation import Async_TimedSizedRotatingFileHandler
 from .smartlogger import RetrievedRecord
 
+"""
+console printing utility
+"stdout()" function replaces print()
+it has the same effect, only it synchronizes with console logs
+"""
+import io
+import contextlib
+
 
 class AsyncOp(Enum):
     LOG = auto()
@@ -68,7 +76,6 @@ class AsyncSmartLogger:
     • Supports TRACE and dynamically registered levels
     """
 
-    __instances: ClassVar[Dict[str, "AsyncSmartLogger"]] = {}
     __default_level: ClassVar[int] = logging.INFO
 
     # auditing state
@@ -95,6 +102,8 @@ class AsyncSmartLogger:
         self._py_logger = logging.getLogger(name)
         self._py_logger.propagate = False
 
+        logging.Logger.manager.loggerDict[name] = self._py_logger
+
         if level == logging.NOTSET:
             self._py_logger.setLevel(logging.NOTSET)
         else:
@@ -111,20 +120,6 @@ class AsyncSmartLogger:
         self._retired = False
 
         self._start_worker()
-
-    # ------------------------------------------------------------------
-    # FACTORY
-    # ------------------------------------------------------------------
-    @classmethod
-    def get(cls, name: str, level: int) -> "AsyncSmartLogger":
-        if name in cls.__instances:
-            logger = cls.__instances[name]
-            logger.set_level(level)
-            return logger
-
-        inst = cls(name, level)
-        cls.__instances[name] = inst
-        return inst
 
     # ------------------------------------------------------------------
     # WORKER
@@ -201,7 +196,7 @@ class AsyncSmartLogger:
         )
         record.__dict__.update(extra)
 
-        await asyncio.to_thread(self._py_logger.handle, record)
+        self._py_logger.handle(record)
 
         AsyncSmartLogger.__messages_processed += 1
 
@@ -212,37 +207,34 @@ class AsyncSmartLogger:
         message: str = payload["message"]
         end: str = payload["end"]
 
-        def write_raw() -> None:
-            for handler in self._py_logger.handlers:
-                stream = getattr(handler, "stream", None)
+        for handler in self._py_logger.handlers:
+            stream = getattr(handler, "stream", None)
 
-                if stream is None and hasattr(handler, "_open"):
-                    try:
-                        handler.stream = handler._open()
-                        stream = handler.stream
-                    except Exception:
-                        continue
-
-                if stream is None:
-                    continue
-
-                is_console = isinstance(handler, logging.StreamHandler) and not isinstance(
-                    handler, Async_TimedSizedRotatingFileHandler
-                )
-
-                if is_console:
-                    text = self._bleach_non_colored_text(message)
-                else:
-                    do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
-                    text = message if do_not_sanitize else CPrint.strip_ansi(message)
-
+            if stream is None and hasattr(handler, "_open"):
                 try:
-                    stream.write(text + end)
-                    stream.flush()
+                    handler.stream = handler._open()
+                    stream = handler.stream
                 except Exception:
                     continue
 
-        await asyncio.to_thread(write_raw)
+            if stream is None:
+                continue
+
+            is_console = isinstance(handler, logging.StreamHandler) and not isinstance(
+                handler, Async_TimedSizedRotatingFileHandler
+            )
+
+            if is_console:
+                text = self._bleach_non_colored_text(message)
+            else:
+                do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
+                text = message if do_not_sanitize else CPrint.strip_ansi(message)
+
+            try:
+                stream.write(text + end)
+                stream.flush()
+            except Exception:
+                continue
 
     # ------------------------------------------------------------------
     # PROCESS ROTATION
@@ -713,7 +705,7 @@ class AsyncSmartLogger:
 
         cls.__audit_enabled = True
 
-        audit_logger = cls.get("_async_audit", cls.__default_level)
+        audit_logger = AsyncSmartLogger("_async_audit", cls.__default_level)
         cls.__audit_logger = audit_logger
 
         if details is None:
@@ -817,3 +809,52 @@ class AsyncSmartLogger:
         self._real_handlers.clear()
         self._handlers.clear()
         self._retired = True
+
+
+# ======================================================================
+#  Global stdout logger (lazy initialization)
+# ======================================================================
+
+import io
+import contextlib
+import threading
+
+_async_stdout_logger = None
+_async_stdout_lock = threading.Lock()
+
+
+def _get_async_stdout_logger() -> "AsyncSmartLogger":
+    global _async_stdout_logger
+
+    if _async_stdout_logger is not None:
+        return _async_stdout_logger
+
+    with _async_stdout_lock:
+        if _async_stdout_logger is None:
+            lg = AsyncSmartLogger("_async_stdout", level=logging.INFO)
+            lg.add_console(level=logging.INFO)
+            lg._py_logger.propagate = False
+            _async_stdout_logger = lg
+
+    return _async_stdout_logger
+
+
+async def a_stdout(*args, sep=" ", end="\n"):
+    """
+    Async version of print(), synchronized with AsyncSmartLogger output.
+    Auto-flushes to guarantee ordering with async log messages.
+    """
+    lg = _get_async_stdout_logger()
+
+    # Capture print() output exactly as Python formats it
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        print(*args, sep=sep, end=end)
+
+    text = buffer.getvalue()
+
+    # Enqueue RAW write
+    await lg.a_raw(text, end="")
+
+    # Force synchronization with all async log messages
+    await lg.flush()

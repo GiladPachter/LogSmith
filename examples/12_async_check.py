@@ -12,7 +12,7 @@ from LogSmith.async_smartlogger import AsyncSmartLogger
 
 async def main():
 
-    logger = AsyncSmartLogger.get("async-demo", logging.DEBUG)
+    logger = AsyncSmartLogger("async-demo", logging.DEBUG)
     logger.add_console()
 
     await logger.a_info("Hello from a_sync", user="Gilad")

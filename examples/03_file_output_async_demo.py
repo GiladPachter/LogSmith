@@ -24,13 +24,13 @@ from pathlib import Path
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
 from LogSmith.rotation import RotationLogic, When
 from LogSmith.colors import CPrint
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 
 from project_definitions import ROOT_DIR
 
 
 async def main():
-    print("\nAsync file output demo\n======================")
+    await a_stdout("\nAsync file output demo\n======================")
 
     # ------------------------------------------------------------------------------------------------------
     # 1. Levels (AsyncSmartLogger does not require global init)
@@ -40,16 +40,15 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 2. Create logger
     # ------------------------------------------------------------------------------------------------------
-    print("\nCreating async logger 'file_demo_async'...")
+    await a_stdout("\nCreating async logger 'file_demo_async'...")
 
-    logger = AsyncSmartLogger.get("file_demo_async", level=levels["TRACE"])
+    logger = AsyncSmartLogger("file_demo_async", level=levels["TRACE"])
     logger.add_console(level=levels["TRACE"])   # console for visibility
 
     # ------------------------------------------------------------------------------------------------------
     # 3. Prepare log directory and clean old files
     # ------------------------------------------------------------------------------------------------------
-    print("\nPreparing log directory...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nPreparing log directory...")
 
     log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "file_demo_async"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -70,14 +69,12 @@ async def main():
         if f.exists():
             f.unlink()
 
-    await asyncio.sleep(0.1)
-    print("Old demo files removed.")
+    await a_stdout("Old demo files removed.")
 
     # ------------------------------------------------------------------------------------------------------
     # 4. File handler with basic formatting
     # ------------------------------------------------------------------------------------------------------
-    print("\nAdding file handler (plain formatting)...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nAdding file handler (plain formatting)...")
 
     file_details = LogRecordDetails(
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -107,8 +104,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 5. Demonstrate rotation basics
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nAdding rotating file handler...")
+    await a_stdout("\nAdding rotating file handler...")
 
     rotation = RotationLogic(
         when=When.SECOND,   # rotate every second
@@ -125,8 +121,7 @@ async def main():
     )
 
     # Show handler info (JSON-safe)
-    print(logger.handler_info_json)
-    await asyncio.sleep(0.1)
+    await a_stdout(logger.handler_info_json)
 
     await logger.a_info("Rotation handler attached.")
 
@@ -136,8 +131,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 6. Demonstrate color-preserving file output
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nAdding color-preserving file handler...")
+    await a_stdout("\nAdding color-preserving file handler...")
 
     color_file = log_dir / "color_preserved.log"
 
@@ -149,8 +143,7 @@ async def main():
         do_not_sanitize_colors_from_string=True,
     )
 
-    print("\nWriting colored text via logger.a_raw():")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nWriting colored text via logger.a_raw():")
 
     colored = CPrint.colorize(
         "This text contains ANSI colors",
@@ -160,36 +153,34 @@ async def main():
     await logger.a_raw(colored)
 
     await asyncio.sleep(0.1)
-    print("\nEscaped version of colored text (for inspection):")
-    print(CPrint.escape_ansi_for_display(colored))
+    await a_stdout("\nEscaped version of colored text (for inspection):")
+    await a_stdout(CPrint.escape_ansi_for_display(colored))
 
     # ------------------------------------------------------------------------------------------------------
     # 7. Read the color-preserved file back
     # ------------------------------------------------------------------------------------------------------
-    print("\nReading color-preserved text back from file:")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nReading color-preserved text back from file:")
 
     with open(color_file, "r", encoding="utf-8") as fh:
         file_content = fh.read().rstrip()
 
-    await asyncio.sleep(0.1)
-    print("---------------------------------------------")
-    print(file_content)
-    print("---------------------------------------------")
+    await a_stdout("---------------------------------------------")
+    await a_stdout(file_content)
+    await a_stdout("---------------------------------------------")
 
-    print("\nEscaped file content:")
-    print(CPrint.escape_ansi_for_display(file_content))
+    await a_stdout("\nEscaped file content:")
+    await a_stdout(CPrint.escape_ansi_for_display(file_content))
 
     # ------------------------------------------------------------------------------------------------------
     # 8. Show handler_info (JSON-safe)
     # ------------------------------------------------------------------------------------------------------
-    print("\nHandlers details:\n-----------------")
-    print(logger.handler_info_json)
+    await a_stdout("\nHandlers details:\n-----------------")
+    await a_stdout(logger.handler_info_json)
 
     # ------------------------------------------------------------------------------------------------------
     # 9. AsyncSmartLogger safeguards (contextually relevant here)
     # ------------------------------------------------------------------------------------------------------
-    print(
+    await a_stdout(
         "\nAsyncSmartLogger file-output safeguards:"
         "\n----------------------------------------\n"
         "- log_dir must be an absolute, normalized path (prevents accidental use of relative paths)\n"

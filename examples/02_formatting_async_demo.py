@@ -20,21 +20,20 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import asyncio
 
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 
 
 async def main():
-    print("\nGranular async formatting demo\n==============================")
+    await a_stdout("\nGranular async formatting demo\n==============================")
 
     levels = AsyncSmartLogger.levels()
 
     # ------------------------------------------------------------------------------------------------------
     # 2. Logger with partial coloring (level + message)
     # ------------------------------------------------------------------------------------------------------
-    print("\nCreating async logger 'granular_partial_async' (partial coloring)...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nCreating async logger 'granular_partial_async' (partial coloring)...")
 
-    lg_partial = AsyncSmartLogger.get("granular_partial_async", level=levels["TRACE"])
+    lg_partial = AsyncSmartLogger("granular_partial_async", level=levels["TRACE"])
 
     partial_details = LogRecordDetails(
         datefmt="%Y-%m-%d %H:%M:%S.%2f",   # milliseconds
@@ -65,11 +64,9 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 3. Logger with full-entry coloring
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nCreating async logger 'granular_full_async' (full-entry coloring)...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nCreating async logger 'granular_full_async' (full-entry coloring)...")
 
-    lg_full = AsyncSmartLogger.get("granular_full_async", level=levels["TRACE"])
+    lg_full = AsyncSmartLogger("granular_full_async", level=levels["TRACE"])
 
     full_details = LogRecordDetails(
         datefmt="%Y-%m-%d %H:%M:%S.%2f",
@@ -97,8 +94,7 @@ async def main():
     await lg_full.a_info("Module-level log (full-entry coloring)")
     await bar()
 
-    await asyncio.sleep(0.1)
-    print("\nGranular async formatting demo complete.\n")
+    await a_stdout("\nGranular async formatting demo complete.\n")
 
     # Ensure all logs are flushed before exit
     await lg_partial.flush()

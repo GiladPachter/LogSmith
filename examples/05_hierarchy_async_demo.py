@@ -52,9 +52,9 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     print("\nCreating async loggers...")
 
-    parent     = AsyncSmartLogger.get("myapp",           level=levels["DEBUG"])
-    child      = AsyncSmartLogger.get("myapp.api",       level=levels["NOTSET"])
-    grandchild = AsyncSmartLogger.get("myapp.api.users", level=levels["NOTSET"])
+    parent     = AsyncSmartLogger("myapp",           level=levels["DEBUG"])
+    child      = AsyncSmartLogger("myapp.api",       level=levels["NOTSET"])
+    grandchild = AsyncSmartLogger("myapp.api.users", level=levels["NOTSET"])
 
     # All loggers share the same formatting
     details = LogRecordDetails(

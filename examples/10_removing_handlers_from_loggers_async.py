@@ -57,8 +57,8 @@ async def main():
     # ------------------------------------------------------------
     # Setup: two loggers, each with console + file handler
     # ------------------------------------------------------------
-    logger_a = AsyncSmartLogger.get("A", level=levels["INFO"])
-    logger_b = AsyncSmartLogger.get("B", level=levels["INFO"])
+    logger_a = AsyncSmartLogger("A", level=levels["INFO"])
+    logger_b = AsyncSmartLogger("B", level=levels["INFO"])
 
     logger_a.add_console()
     logger_b.add_console()
