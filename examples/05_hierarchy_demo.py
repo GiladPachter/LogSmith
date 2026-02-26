@@ -15,8 +15,6 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
-import time
-
 from LogSmith import SmartLogger, stdout
 from LogSmith import LogRecordDetails, OptionalRecordFields
 

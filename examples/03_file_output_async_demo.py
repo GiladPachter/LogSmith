@@ -19,7 +19,6 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
 import asyncio
-import time
 from pathlib import Path
 
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields

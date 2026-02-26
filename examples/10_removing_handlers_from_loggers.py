@@ -10,7 +10,6 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import os
 import shutil
-import time
 from pathlib import Path
 
 from project_definitions import ROOT_DIR

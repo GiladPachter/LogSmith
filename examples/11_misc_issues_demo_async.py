@@ -25,13 +25,10 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 import json
-import time
-from pathlib import Path
 
 from LogSmith.async_smartlogger import AsyncSmartLogger
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
-from LogSmith.rotation import RotationLogic, When
-from project_definitions import ROOT_DIR
+from LogSmith.rotation import RotationLogic
 
 
 async def main():
