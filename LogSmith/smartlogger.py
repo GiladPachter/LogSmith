@@ -12,7 +12,7 @@ import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Protocol, Literal, cast, Union, Callable, List
+from typing import Any, Optional, Protocol, Literal, Callable, List
 
 from .formatter import (
     StructuredPlainFormatter,
@@ -39,9 +39,8 @@ import contextlib
 @dataclass(frozen=True)
 class HandlerInfo:
     kind: Literal["console", "file"]
-    handler: logging.Handler
     level: int
-    formatter: Union[StructuredPlainFormatter, StructuredColorFormatter, PassthroughFormatter, AuditFormatter]
+    formatter: str
     path: str | None = None
     rotation_logic: RotationLogic | None = None
     do_not_sanitize_colors_from_string: bool = False
@@ -213,6 +212,7 @@ class SmartLogger(logging.Logger):
     def __init__(self, name: str, level: int = logging.NOTSET) -> None:
         super().__init__(name)
         self._smart_state = _SmartLoggerState()
+        self._real_handlers: list[logging.Handler] = []
 
         # Register this logger in the global logging manager so that
         # logging.getLogger(name) returns THIS instance from now on.
@@ -309,15 +309,18 @@ class SmartLogger(logging.Logger):
         if self._smart_state.retired:
             raise RuntimeError(f"Logger {self.name!r} has been retired and cannot be used.")
 
-        for info in self._smart_state.handlers:
-            stream = getattr(info.handler, "stream", None)
+        for handler in self._real_handlers:
+            stream = getattr(handler, "stream", None)
             if stream is None:
                 continue
 
-            if info.kind == "console":
+            is_console = isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename")
+
+            if is_console:
                 text = self._bleach_non_colored_text(message)
             else:
-                text = message if info.do_not_sanitize_colors_from_string else CPrint.strip_ansi(message)
+                do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
+                text = message if do_not_sanitize else CPrint.strip_ansi(message)
 
             stream.write(text + end)
             stream.flush()
@@ -422,11 +425,11 @@ class SmartLogger(logging.Logger):
         self._smart_state.handlers.append(
             HandlerInfo(
                 kind="console",
-                handler=handler,
                 level=level,
-                formatter=formatter,
+                formatter=type(formatter).__name__,
             )
         )
+        self._real_handlers.append(handler)
 
     def remove_console(self) -> None:
         """
@@ -434,16 +437,20 @@ class SmartLogger(logging.Logger):
         Raises:
             RuntimeError: if no console handler exists.
         """
-        # Find the console handler in handler_info
-        for info in list(self.handler_info):
-            if info["kind"] == "console":
-                handler = info["handler"]
-                # noinspection PyTypeChecker
-                self.removeHandler(handler) # handler is of the correct type
-                self.handler_info.remove(info)
-                return
+        for h in list(self._real_handlers):
+            if isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename"):
+                self.removeHandler(h)
+                h.close()
+                self._real_handlers.remove(h)
+                break
+        else:
+            raise RuntimeError(f"Logger {self.name!r} has no console handler to remove.")
 
-        raise RuntimeError(f"Logger {self.name!r} has no console handler to remove.")
+            # Remove metadata
+        self._smart_state.handlers = [
+            info for info in self._smart_state.handlers
+            if info.kind != "console"
+        ]
 
     def add_file(
             self,
@@ -542,15 +549,15 @@ class SmartLogger(logging.Logger):
             # 3. Track metadata
             self._smart_state.handlers.append(
                 HandlerInfo(
-                    kind            = "file",
-                    handler         = handler,
-                    level           = level or self.level,
-                    formatter       = formatter,
-                    path            = resolved_path,
-                    rotation_logic  = rotation_logic,
-                    do_not_sanitize_colors_from_string = do_not_sanitize_colors_from_string,
+                    kind="file",
+                    level=level or self.level,
+                    formatter=type(formatter).__name__,
+                    path=resolved_path,
+                    rotation_logic=rotation_logic,
+                    do_not_sanitize_colors_from_string=do_not_sanitize_colors_from_string,
                 )
             )
+            self._real_handlers.append(handler)
 
     def remove_file_handler(self, logfile_name: str, log_dir: str) -> None:
         """
@@ -563,37 +570,43 @@ class SmartLogger(logging.Logger):
         Raises:
             RuntimeError: if no matching file handler exists.
         """
-        for info in self.handler_info:
-            if info["kind"] == "file":
-                # Normalize the stored path as well
-                target_path = Path(f"{log_dir}\\{logfile_name}").resolve()
-                if info["path"] == str(target_path):
-                    handler = info["handler"]
-                    # noinspection PyTypeChecker
-                    self.removeHandler(handler)  # handler is of the correct type
-                    self.handler_info.remove(info)
-                    return
+        target_path = str(Path(log_dir, logfile_name).resolve())
 
-        raise RuntimeError(
-            f"Logger {self.name!r} has no file handler for "
-            f"log_dir={log_dir!r}, logfile_name={logfile_name!r}."
-        )
+        removed = False
+        for h in list(self._real_handlers):
+            if isinstance(h, logging.FileHandler) and Path(h.baseFilename).resolve() == Path(target_path):
+                self.removeHandler(h)
+                h.close()
+                self._real_handlers.remove(h)
+                removed = True
+                break
+
+        if not removed:
+            raise RuntimeError(
+                f"Logger {self.name!r} has no file handler for "
+                f"log_dir={log_dir!r}, logfile_name={logfile_name!r}."
+            )
+
+        self._smart_state.handlers = [
+            info for info in self._smart_state.handlers
+            if not (info.kind == "file" and info.path == target_path)
+        ]
 
     # ------------------------------------------------------------------
     #  HANDLER INTROSPECTION (READ-ONLY)
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _pretty_handler_info(info: HandlerInfo) -> dict[str, object]:
+    def _pretty_handler_info(info: HandlerInfo) -> dict[str, Any]:
         """
         Convert HandlerInfo into a clean, human‑readable dict.
         Includes the handler object itself so that removal operations
         can be performed safely and unambiguously.
         """
-        base: dict[str, object] = {
+        base: dict[str, Any] = {
             "kind": info.kind,
             "level": logging.getLevelName(info.level),
-            "handler": info.handler,  # essential for removal
+            "formatter": info.formatter,
         }
 
         if info.kind == "file":
@@ -749,21 +762,22 @@ class SmartLogger(logging.Logger):
           - mark logger as unusable
         """
         if self._smart_state.retired:
-            return  # already retired
+            return
 
-        # Close and remove handlers
-        for info in self._smart_state.handlers:
+            # Close and remove all real handlers
+        for h in list(self._real_handlers):
             # noinspection PyBroadException
             try:
-                info.handler.close()
+                h.close()
             except Exception:
                 pass
             # noinspection PyBroadException
             try:
-                self.removeHandler(info.handler)
+                self.removeHandler(h)
             except Exception:
                 pass
 
+        self._real_handlers.clear()
         self._smart_state.handlers.clear()
         self._smart_state.retired = True
 
