@@ -405,12 +405,15 @@ class SmartLogger(logging.Logger):
         if self._smart_state.retired:
             raise RuntimeError(f"Logger {self.name!r} has been retired and cannot accept handlers.")
 
+        if any([1 for info in self.handler_info if info["kind"] == "console"]):
+            raise RuntimeError(f"Logger {self.name!r} already has a console handler.")
+
         mode: OutputMode = self._normalize_output_mode(output_mode)
 
         if log_record_details is None:
             log_record_details = LogRecordDetails()
 
-        handler = logging.StreamHandler()
+        handler = logging.StreamHandler(stream=sys.stdout)
         handler.setLevel(level)
 
         if mode is OutputMode.JSON:

@@ -618,7 +618,8 @@ class StructuredJSONFormatter(logging.Formatter):
         self.details = details
         self.indent = indent
 
-    def _record_to_dict(self, record: logging.LogRecord) -> dict[str, Any]:
+    @staticmethod
+    def _record_to_dict(record: logging.LogRecord) -> dict[str, Any]:
         data = {
             "timestamp": datetime.fromtimestamp(record.created, UTC).isoformat(),
             "level": record.levelname,

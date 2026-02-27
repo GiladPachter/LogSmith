@@ -360,7 +360,7 @@ class AsyncSmartLogger:
         if log_record_details is None:
             log_record_details = LogRecordDetails()
 
-        handler = logging.StreamHandler()
+        handler = logging.StreamHandler(stream=sys.stdout)
         handler.setLevel(level)
 
         if mode is OutputMode.JSON:
