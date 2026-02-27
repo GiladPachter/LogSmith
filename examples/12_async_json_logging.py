@@ -7,6 +7,7 @@ from pathlib import Path
 from LogSmith import AsyncSmartLogger, a_stdout
 from LogSmith import LogRecordDetails
 from LogSmith import OutputMode
+from project_definitions import ROOT_DIR
 
 
 async def main():
@@ -22,7 +23,7 @@ async def main():
     )
 
     # NDJSON file
-    log_dir = str(Path(__file__).resolve().parent / "logs")
+    log_dir = str(Path(ROOT_DIR).resolve() / "Logs" / "NDJSON")
     logger.add_file(
         log_dir=log_dir,
         logfile_name="async_events.ndjson",

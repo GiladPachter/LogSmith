@@ -6,6 +6,7 @@ from pathlib import Path
 from LogSmith import SmartLogger
 from LogSmith import LogRecordDetails
 from LogSmith import OutputMode  # wherever you placed the enum
+from project_definitions import ROOT_DIR
 
 
 def main():
@@ -20,7 +21,7 @@ def main():
     )
 
     # NDJSON file handler (compact, one JSON object per line)
-    log_dir = str(Path(__file__).resolve().parent / "logs")
+    log_dir = str(Path(ROOT_DIR).resolve() / "Logs" / "NDJSON")
     logger.add_file(
         log_dir=log_dir,
         logfile_name="events.ndjson",

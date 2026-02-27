@@ -663,4 +663,4 @@ class StructuredNDJSONFormatter(StructuredJSONFormatter):
         super().__init__(details, indent=None)
 
     def format(self, record: logging.LogRecord) -> str:
-        return super().format(record) + "\n"
+        return super().format(record)
