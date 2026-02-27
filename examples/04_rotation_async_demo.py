@@ -22,14 +22,13 @@ from pathlib import Path
 
 from LogSmith.rotation import RotationLogic, When
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 
 from project_definitions import ROOT_DIR
 
 
 async def main():
-    print("\nAsync rotation demo\n===================")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nAsync rotation demo\n===================")
 
     # ------------------------------------------------------------------------------------------------------
     # 1. Levels (AsyncSmartLogger does not require global init)
@@ -39,7 +38,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 2. Prepare log directory and clean old files
     # ------------------------------------------------------------------------------------------------------
-    print("\nPreparing log directory...")
+    await a_stdout("\nPreparing log directory...")
 
     log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "rotation_async_demo"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -49,13 +48,12 @@ async def main():
         if f.is_file():
             f.unlink()
 
-    print("Old rotation files removed.")
+    await a_stdout("Old rotation files removed.")
 
     # ------------------------------------------------------------------------------------------------------
     # 3. Create logger
     # ------------------------------------------------------------------------------------------------------
-    print("\nCreating async logger 'rotation_async_demo'...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nCreating async logger 'rotation_async_demo'...")
 
     logger = AsyncSmartLogger("rotation_async_demo", level=levels["TRACE"])
     logger.add_console(level=levels["TRACE"])
@@ -80,8 +78,7 @@ async def main():
     # ======================================================================================================
     # SIZE-BASED ROTATION
     # ======================================================================================================
-    print("\nSize-based rotation (maxBytes=2000)...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nSize-based rotation (maxBytes=2000)...")
 
     logger.add_file(
         log_dir=str(log_dir),
@@ -97,14 +94,12 @@ async def main():
     for i in range(40):
         await logger.a_info(f"[size] message {i}")
 
-    await asyncio.sleep(0.1)
-    print("Size-based rotation complete.")
+    await a_stdout("Size-based rotation complete.")
 
     # ======================================================================================================
     # TIME-BASED ROTATION
     # ======================================================================================================
-    print("\nTime-based rotation (rotate every second)...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nTime-based rotation (rotate every second)...")
 
     logger.add_file(
         log_dir=str(log_dir),
@@ -124,16 +119,14 @@ async def main():
         await logger.a_debug("[time] rotating...")
         await asyncio.sleep(0.01)  # throttle a bit
 
-    await asyncio.sleep(0.1)
-    print("Time-based rotation complete.")
+    await a_stdout("Time-based rotation complete.")
 
     # ------------------------------------------------------------------------------------------------------
     # NOTE ABOUT DAILY/WEEKLY ROTATION
     # ------------------------------------------------------------------------------------------------------
-    print("\nDaily/Weekly rotation behavior:")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nDaily/Weekly rotation behavior:")
 
-    print(
+    await a_stdout(
         "- When=When.EVERYDAY rotates at midnight local time.\n"
         "- When=When.MONDAY ... When.SUNDAY rotate at the start of that weekday.\n"
         "- interval=N means 'every N days' or 'every N weeks'.\n"
@@ -143,8 +136,7 @@ async def main():
     # ======================================================================================================
     # COMBINED ROTATION (size + time)
     # ======================================================================================================
-    print("\nCombined rotation (maxBytes + time)...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nCombined rotation (maxBytes + time)...")
 
     logger.add_file(
         log_dir=str(log_dir),
@@ -164,21 +156,20 @@ async def main():
         await logger.a_warning("[combined] rotating...")
         await asyncio.sleep(0.01)  # throttle a bit
 
-    await asyncio.sleep(0.1)
-    print("Combined rotation complete.")
+    await a_stdout("Combined rotation complete.")
 
     # ------------------------------------------------------------------------------------------------------
     # 5. Show handler_info (JSON-safe)
     # ------------------------------------------------------------------------------------------------------
-    print("\nHandler info:\n-------------")
-    print(logger.handler_info_json)
+    await a_stdout("\nHandler info:\n-------------")
+    await a_stdout(logger.handler_info_json)
 
     # ------------------------------------------------------------------------------------------------------
     # 6. AsyncSmartLogger rotation safeguards
     # ------------------------------------------------------------------------------------------------------
-    print("\nAsyncSmartLogger rotation safeguards:\n-------------------------------------")
+    await a_stdout("\nAsyncSmartLogger rotation safeguards:\n-------------------------------------")
 
-    print(
+    await a_stdout(
         "- Validates rotation parameters\n"
         "- Prevents invalid combinations (e.g., negative sizes)\n"
         "- Ensures backupCount is respected\n"
@@ -186,7 +177,7 @@ async def main():
         "- Ensures size-based rotation triggers immediately when threshold is exceeded\n"
     )
 
-    print("\nAsync rotation demo complete.\n")
+    await a_stdout("\nAsync rotation demo complete.\n")
 
     # Ensure all logs are flushed before exit
     await logger.flush()

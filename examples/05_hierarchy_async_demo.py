@@ -17,12 +17,12 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
 
 
 async def main():
-    print("\nAsync hierarchy demo\n====================")
+    await a_stdout("\nAsync hierarchy demo\n====================")
 
     # ------------------------------------------------------------------------------------------------------
     # 1. Levels (AsyncSmartLogger does not require global init)
@@ -32,9 +32,9 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 2. Explain hierarchy rules
     # ------------------------------------------------------------------------------------------------------
-    print("\nHierarchy rules:")
+    await a_stdout("\nHierarchy rules:")
 
-    print(
+    await a_stdout(
         "  - Logger names define hierarchy via dot notation\n"
         "      parent\n"
         "      parent.child\n"
@@ -45,12 +45,11 @@ async def main():
         "      • If parent is NOTSET → inherit from grandparent\n"
         "      • Ultimately falls back to root logger level\n"
     )
-    await asyncio.sleep(0.1)
 
     # ------------------------------------------------------------------------------------------------------
     # 3. Create loggers
     # ------------------------------------------------------------------------------------------------------
-    print("\nCreating async loggers...")
+    await a_stdout("\nCreating async loggers...")
 
     parent     = AsyncSmartLogger("myapp",           level=levels["DEBUG"])
     child      = AsyncSmartLogger("myapp.api",       level=levels["NOTSET"])
@@ -91,16 +90,13 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 4. Demonstrate inheritance
     # ------------------------------------------------------------------------------------------------------
-    print("\nInitial behavior (parent = DEBUG, children = NOTSET → inherit DEBUG):")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nInitial behavior (parent = DEBUG, children = NOTSET → inherit DEBUG):")
     await exercise()
 
     # ------------------------------------------------------------------------------------------------------
     # 5. Change parent level → children inherit new level
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nChanging parent level to INFO...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nChanging parent level to INFO...")
 
     parent.set_level(levels["INFO"])
     await exercise()
@@ -108,9 +104,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 6. Change parent level again
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nChanging parent level to TRACE...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nChanging parent level to TRACE...")
 
     parent.set_level(levels["TRACE"])
     await exercise()
@@ -118,15 +112,12 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 7. Change parent level to WARNING
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(0.1)
-    print("\nChanging parent level to WARNING...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nChanging parent level to WARNING...")
 
     parent.set_level(levels["WARNING"])
     await exercise()
-    await asyncio.sleep(0.1)
 
-    print("\nAsync hierarchy demo complete.\n")
+    await a_stdout("\nAsync hierarchy demo complete.\n")
 
     # Ensure all logs are flushed before exit
     await parent.flush()

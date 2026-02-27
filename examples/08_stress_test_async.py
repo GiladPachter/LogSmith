@@ -53,7 +53,6 @@ async def main():
     # Rotating file handler
     # --------------------------------------------------------------
     await a_stdout("\nAdding rotating file handler...")
-    await asyncio.sleep(0.1)
 
     details = LogRecordDetails(
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -85,7 +84,6 @@ async def main():
     )
 
     await logger.a_info("Async stress-test logger ready.")
-    await asyncio.sleep(0.1)
 
     # --------------------------------------------------------------
     # Stress test parameters

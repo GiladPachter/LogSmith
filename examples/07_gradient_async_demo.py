@@ -20,7 +20,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 from LogSmith.colors import (
     CPrint,
     GradientDirection,
@@ -35,13 +35,12 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     levels = AsyncSmartLogger.levels()
 
-    print("\nAsync Gradient demo\n===================")
+    await a_stdout("\nAsync Gradient demo\n===================")
 
     # ------------------------------------------------------------------------------------------------------
     # 2. Create logger with console handler
     # ------------------------------------------------------------------------------------------------------
-    print("\nCreating async logger 'gradient.demo.async'...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nCreating async logger 'gradient.demo.async'...")
 
     lg = AsyncSmartLogger("gradient.demo.async", level=levels["TRACE"])
     lg.add_console(level=levels["TRACE"])
@@ -50,18 +49,14 @@ async def main():
     # Helper: section header
     # ------------------------------------------------------------------------------------------------------
     async def section(title: str):
-        await asyncio.sleep(0.1)
-        print(f"\n{title}\n" + "-" * len(title) + "\n")
-        await asyncio.sleep(0.1)
+        await a_stdout(f"\n{title}\n" + "-" * len(title) + "\n")
 
     # ------------------------------------------------------------------------------------------------------
     # Helper: palette preview
     # ------------------------------------------------------------------------------------------------------
     async def preview_palette(name: str, colors: list[int]):
-        await asyncio.sleep(0.1)
-        print(f"{name}:")
-        print(CPrint.gradient("█" * 40, fg_codes=colors) + "\n")
-        await asyncio.sleep(0.1)
+        await a_stdout(f"{name}:")
+        await a_stdout(CPrint.gradient("█" * 40, fg_codes=colors) + "\n")
 
     # ======================================================================================================
     # 0. Palette previews
@@ -163,18 +158,15 @@ async def main():
     await section("9. Blended palette: NEON + FIRE → CyberFire")
 
     cyberfire = blend_palettes(GradientPalette.NEON, GradientPalette.FIRE, steps=12)
-    await preview_palette("CyberFire (blended)", cyberfire)
-    print(CPrint.gradient("CyberFire blended gradient", fg_codes=cyberfire))
-    await asyncio.sleep(0.1)
+    await a_stdout(CPrint.gradient("CyberFire blended gradient", fg_codes=cyberfire))
 
     # ======================================================================================================
     # 10. Done
     # ======================================================================================================
     await section("10. Done")
 
-    await asyncio.sleep(0.1)
-    print("All gradient features demonstrated.\n")
-    print("\nAsync Gradient demo complete.\n")
+    await a_stdout("All gradient features demonstrated.\n")
+    await a_stdout("\nAsync Gradient demo complete.\n")
 
     # Ensure all logs are flushed
     await lg.flush()

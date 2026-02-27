@@ -94,7 +94,6 @@ async def main():
 
     await logger.a_raw("")
     await logger.a_debug("Debug with Stack Info", stack_info=True)
-    await asyncio.sleep(0.1)
 
     # ======================================================================================================
     # C. retire() and destroy()
@@ -152,7 +151,6 @@ async def main():
         RotationLogic(maxBytes=-5)
     except Exception as e:
         await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
-    await asyncio.sleep(0.1)
 
     # ======================================================================================================
     # G. Invalid level registration

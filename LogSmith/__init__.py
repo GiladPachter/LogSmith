@@ -17,7 +17,7 @@ try:
     from importlib.metadata import version
     __version__ = version("LogSmith")
 except Exception:
-    __version__ = "1.7.2"
+    __version__ = "1.7.3"
 
 # ----------------------------------------------------------------------
 # Public API
@@ -46,7 +46,7 @@ from .levels import LevelStyle
 from .themes import DARK_THEME, LIGHT_THEME, NEON_THEME, PASTEL_THEME, FIRE_THEME, OCEAN_THEME
 
 # async logger
-from .async_smartlogger import AsyncSmartLogger
+from .async_smartlogger import AsyncSmartLogger, a_stdout
 
 
 __all__ = [

@@ -25,26 +25,26 @@ from pathlib import Path
 
 from project_definitions import ROOT_DIR
 
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 
 
 async def print_file(label: str, path: Path):
-    print(f"\n=== {label} ({path}) ===")
+    await a_stdout(f"\n=== {label} ({path}) ===")
     if not path.exists():
-        print("    <file missing>")
+        await a_stdout("    <file missing>")
         return
 
     raw = path.read_bytes()
     decoded = raw.decode("utf-8")
 
     for line in decoded.splitlines():
-        print("    " + line)
+        await a_stdout("    " + line)
 
-    print("\n    NOTE:")
+    await a_stdout("\n    NOTE:")
     if label.startswith("Logger A"):
-        print("    - Logger A's file is missing the *after removal* lines")
+        await a_stdout("    - Logger A's file is missing the *after removal* lines")
     else:
-        print("    - Logger B's file contains all lines (console was removed instead)")
+        await a_stdout("    - Logger B's file contains all lines (console was removed instead)")
 
 
 async def main():

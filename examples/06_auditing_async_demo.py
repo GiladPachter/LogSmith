@@ -20,7 +20,7 @@ import asyncio
 from pathlib import Path
 from typing import Dict
 
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 from LogSmith.rotation import RotationLogic, When
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
 
@@ -28,7 +28,7 @@ from project_definitions import ROOT_DIR
 
 
 async def main():
-    print("\nAsync auditing demo\n===================")
+    await a_stdout("\nAsync auditing demo\n===================")
 
     # ------------------------------------------------------------------------------------------------------
     # 1. Levels (AsyncSmartLogger does not require global init)
@@ -38,7 +38,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 2. Prepare audit directory
     # ------------------------------------------------------------------------------------------------------
-    print("\nPreparing audit directory...")
+    await a_stdout("\nPreparing audit directory...")
 
     audit_dir = Path(ROOT_DIR) / "Logs" / "examples" / "auditing_async_demo"
     audit_dir.mkdir(parents=True, exist_ok=True)
@@ -48,14 +48,12 @@ async def main():
         if f.is_file():
             f.unlink()
 
-    print("Old audit files removed.")
-    await asyncio.sleep(0.1)
+    await a_stdout("Old audit files removed.")
 
     # ------------------------------------------------------------------------------------------------------
     # 3. Create several loggers with different handler setups
     # ------------------------------------------------------------------------------------------------------
-    print("\nCreating async loggers...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nCreating async loggers...")
 
     loggers: Dict[str, AsyncSmartLogger] = {}
 
@@ -97,21 +95,17 @@ async def main():
     )
     loggers["two_files"] = lg4
 
-    print("Async loggers created.")
-    await asyncio.sleep(0.1)
+    await a_stdout("Async loggers created.")
 
     # ------------------------------------------------------------------------------------------------------
     # 4. Show logger configurations (JSON-safe)
     # ------------------------------------------------------------------------------------------------------
-    print("\nOutput Targets by logger \"<NAME>\":")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nOutput Targets by logger \"<NAME>\":")
 
     for name, lg in loggers.items():
-        print(f"\t\"{lg.name}\": ")
+        await a_stdout(f"\t\"{lg.name}\": ")
         for target in lg.output_targets:
-            print(f"\t\t{target}")
-
-    await asyncio.sleep(0.1)
+            await a_stdout(f"\t\t{target}")
 
     # ------------------------------------------------------------------------------------------------------
     # 5. Enable auditing
@@ -137,8 +131,7 @@ async def main():
         backupCount=5,
     )
 
-    print(f"\nEnabling async auditing of 4 loggers... into '{audit_dir / 'audit.log'}'")
-    await asyncio.sleep(0.1)
+    await a_stdout(f"\nEnabling async auditing of 4 loggers... into '{audit_dir / 'audit.log'}'")
 
     await AsyncSmartLogger.audit_everything(
         log_dir=str(audit_dir),
@@ -147,13 +140,12 @@ async def main():
         details=audit_details,
     )
 
-    print("Auditing enabled.")
+    await a_stdout("Auditing enabled.")
 
     # ------------------------------------------------------------------------------------------------------
     # 6. Exercise all loggers
     # ------------------------------------------------------------------------------------------------------
-    print("\nLogging from all async loggers...")
-    await asyncio.sleep(0.1)
+    await a_stdout("\nLogging from all async loggers...")
 
     for name, lg in loggers.items():
         await lg.a_info(f"[audit] logger '{name}' says hello")
@@ -163,24 +155,23 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 7. Disable auditing
     # ------------------------------------------------------------------------------------------------------
-    await asyncio.sleep(1.2)
-    print("\nDisabling auditing...")
+    await a_stdout("\nDisabling auditing...")
 
     await AsyncSmartLogger.terminate_auditing()
 
-    print("Auditing disabled.")
+    await a_stdout("Auditing disabled.")
 
     # ------------------------------------------------------------------------------------------------------
     # 8. Show audit handler info
     # ------------------------------------------------------------------------------------------------------
-    print("\nAudit handler info:")
+    await a_stdout("\nAudit handler info:")
     audit_logger = AsyncSmartLogger("_async_audit", levels["TRACE"])
-    print(audit_logger.handler_info_json)
+    await a_stdout(audit_logger.handler_info_json)
 
     # ------------------------------------------------------------------------------------------------------
     # 9. Notes
     # ------------------------------------------------------------------------------------------------------
-    print("\nNotes:\n"
+    await a_stdout("\nNotes:\n"
           "- To demonstrate size-only rotation: remove 'when' and 'interval'.\n"
           "- To demonstrate time-only rotation: remove 'maxBytes'.\n"
           "- To demonstrate long-term rotation (daily/weekly):\n"
