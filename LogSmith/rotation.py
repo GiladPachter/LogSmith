@@ -449,7 +449,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
         """
         if self.stream:
             self.stream.close()
-            self.stream = None
+            self.stream = None  # type: ignore[assignment]
 
         # rotate backups
         if self.backupCount > 0:

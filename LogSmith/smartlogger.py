@@ -1271,7 +1271,7 @@ def stdout(*args, sep=" ", end="\n"):
     but routes output through SmartLogger.raw() so console output is
     perfectly synchronized with all SmartLogger log messages.
 
-    This function auto‑flushes for synchronization purposes.
+    Auto-flushes to guarantee ordering with log messages.
     """
     lg = _get_stdout_logger()
 

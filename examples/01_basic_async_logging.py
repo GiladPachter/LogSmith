@@ -86,6 +86,11 @@ async def main():
     )
     await logger.a_alert("This is an ALERT-level message")
 
+    await a_stdout("\nExpanded logger levels:")
+    levels = AsyncSmartLogger.levels()
+    sorted_levels = dict(sorted(levels.items(), key=lambda item: item[1]))
+    await a_stdout(json.dumps(sorted_levels, indent=4))
+
     # ------------------------------------------------------------------------------------------------------
     # 6. RAW text (plain + colored)
     # ------------------------------------------------------------------------------------------------------

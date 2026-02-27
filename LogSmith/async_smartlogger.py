@@ -841,7 +841,12 @@ def _get_async_stdout_logger() -> "AsyncSmartLogger":
 
 async def a_stdout(*args, sep=" ", end="\n"):
     """
-    Async version of print(), synchronized with AsyncSmartLogger output.
+    An AsyncSmartLogger‑synchronized replacement for print().
+
+    Behaves exactly like print(), including handling of sep and end,
+    but routes output through AsyncSmartLogger.raw() so console output is
+    perfectly synchronized with all AsyncSmartLogger log messages.
+
     Auto-flushes to guarantee ordering with async log messages.
     """
     lg = _get_async_stdout_logger()

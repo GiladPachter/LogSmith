@@ -7,7 +7,7 @@ import time
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, IO
 
 from .rotation import RotationLogic, When, RotationTimestamp, ExpirationScale
 
@@ -42,6 +42,9 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
 
         # FileHandler initialization
         super().__init__(self.baseFilename, mode="a", encoding=encoding, delay=delay)
+
+        # Tell PyCharm the truth: stream can be None
+        self.stream: Optional[IO[str]] = self.stream
 
         # For debugging / introspection
         self.resolved_path = str(Path(self.baseFilename).resolve())
@@ -85,7 +88,7 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
             # Close current file
             if self.stream:
                 self.stream.close()
-                self.stream = None
+                self.stream = None  # type: ignore[assignment]
 
             # Rotate backups
             if self.rotation_logic.backupCount > 0:

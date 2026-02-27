@@ -81,6 +81,12 @@ SmartLogger.register_level(
 )
 logger.alert("This is an ALERT-level message")
 
+stdout("\nExpanded logger levels:")
+levels = SmartLogger.levels()
+sorted_levels = dict(sorted(levels.items(), key=lambda item: item[1]))
+stdout(json.dumps(sorted_levels, indent = 4))
+
+
 # ----------------------------------------------------------------------------------------------------------
 # 6. RAW text (plain + colored)
 # ----------------------------------------------------------------------------------------------------------
