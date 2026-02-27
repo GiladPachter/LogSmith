@@ -74,9 +74,8 @@ async def main():
 
     # Clean stack_info for display
     if record.stack_info:
-        record.stack_info = [
-            line[2:].replace('"', "'") for line in record.stack_info.splitlines()
-        ]
+        if isinstance(record.stack_info, str):
+            record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
 
     await a_stdout("\nRecord contents:")
     await logger.a_raw(json.dumps(record.__dict__, indent=4))

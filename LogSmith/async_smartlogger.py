@@ -12,7 +12,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar, Optional
 import json
 import os
 import threading
@@ -23,7 +23,7 @@ from .formatter import (
     StructuredColorFormatter,
     PassthroughFormatter,
     AuditFormatter,
-    LogRecordDetails,
+    LogRecordDetails, OutputMode, StructuredJSONFormatter, StructuredNDJSONFormatter,
 )
 from .levels import TRACE, LevelStyle
 from .level_registry import LEVELS
@@ -338,14 +338,24 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # PUBLIC: HANDLER MANAGEMENT
     # ------------------------------------------------------------------
+    def _normalize_output_mode(self, mode: str | OutputMode) -> OutputMode:
+        if isinstance(mode, OutputMode):
+            return mode
+        try:
+            return OutputMode(mode.lower())
+        except ValueError:
+            raise ValueError(f"Invalid output_mode: {mode!r}")
+
     def add_console(
-        self,
-        level: int = TRACE,
-        log_record_details: Optional[LogRecordDetails] = None,
-        formatter: Optional[logging.Formatter] = None,
+            self,
+            level: int = TRACE,
+            log_record_details: Optional[LogRecordDetails] = None,
+            output_mode: str | OutputMode = OutputMode.COLOR,
     ) -> None:
         if self._retired:
             raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot accept handlers.")
+
+        mode = self._normalize_output_mode(output_mode)
 
         if log_record_details is None:
             log_record_details = LogRecordDetails()
@@ -353,8 +363,14 @@ class AsyncSmartLogger:
         handler = logging.StreamHandler()
         handler.setLevel(level)
 
-        if formatter is None:
+        if mode is OutputMode.JSON:
+            formatter = StructuredJSONFormatter(log_record_details, indent=4)
+        elif mode is OutputMode.NDJSON:
+            formatter = StructuredNDJSONFormatter(log_record_details)
+        elif mode is OutputMode.COLOR:
             formatter = StructuredColorFormatter(log_record_details)
+        else:
+            formatter = StructuredPlainFormatter(log_record_details)
 
         handler.setFormatter(formatter)
         self._py_logger.addHandler(handler)
@@ -375,17 +391,19 @@ class AsyncSmartLogger:
             h.close()
 
     def add_file(
-        self,
-        log_dir: str,
-        logfile_name: str,
-        level: Optional[int] = None,
-        log_record_details: Optional[LogRecordDetails] = None,
-        rotation_logic: Optional[RotationLogic] = None,
-        do_not_sanitize_colors_from_string: bool = False,
-        formatter: Optional[logging.Formatter] = None,
+            self,
+            log_dir: str,
+            logfile_name: str,
+            level: Optional[int] = None,
+            log_record_details: Optional[LogRecordDetails] = None,
+            rotation_logic: Optional[RotationLogic] = None,
+            do_not_sanitize_colors_from_string: bool = False,
+            output_mode: str | OutputMode = OutputMode.PLAIN,
     ) -> None:
         if self._retired:
             raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot accept handlers.")
+
+        mode = self._normalize_output_mode(output_mode)
 
         normalized = os.path.abspath(os.path.normpath(log_dir))
         if log_dir != normalized:
@@ -401,12 +419,21 @@ class AsyncSmartLogger:
         file_path = log_dir_path / logfile_name
         resolved_path = str(file_path.resolve())
 
-        if formatter is None:
+        if log_record_details is None:
+            log_record_details = LogRecordDetails()
+
+        # Formatter selection
+        if mode is OutputMode.JSON:
+            formatter = StructuredJSONFormatter(log_record_details, indent=None)
+        elif mode is OutputMode.NDJSON:
+            formatter = StructuredNDJSONFormatter(log_record_details)
+        else:
             if do_not_sanitize_colors_from_string:
                 formatter = PassthroughFormatter()
             else:
                 formatter = StructuredPlainFormatter(log_record_details)
 
+        # Handler creation
         if rotation_logic:
             handler = Async_TimedSizedRotatingFileHandler(
                 baseFilename=str(file_path),
@@ -717,8 +744,12 @@ class AsyncSmartLogger:
             log_dir=log_dir,
             logfile_name=logfile_name,
             rotation_logic=rotation_logic,
-            formatter=formatter,
+            output_mode=OutputMode.PLAIN,
         )
+
+        # Override the formatter on the actual handler
+        handler = audit_logger._py_logger.handlers[-1]
+        handler.setFormatter(formatter)
 
         cls.__audit_handler = audit_logger._py_logger.handlers[-1]
 
@@ -814,10 +845,6 @@ class AsyncSmartLogger:
 # ======================================================================
 #  Global stdout logger (lazy initialization)
 # ======================================================================
-
-import io
-import contextlib
-import threading
 
 _async_stdout_logger = None
 _async_stdout_lock = threading.Lock()

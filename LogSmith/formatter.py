@@ -1,8 +1,10 @@
 # LogSmith/formatter.py
-
+import json
 import logging
+import traceback
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, UTC
+from enum import Enum
 from typing import Any, Dict, List, Optional, Callable, Mapping
 
 from .colors import CPrint, Code
@@ -13,7 +15,6 @@ from .level_registry import LEVELS
 # ================================================================
 # OptionalRecordFields
 # ================================================================
-
 @dataclass
 class OptionalRecordFields:
     """
@@ -40,7 +41,6 @@ class OptionalRecordFields:
 # ================================================================
 # LogRecordDetails
 # ================================================================
-
 @dataclass
 class LogRecordDetails:
     """
@@ -186,10 +186,16 @@ class LogRecordDetails:
                 )
 
 
+class OutputMode(Enum):
+    PLAIN = "plain"
+    COLOR = "color"
+    JSON = "json"
+    NDJSON = "ndjson"
+
+
 # ================================================================
 # Timestamp formatting
 # ================================================================
-
 def _format_timestamp(record: logging.LogRecord, datefmt: str | None) -> str:
     if datefmt is None:
         return datetime.fromtimestamp(record.created).isoformat(sep=" ", timespec="seconds")
@@ -222,7 +228,6 @@ def _format_timestamp(record: logging.LogRecord, datefmt: str | None) -> str:
 # ================================================================
 # Extras extraction
 # ================================================================
-
 def _extract_extras(record: logging.LogRecord) -> Mapping[str, Any]:
     standard = {
         "name", "msg", "args", "levelname", "levelno",
@@ -248,7 +253,6 @@ def _extract_extras(record: logging.LogRecord) -> Mapping[str, Any]:
 # ================================================================
 # Plain formatter
 # ================================================================
-
 class StructuredPlainFormatter:
     """
     Plain (non-colored) formatter driven by LogRecordDetails.
@@ -357,7 +361,6 @@ class StructuredPlainFormatter:
 # ================================================================
 # Color formatter (table-driven)
 # ================================================================
-
 Renderer = Callable[[logging.LogRecord], str]
 
 class StructuredColorFormatter:
@@ -489,7 +492,7 @@ class StructuredColorFormatter:
     # Extras renderer
     # ------------------------------------------------------------
     @staticmethod
-    def render_extras_colored(named_arguments: Dict[str, Any]) -> str:
+    def render_extras_colored(named_arguments: Mapping[str, Any]) -> str:
         parts = []
         for k, v in named_arguments.items():
             colored_key = CPrint.colorize(
@@ -576,7 +579,6 @@ class StructuredColorFormatter:
 # ================================================================
 # formatter for file handles that doesn't sanitize text coloration
 # ================================================================
-
 class PassthroughFormatter(logging.Formatter):
     """
     Formatter that preserves ANSI escape sequences and returns the raw message.
@@ -586,6 +588,9 @@ class PassthroughFormatter(logging.Formatter):
         return record.getMessage()
 
 
+# ================================================================
+# formatter for auditing all loggers
+# ================================================================
 class AuditFormatter(logging.Formatter):
     """
     Formatter for global auditing.
@@ -602,3 +607,59 @@ class AuditFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         prefix = f"[{record.name}]: "
         return prefix + self.structured.format(record)
+
+
+# ================================================================
+# formatter for JSON logging
+# ================================================================
+class StructuredJSONFormatter(logging.Formatter):
+    def __init__(self, details: LogRecordDetails, indent: int | None = None):
+        super().__init__()
+        self.details = details
+        self.indent = indent
+
+    def _record_to_dict(self, record: logging.LogRecord) -> dict[str, Any]:
+        data = {
+            "timestamp": datetime.fromtimestamp(record.created, UTC).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": CPrint.strip_ansi(record.getMessage()),
+            "file_path": record.pathname,
+            "file_name": record.filename,
+            "lineno": record.lineno,
+            "func_name": record.funcName,
+            "thread_id": record.thread,
+            "thread_name": record.threadName,
+            "process_id": record.process,
+            "process_name": record.processName,
+        }
+
+        if hasattr(record, "fields"):
+            data["fields"] = record.fields
+
+        if record.exc_info:
+            exc_type, exc_val, tb = record.exc_info
+            data["exception"] = {
+                "type": exc_type.__name__,
+                "message": str(exc_val),
+                "traceback": traceback.format_exception(exc_type, exc_val, tb),
+            }
+
+        if record.stack_info:
+            data["stack_info"] = record.stack_info.splitlines()
+
+        return data
+
+    def format(self, record: logging.LogRecord) -> str:
+        return json.dumps(self._record_to_dict(record), ensure_ascii=False, indent=self.indent)
+
+
+# ================================================================
+# formatter for NDJSON logging
+# ================================================================
+class StructuredNDJSONFormatter(StructuredJSONFormatter):
+    def __init__(self, details: LogRecordDetails):
+        super().__init__(details, indent=None)
+
+    def format(self, record: logging.LogRecord) -> str:
+        return super().format(record) + "\n"

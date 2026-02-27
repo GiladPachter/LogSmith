@@ -66,7 +66,8 @@ stdout("\nDemonstrating get_record()...")
 
 logger.info("This is a test message for get_record()")
 record = SmartLogger.get_record()
-record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
+if isinstance(record.stack_info, str):
+    record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
 stdout("\nRecord contents:")
 logger.raw(json.dumps(record.__dict__, indent=4))
 

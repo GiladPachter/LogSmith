@@ -17,7 +17,8 @@ from typing import Any, Optional, Protocol, Literal, Callable, List
 from .formatter import (
     StructuredPlainFormatter,
     StructuredColorFormatter,
-    LogRecordDetails, PassthroughFormatter, AuditFormatter,
+    LogRecordDetails, PassthroughFormatter, AuditFormatter, OutputMode, StructuredJSONFormatter,
+    StructuredNDJSONFormatter,
 )
 from .levels import LevelStyle, TRACE
 from .level_registry import LEVELS
@@ -80,7 +81,7 @@ class RetrievedRecord:
 
     # diagnostics
     exc_info: dict | None = None
-    stack_info: List[str] | None = None
+    stack_info: str | List[str] | None = None
 
 
 # ======================================================================
@@ -386,47 +387,48 @@ class SmartLogger(logging.Logger):
     def set_global_log_record_details(details: LogRecordDetails) -> None:
         SmartLogger._default_log_record_details = details
 
+    def _normalize_output_mode(self, mode: str | OutputMode) -> OutputMode:
+        if isinstance(mode, OutputMode):
+            return mode
+        try:
+            return OutputMode(mode.lower())
+        except ValueError:
+            raise ValueError(f"Invalid output_mode: {mode!r}")
+
     def add_console(
-        self,
-        level: int = TRACE,
-        log_record_details: Optional[LogRecordDetails] = None,
+            self,
+            level: int = TRACE,
+            log_record_details: Optional[LogRecordDetails] = None,
+            output_mode: str | OutputMode = OutputMode.COLOR,
     ) -> None:
-        """
-        Attach a console handler to THIS logger.
-        Each logger may have at most one console handler.
-        No propagation, no delegation.
-        """
         if self._smart_state.retired:
             raise RuntimeError(f"Logger {self.name!r} has been retired and cannot accept handlers.")
 
-        if any([1 for info in self.handler_info if info["kind"] == "console"]):
-            raise RuntimeError(f"Logger {self.name!r} already has a console handler.")
-
-        # Check for existing console handler
-        for info in self._smart_state.handlers:
-            if info.kind == "console":
-                raise RuntimeError(
-                    f"Logger {self.name!r} already has a console handler. "
-                    "Only one console handler is allowed per logger."
-                )
+        mode: OutputMode = self._normalize_output_mode(output_mode)
 
         if log_record_details is None:
             log_record_details = LogRecordDetails()
 
         handler = logging.StreamHandler()
         handler.setLevel(level)
-        formatter = StructuredColorFormatter(log_record_details)
-        handler.setFormatter(formatter)  # type: ignore[arg-type]
 
-        # Attach to THIS logger
+        if mode is OutputMode.JSON:
+            formatter = StructuredJSONFormatter(log_record_details, indent=4)
+        elif mode is OutputMode.NDJSON:
+            formatter = StructuredNDJSONFormatter(log_record_details)
+        elif mode is OutputMode.COLOR:
+            formatter = StructuredColorFormatter(log_record_details)
+        else:
+            formatter = StructuredPlainFormatter(log_record_details)
+
+        handler.setFormatter(formatter)
         self.addHandler(handler)
 
-        # Track metadata
         self._smart_state.handlers.append(
             HandlerInfo(
                 kind="console",
                 level=level,
-                formatter=type(formatter).__name__,
+                formatter=str(mode.value),
             )
         )
         self._real_handlers.append(handler)
