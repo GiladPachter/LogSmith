@@ -27,7 +27,7 @@ except Exception:
 from .smartlogger import SmartLogger, stdout
 
 # Formatting
-from .formatter import LogRecordDetails, OptionalRecordFields
+from .formatter import LogRecordDetails, OptionalRecordFields, OutputMode
 
 # Rotation & retention
 from .rotation import (
@@ -57,6 +57,7 @@ __all__ = [
     # Formatting
     "LogRecordDetails",
     "OptionalRecordFields",
+    "OutputMode",
 
     # Rotation & retention
     "RotationLogic",
@@ -85,4 +86,5 @@ __all__ = [
 
     # async
     "AsyncSmartLogger",
+    "a_stdout",
 ]

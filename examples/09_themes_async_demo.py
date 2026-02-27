@@ -10,15 +10,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 
-from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
-from LogSmith import (
-    DARK_THEME,
-    LIGHT_THEME,
-    NEON_THEME,
-    PASTEL_THEME,
-    FIRE_THEME,
-    OCEAN_THEME,
-)
+from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import DARK_THEME, LIGHT_THEME, NEON_THEME, PASTEL_THEME, FIRE_THEME, OCEAN_THEME
 
 
 async def main():

@@ -20,9 +20,9 @@ import asyncio
 import time
 from pathlib import Path
 
-from LogSmith.rotation import RotationLogic, When
-from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
-from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
+from LogSmith import RotationLogic, When
+from LogSmith import LogRecordDetails, OptionalRecordFields
+from LogSmith import AsyncSmartLogger, a_stdout
 
 from project_definitions import ROOT_DIR
 

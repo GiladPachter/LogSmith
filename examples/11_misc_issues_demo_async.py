@@ -26,9 +26,9 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import asyncio
 import json
 
-from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
-from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
-from LogSmith.rotation import RotationLogic
+from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import LogRecordDetails, OptionalRecordFields
+from LogSmith import RotationLogic
 
 
 async def main():

@@ -21,10 +21,10 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import asyncio
 from pathlib import Path
 
-from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
-from LogSmith.rotation import RotationLogic, When
-from LogSmith.colors import CPrint
-from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
+from LogSmith import LogRecordDetails, OptionalRecordFields
+from LogSmith import RotationLogic, When
+from LogSmith import CPrint
+from LogSmith import AsyncSmartLogger, a_stdout
 
 from project_definitions import ROOT_DIR
 

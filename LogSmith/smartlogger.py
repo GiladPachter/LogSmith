@@ -387,7 +387,8 @@ class SmartLogger(logging.Logger):
     def set_global_log_record_details(details: LogRecordDetails) -> None:
         SmartLogger._default_log_record_details = details
 
-    def _normalize_output_mode(self, mode: str | OutputMode) -> OutputMode:
+    @staticmethod
+    def _normalize_output_mode(mode: str | OutputMode) -> OutputMode:
         if isinstance(mode, OutputMode):
             return mode
         try:
@@ -462,29 +463,12 @@ class SmartLogger(logging.Logger):
             log_record_details: LogRecordDetails | None = None,
             rotation_logic: RotationLogic | None = None,
             do_not_sanitize_colors_from_string: bool = False,
+            output_mode: str | OutputMode = OutputMode.PLAIN,
     ) -> None:
-        """
-        Add a file handler to this logger.
-
-        Parameters
-        ----------
-        log_dir : str
-            Directory where the log file will be created.
-        logfile_name : str | None
-            Optional explicit filename. If omitted, logger name is used.
-        level : int | None
-            Logging level for this handler. Defaults to logger level.
-        log_record_details : LogRecordDetails | None
-            Formatting details for structured plain output.
-        rotation_logic : RotationLogic | None
-            Optional rotation configuration (size‑based or time‑based).
-        do_not_sanitize_colors_from_string : bool
-            If True, ANSI escape sequences are preserved in file output.
-            If False, ANSI is sanitized (default SmartLogger behavior).
-        """
-
         if self._smart_state.retired:
             raise RuntimeError(f"Logger {self.name!r} has been retired and cannot accept handlers.")
+
+        mode = self._normalize_output_mode(output_mode)
 
         # verify normalized log_dir given
         normalized = os.path.abspath(os.path.normpath(log_dir))
@@ -506,10 +490,19 @@ class SmartLogger(logging.Logger):
         file_path = log_dir_path / logfile_name
         resolved_path = str(file_path.resolve())
 
-        if do_not_sanitize_colors_from_string:
-            formatter = PassthroughFormatter()
+        if log_record_details is None:
+            log_record_details = LogRecordDetails()
+
+        # Formatter selection
+        if mode is OutputMode.JSON:
+            formatter = StructuredJSONFormatter(log_record_details, indent=None)
+        elif mode is OutputMode.NDJSON:
+            formatter = StructuredNDJSONFormatter(log_record_details)
         else:
-            formatter = StructuredPlainFormatter(log_record_details)
+            if do_not_sanitize_colors_from_string:
+                formatter = PassthroughFormatter()
+            else:
+                formatter = StructuredPlainFormatter(log_record_details)
 
         # Create the handler
         if rotation_logic:
@@ -520,9 +513,9 @@ class SmartLogger(logging.Logger):
         handler.setLevel(level or self.level)
         handler.setFormatter(formatter)
 
-        handler.log_record_details                 = log_record_details                 # for debugging and demos
-        handler.rotation_logic                     = rotation_logic                     # for debugging and demos
-        handler.do_not_sanitize_colors_from_string = do_not_sanitize_colors_from_string # for debugging and demos
+        handler.log_record_details = log_record_details
+        handler.rotation_logic = rotation_logic
+        handler.do_not_sanitize_colors_from_string = do_not_sanitize_colors_from_string
 
         # --- CRITICAL SECTION (tight lock) --------------------------------
         with SmartLogger._file_handler_lock:
@@ -538,7 +531,6 @@ class SmartLogger(logging.Logger):
 
                     existing_resolved = str(Path(info.path).resolve())
                     if existing_resolved == resolved_path:
-                        # Handler is discarded automatically when function exits
                         raise ValueError(
                             f"A file handler for '{resolved_path}' is already active "
                             f"in this process. This is usually caused by a duplicate "
@@ -553,7 +545,7 @@ class SmartLogger(logging.Logger):
                 HandlerInfo(
                     kind="file",
                     level=level or self.level,
-                    formatter=type(formatter).__name__,
+                    formatter=str(mode.value),
                     path=resolved_path,
                     rotation_logic=rotation_logic,
                     do_not_sanitize_colors_from_string=do_not_sanitize_colors_from_string,

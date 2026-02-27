@@ -1,4 +1,4 @@
-# examples/11_misc_issues_demo.py
+# examples/00_async_check.py
 
 """
 Getting started with asyncSmartLogger

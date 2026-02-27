@@ -23,7 +23,7 @@ import asyncio
 import json
 
 from LogSmith import CPrint, LevelStyle
-from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger, a_stdout
 
 
 async def main():

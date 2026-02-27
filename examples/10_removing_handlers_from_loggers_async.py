@@ -25,7 +25,7 @@ from pathlib import Path
 
 from project_definitions import ROOT_DIR
 
-from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger, a_stdout
 
 
 async def print_file(label: str, path: Path):

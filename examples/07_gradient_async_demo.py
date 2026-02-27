@@ -20,13 +20,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 
-from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
-from LogSmith.colors import (
-    CPrint,
-    GradientDirection,
-    GradientPalette,
-    blend_palettes,
-)
+from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import CPrint, GradientDirection, GradientPalette, blend_palettes
 
 
 async def main():
