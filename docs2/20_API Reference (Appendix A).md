@@ -1,0 +1,297 @@
+# Appendix A — API Reference  
+This appendix provides a complete reference for all public classes, methods, configuration objects, and constants in LogSmith. It is designed as a quick lookup for developers who already understand the concepts covered in previous chapters.
+
+---
+
+# SmartLogger  
+The primary synchronous logger.
+
+## Constructor
+```python
+SmartLogger(name: str, level: int = NOTSET)
+```
+
+## Core Methods
+- `setLevel(level: int)` — set explicit level  
+- `getEffectiveLevel()` — inherited or explicit level  
+- `add_console(...)` — attach console handler  
+- `add_file(...)` — attach file handler  
+- `clear_handlers()` — remove all handlers  
+- `retire()` — disable logger, close handlers  
+- `destroy()` — remove logger entirely  
+- `describe()` — return structured logger info  
+
+## Logging Methods
+- `trace(msg, **fields)`  
+- `debug(msg, **fields)`  
+- `info(msg, **fields)`  
+- `warning(msg, **fields)`  
+- `error(msg, **fields)`  
+- `critical(msg, **fields)`  
+- `exception(msg, **fields)`  
+- `raw(text)` — unformatted output  
+
+Dynamic levels automatically add new methods.
+
+---
+
+# AsyncSmartLogger  
+Async version of SmartLogger.
+
+## Constructor
+```python
+AsyncSmartLogger(name: str, level: int = NOTSET)
+```
+
+## Async Logging Methods
+- `await a_trace(msg, **fields)`  
+- `await a_debug(msg, **fields)`  
+- `await a_info(msg, **fields)`  
+- `await a_warning(msg, **fields)`  
+- `await a_error(msg, **fields)`  
+- `await a_critical(msg, **fields)`  
+- `await a_exception(msg, **fields)`  
+- `await a_stdout(text)` — synchronized printing  
+
+## Lifecycle
+- `await flush()` — flush queue  
+- `await destroy_async()` — destroy logger  
+- `describe()` — includes queue diagnostics  
+
+---
+
+# Handlers
+
+## Console Handler
+Created via:
+```python
+logger.add_console(
+    level=None,
+    output_mode=OutputMode.COLOR,
+    log_record_details=None,
+)
+```
+
+## File Handler
+Created via:
+```python
+logger.add_file(
+    log_dir: str,
+    logfile_name: str,
+    level=None,
+    output_mode=OutputMode.PLAIN,
+    rotation_logic=None,
+    log_record_details=None,
+    do_not_sanitize_colors_from_string=False,
+)
+```
+
+Properties:
+- `path`  
+- `rotation_logic`  
+- `retention`  
+- `output_mode`  
+- `formatter`  
+
+---
+
+# LogRecordDetails  
+Controls structured formatting.
+
+```python
+LogRecordDetails(
+    datefmt="%Y-%m-%d %H:%M:%S",
+    separator="•",
+    optional_record_fields=OptionalRecordFields(...),
+    message_parts_order=[...],
+    color_all_log_record_fields=False,
+)
+```
+
+---
+
+# OptionalRecordFields  
+Enable/disable metadata fields.
+
+```python
+OptionalRecordFields(
+    logger_name=False,
+    file_name=False,
+    lineno=False,
+    func_name=False,
+    thread_id=False,
+    process_id=False,
+    module_name=False,
+    pathname=False,
+)
+```
+
+---
+
+# RotationLogic  
+Controls rotation behavior.
+
+```python
+RotationLogic(
+    maxBytes=None,
+    when=None,
+    interval=1,
+    timestamp=None,
+    backupCount=0,
+    expiration_rule=None,
+)
+```
+
+---
+
+# RotationTimestamp  
+Defines daily/weekly rotation anchors.
+
+```python
+RotationTimestamp(hour=0, minute=0, second=0)
+```
+
+---
+
+# ExpirationRule  
+Defines retention policy.
+
+```python
+ExpirationRule(
+    scale=ExpirationScale.Days,
+    interval=7,
+)
+```
+
+---
+
+# OutputMode  
+Enum for output formatting.
+
+- `COLOR`  
+- `PLAIN`  
+- `JSON`  
+- `NDJSON`  
+
+---
+
+# LevelStyle  
+Defines color/style for a log level.
+
+```python
+LevelStyle(
+    fg=None,
+    bg=None,
+    bold=False,
+    dim=False,
+    underline=False,
+    italic=False,
+    strike=False,
+)
+```
+
+---
+
+# CPrint  
+ANSI color engine.
+
+## Methods
+- `colorize(text, fg=None, bg=None, bold=False, ...)`  
+- `gradient(text, fg_codes, bg_codes=None)`  
+
+## Color Constants
+- `CPrint.FG.*`  
+- `CPrint.BG.*`  
+
+---
+
+# GradientPalette  
+Predefined palettes.
+
+- `RAINBOW`  
+- `FIRE`  
+- `OCEAN`  
+- `FOREST`  
+- `SUNSET`  
+- `PASTEL`  
+
+Custom palette:
+
+```python
+GradientPalette([196, 202, 208])
+```
+
+---
+
+# Auditing  
+Global capture of all logs.
+
+## Enable
+```python
+SmartLogger.audit_everything(
+    log_dir="audit",
+    logfile_name="audit.log",
+    output_mode=OutputMode.NDJSON,
+    rotation_logic=None,
+)
+```
+
+Async version:
+
+```python
+AsyncSmartLogger.audit_everything(...)
+```
+
+## Disable
+```python
+SmartLogger.stop_auditing()
+await AsyncSmartLogger.stop_auditing()
+```
+
+---
+
+# Dynamic Levels  
+Register new levels:
+
+```python
+SmartLogger.register_level("NOTICE", 25)
+AsyncSmartLogger.register_level("SUCCESS", 35)
+```
+
+Automatically creates:
+
+- new level constant  
+- new logger method  
+- theme integration  
+
+---
+
+# Global Utilities
+
+## Get Logger
+```python
+SmartLogger.get_logger(name)
+AsyncSmartLogger.get_logger(name)
+```
+
+## Shutdown
+```python
+SmartLogger.shutdown()
+await AsyncSmartLogger.shutdown()
+```
+
+---
+
+# Summary  
+This appendix provides a complete reference for:
+
+- SmartLogger and AsyncSmartLogger  
+- handlers  
+- formatting  
+- rotation  
+- themes  
+- auditing  
+- dynamic levels  
+- global utilities  
+
+The next appendix covers **Appendix B: Glossary**, defining all terminology used throughout the documentation.
