@@ -5,14 +5,14 @@ Getting started with asyncSmartLogger
 """
 
 import asyncio
-import logging
 
 from LogSmith import CPrint
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith import AsyncSmartLogger
 
 async def main():
 
-    logger = AsyncSmartLogger("async-demo", logging.DEBUG)
+    levels = AsyncSmartLogger.levels()
+    logger = AsyncSmartLogger("async-demo", levels["DEBUG"])
     logger.add_console()
 
     await logger.a_info("Hello from a_sync", user="Gilad")

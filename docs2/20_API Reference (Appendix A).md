@@ -3,7 +3,7 @@ This appendix provides a complete reference for all public classes, methods, con
 
 ---
 
-# SmartLogger  
+# 🧠 SmartLogger  
 The primary synchronous logger.
 
 ## Constructor

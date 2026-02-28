@@ -1,9 +1,4 @@
-# Installation & Setup  
-LogSmith is pure Python, dependency‑free, and works on all major platforms. This chapter walks you through installing it, verifying your environment, and understanding the minimal setup needed before creating your first logger.
-
----
-
-## Requirements
+# ⚙️ Requirements
 
 LogSmith is intentionally lightweight:
 
@@ -14,6 +9,11 @@ LogSmith is intentionally lightweight:
 - **fcntl** (Unix) or **msvcrt** (Windows) for concurrency‑safe rotation
 
 If your terminal supports ANSI colors, LogSmith will automatically detect it. If not, it gracefully falls back to plain output.
+
+---
+
+# 🔧 Installation & Setup  
+LogSmith is pure Python, dependency‑free, and works on all major platforms. This chapter walks you through installing it, verifying your environment, and understanding the minimal setup needed before creating your first logger.
 
 ---
 
@@ -78,7 +78,7 @@ If this prints a version string, your installation is good to go.
 
 ---
 
-## Project Layout (for contributors)
+# 🗂️ Project Layout (for contributors)
 
 A typical LogSmith checkout looks like this:
 
@@ -128,7 +128,24 @@ Both logger types are ready to use as soon as you instantiate them.
 
 ---
 
-## Platform Notes
+## 🔧 Class & Package Diagrams
+
+1. Install `pylint`
+2. Install Graphviz from https://graphviz.org/download/ (ensure “Add to PATH” is selected)
+3. Restart PyCharm
+4. Run:
+
+```
+python -m pylint.pyreverse.main -o png -p MyProject .
+```
+
+5. Output files:
+
+- `classes_MyProject.png`
+- `packages_MyProject.png`
+---
+
+## 🔹 Platform Notes
 
 ### Linux & macOS
 - Uses `fcntl` for concurrency‑safe rotation  
@@ -152,5 +169,3 @@ Both logger types are ready to use as soon as you instantiate them.
 - Works on all major platforms  
 - No dependencies  
 - Ready for both sync and async applications  
-
-The next chapter walks you through a complete Quickstart so you can create your first logger in under a minute.

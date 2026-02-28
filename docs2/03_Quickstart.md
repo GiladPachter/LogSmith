@@ -69,7 +69,7 @@ logger.add_file(
     rotation_logic=RotationLogic(
         maxBytes=50_000,
         when=When.SECOND,
-        interval=1,
+        interval=1800,
         backupCount=5,
     ),
 )

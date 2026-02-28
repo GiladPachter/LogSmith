@@ -1,4 +1,4 @@
-# Introduction  
+# 📘 Introduction  
 *A modern logging toolkit for developers who want clarity, structure, and expressive output.*
 
 LogSmith is a logging framework built for developers who care about both **readability** and **reliability**. It takes Python’s built‑in `logging` module — a solid but aging foundation — and layers on the features modern applications actually need: structured logs, color and gradients, async support, safe rotation, JSON/NDJSON, themes, and a predictable, explicit API.
@@ -7,7 +7,7 @@ This chapter gives you a high‑level understanding of what LogSmith is, why it 
 
 ---
 
-## What LogSmith Solves
+## 🧮 What LogSmith Solves
 
 Python’s standard logging module is powerful but low‑level. It leaves many practical needs to the developer:
 
@@ -24,7 +24,7 @@ LogSmith answers all of these with a unified, consistent design.
 
 ---
 
-## The LogSmith Philosophy
+## 🧠 The LogSmith Philosophy
 
 LogSmith is built around a few core principles:
 

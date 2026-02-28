@@ -615,12 +615,33 @@ class AuditFormatter(logging.Formatter):
 class StructuredJSONFormatter(logging.Formatter):
     def __init__(self, details: LogRecordDetails, indent: int | None = None):
         super().__init__()
-        self.details = details
+        self.details = details or LogRecordDetails()
+        if details.optional_record_fields is None:
+            details.optional_record_fields = OptionalRecordFields()
         self.indent = indent
 
+    # ------------------------------------------------------------------ #
+    # Public API
+    # ------------------------------------------------------------------ #
+    def format(self, record: logging.LogRecord) -> str:
+        data = self._record_to_dict(record)
+        data = self._apply_optional_fields_filter(data)
+        data = self._apply_ordering(data)
+        return json.dumps(data, ensure_ascii=False, indent=self.indent)
+
+    # ------------------------------------------------------------------ #
+    # Core normalization
+    # ------------------------------------------------------------------ #
     @staticmethod
     def _record_to_dict(record: logging.LogRecord) -> dict[str, Any]:
-        data = {
+        """
+        Build the canonical base dict from a LogRecord.
+
+        This is the *raw* structured view before:
+        - OptionalRecordFields filtering
+        - message_parts_order reordering
+        """
+        data: Dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(record.created, UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
@@ -635,9 +656,13 @@ class StructuredJSONFormatter(logging.Formatter):
             "process_name": record.processName,
         }
 
+        # Structured fields (if present)
         if hasattr(record, "fields"):
             data["fields"] = record.fields
+        else:
+            data["fields"] = {}
 
+        # Exception info (preserve existing behavior)
         if record.exc_info:
             exc_type, exc_val, tb = record.exc_info
             data["exception"] = {
@@ -646,13 +671,141 @@ class StructuredJSONFormatter(logging.Formatter):
                 "traceback": traceback.format_exception(exc_type, exc_val, tb),
             }
 
+        # Stack info (preserve existing behavior)
         if record.stack_info:
             data["stack_info"] = record.stack_info.splitlines()
 
         return data
 
-    def format(self, record: logging.LogRecord) -> str:
-        return json.dumps(self._record_to_dict(record), ensure_ascii=False, indent=self.indent)
+    # ------------------------------------------------------------------ #
+    # OptionalRecordFields filtering
+    # ------------------------------------------------------------------ #
+    def _apply_optional_fields_filter(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Remove metadata fields that are disabled in OptionalRecordFields.
+
+        This does NOT touch:
+        - timestamp
+        - level
+        - message
+        - fields
+        - exception
+        - stack_info
+        """
+        opt: OptionalRecordFields = self.details.optional_record_fields
+
+        # Mapping from OptionalRecordFields attributes to JSON keys
+        mapping = {
+            "logger_name": "logger",
+            "file_name": "file_name",
+            "lineno": "lineno",
+            "func_name": "func_name",
+            "module_name": "module_name",  # only if you ever add it to data
+            "pathname": "file_path",
+            "thread_id": "thread_id",
+            "thread_name": "thread_name",
+            "process_id": "process_id",
+            "process_name": "process_name",
+        }
+
+        for attr, key in mapping.items():
+            enabled = getattr(opt, attr, False)
+            if not enabled and key in data:
+                data.pop(key, None)
+
+        return data
+
+    # ------------------------------------------------------------------ #
+    # Ordering via message_parts_order
+    # ------------------------------------------------------------------ #
+    def _apply_ordering(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Apply canonical ordering rules:
+
+        - 'timestamp' and 'message' are immutable:
+          * never appear in message_parts_order
+          * always present
+          * fixed relative positions: timestamp first, message after level/metadata
+        - 'level' is core but participates in ordering when optional fields exist:
+          * when any OptionalRecordFields flag is True, 'level' MUST appear
+            in message_parts_order
+        - Optional metadata fields are ordered by message_parts_order
+        - 'fields', 'exception', 'stack_info' are not controlled by OptionalRecordFields
+          and are not removed; they may be ordered if present in message_parts_order,
+          otherwise they appear after the core fields.
+        """
+        details = self.details
+        opt: OptionalRecordFields = details.optional_record_fields
+        mpo = details.message_parts_order or []
+
+        # Detect if any optional metadata is enabled
+        any_optional_enabled = any(
+            (
+                opt.logger_name,
+                opt.file_name,
+                opt.lineno,
+                opt.func_name,
+                opt.file_path,
+                opt.thread_id,
+                opt.thread_name,
+                opt.process_id,
+                opt.process_name,
+            )
+        )
+
+        # Enforce invariant: if any optional metadata is enabled,
+        # 'level' MUST appear in message_parts_order.
+        if any_optional_enabled and "level" not in mpo:
+            raise ValueError(
+                "LogRecordDetails.message_parts_order must include 'level' "
+                "when any OptionalRecordFields flag is True."
+            )
+
+        # noinspection PyDictCreation
+        ordered: Dict[str, Any] = {}
+
+        # 1. timestamp is always first
+        ordered["timestamp"] = data["timestamp"]
+
+        # If no optional metadata is enabled and no mpo is provided,
+        # keep a simple canonical order: timestamp, level, message, then the rest.
+        if not any_optional_enabled and not mpo:
+            if "level" in data:
+                ordered["level"] = data["level"]
+            ordered["message"] = data["message"]
+
+            # Append remaining keys in stable order
+            for key, value in data.items():
+                if key in ("timestamp", "level", "message"):
+                    continue
+                ordered[key] = value
+            return ordered
+
+        # 2. Apply message_parts_order (for level, metadata, fields, exception, stack_info)
+        for key in mpo:
+            if key in ("timestamp", "message"):
+                raise ValueError(
+                    "message_parts_order must not contain 'timestamp' or 'message'."
+                )
+            if key in data:
+                ordered[key] = data[key]
+
+        # Ensure 'level' is present even if mpo is empty but optional fields are enabled
+        if "level" not in ordered and "level" in data:
+            ordered["level"] = data["level"]
+
+        # 3. message always comes after mpo-driven keys
+        ordered["message"] = data["message"]
+
+        # 4. Append any remaining keys not yet included
+        for key, value in data.items():
+            if key in ordered:
+                continue
+            if key in ("timestamp", "message"):
+                continue
+            ordered[key] = value
+
+        return ordered
 
 
 # ================================================================
@@ -664,3 +817,7 @@ class StructuredNDJSONFormatter(StructuredJSONFormatter):
 
     def format(self, record: logging.LogRecord) -> str:
         return super().format(record)
+        # data = self._record_to_dict(record)
+        # data = self._apply_optional_fields_filter(data)
+        # data = self._apply_ordering(data)
+        # return json.dumps(data, ensure_ascii=False)

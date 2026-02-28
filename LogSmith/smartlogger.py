@@ -18,7 +18,7 @@ from .formatter import (
     StructuredPlainFormatter,
     StructuredColorFormatter,
     LogRecordDetails, PassthroughFormatter, AuditFormatter, OutputMode, StructuredJSONFormatter,
-    StructuredNDJSONFormatter,
+    StructuredNDJSONFormatter, OptionalRecordFields,
 )
 from .levels import LevelStyle, TRACE
 from .level_registry import LEVELS
@@ -410,8 +410,13 @@ class SmartLogger(logging.Logger):
 
         mode: OutputMode = self._normalize_output_mode(output_mode)
 
+        # Ensure we have a LogRecordDetails instance
         if log_record_details is None:
             log_record_details = LogRecordDetails()
+
+        # Ensure optional_record_fields exists
+        if log_record_details.optional_record_fields is None:
+            log_record_details.optional_record_fields = OptionalRecordFields()
 
         handler = logging.StreamHandler(stream=sys.stdout)
         handler.setLevel(level)
