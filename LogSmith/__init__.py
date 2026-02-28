@@ -17,7 +17,7 @@ try:
     from importlib.metadata import version
     __version__ = version("LogSmith")
 except Exception:
-    __version__ = "1.7.4"
+    __version__ = "1.8.0"
 
 # ----------------------------------------------------------------------
 # Public API
