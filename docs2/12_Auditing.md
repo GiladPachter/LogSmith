@@ -223,7 +223,7 @@ Auditing provides:
 - rotation and retention  
 - async‑aware behavior  
 - concurrency‑safe writes  
-- JSON/NDJSON support  
+- JSON / NDJSON support  
 - clean enable/disable lifecycle  
 
 The next chapter covers **Dynamic Log Levels** — how to create new levels, style them, and integrate them into your logging workflow.

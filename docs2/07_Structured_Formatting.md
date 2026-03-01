@@ -22,17 +22,17 @@ LogSmith replaces this with a **structured, explicit, predictable and easy to us
 
 ---
 
-## 🔹LogRecordDetails: The Formatting Blueprint  
+## 🔹 LogRecordDetails &nbsp; (the formatting blueprint)  
 Every handler (console or file) uses a `LogRecordDetails` object to define:
 
 - timestamp format  
 - separator character  
 - which metadata fields appear  
-- the order of fields  
+- the order of metadata fields  
 - how colors are applied  
 - how exceptions are formatted  
 - how structured fields appear  
-- how JSON/NDJSON is generated  
+- how JSON / NDJSON is generated  
 
 Example:
 
@@ -40,31 +40,29 @@ Example:
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 details = LogRecordDetails(
-    datefmt="%Y-%m-%d %H:%M:%S.%3f",
-    separator="•",
-    optional_record_fields=OptionalRecordFields(
-        logger_name=True,
-        file_name=True,
-        lineno=True,
-        func_name=True,
-        thread_id=True,
-        process_id=True,
+    datefmt = "%Y-%m-%d %H:%M:%S.%3f",
+    separator = "•",
+    optional_record_fields = OptionalRecordFields(
+        logger_name = True,
+        file_name   = True,
+        lineno      = True,
+        func_name   = True,
     ),
-    message_parts_order=[
+    message_parts_order = [
         "level",
         "logger_name",
         "file_name",
         "lineno",
         "func_name",
     ],
-    color_all_log_record_fields=False,
+    color_all_log_record_fields = True,
 )
 ```
 
 Attach it to a handler:
 
 ```python
-logger.add_console(log_record_details=details)
+logger.add_console(log_record_details = details)
 ```
 
 ---
@@ -85,9 +83,9 @@ Example:
 
 ```python
 OptionalRecordFields(
-    logger_name=True,
-    lineno=True,
-    thread_id=True,
+    logger_name = True,
+    lineno      = True,
+    thread_id   = True,
 )
 ```
 
@@ -107,7 +105,7 @@ Everything else is up to you.
 Example:
 
 ```python
-message_parts_order=[
+message_parts_order = [
     "level",
     "logger_name",
     "lineno",
@@ -126,7 +124,7 @@ Produces:
 The separator appears between metadata fields:
 
 ```python
-separator="•"
+separator = "•"
 ```
 
 Common choices:
@@ -144,20 +142,20 @@ You control how color is applied:
 
 ### Color only level + message (default)
 ```python
-color_all_log_record_fields=False
+color_all_log_record_fields = False
 ```
 
 ### Color everything
 ```python
-color_all_log_record_fields=True
+color_all_log_record_fields = True
 ```
 
 ### No color (PLAIN mode)
 ```python
-output_mode=OutputMode.PLAIN
+output_mode = OutputMode.PLAIN
 ```
 
-### JSON/NDJSON ignores color entirely
+### JSON / NDJSON ignores color entirely
 Color is not included in JSON output.
 
 ---
@@ -166,13 +164,13 @@ Color is not included in JSON output.
 Named arguments become structured fields:
 
 ```python
-logger.info("User login", username="Gilad", action="login")
+logger.info("User login", username = "Gilad", action = "login")
 ```
 
 Console output:
 
 ```
-… • INFO • User login {username='Gilad', action='login'}
+… • INFO • User login {username = 'Gilad', action = 'login'}
 ```
 
 JSON output:
@@ -212,7 +210,7 @@ Output includes:
 - full traceback  
 - structured fields (if any)  
 
-JSON/NDJSON include structured exception objects.
+JSON / NDJSON include structured exception objects.
 
 ---
 
@@ -220,7 +218,7 @@ JSON/NDJSON include structured exception objects.
 Pretty JSON output:
 
 ```python
-logger.add_console(output_mode=OutputMode.JSON)
+logger.add_console(output_mode = OutputMode.JSON)
 ```
 
 Produces:
@@ -243,9 +241,9 @@ NDJSON is compact and ingestion‑friendly:
 
 ```python
 logger.add_file(
-    log_dir="logs",
-    logfile_name="events.ndjson",
-    output_mode=OutputMode.NDJSON,
+    log_dir      = Path(ROOT_DIR) / "Logs" / "examples" / "NDJSON_demo",
+    logfile_name = "events.ndjson",
+    output_mode  = OutputMode.NDJSON,
 )
 ```
 
@@ -288,31 +286,31 @@ A fully customized handler:
 
 ```python
 details = LogRecordDetails(
-    datefmt="%H:%M:%S",
-    separator="|",
-    optional_record_fields=OptionalRecordFields(
-        logger_name=True,
-        lineno=True,
+    datefmt = "%H:%M:%S",
+    separator = "|",
+    optional_record_fields = OptionalRecordFields(
+        logger_name = True,
+        lineno      = True,
     ),
-    message_parts_order=[
+    message_parts_order = [
         "level",
         "logger_name",
         "lineno",
     ],
-    color_all_log_record_fields=True,
+    color_all_log_record_fields = True,
 )
 
 logger.add_console(
-    level=levels["DEBUG"],
-    log_record_details=details,
-    output_mode=OutputMode.COLOR,
+    level              = levels["DEBUG"],
+    log_record_details = details,
+    output_mode        = OutputMode.COLOR,  # default
 )
 ```
 
 Produces:
 
 ```
-12:45:03 | DEBUG | myapp | 42 | User login {username='Gilad'}
+12:45:03 | DEBUG | myapp | 42 | User login {username = 'Gilad'}
 ```
 
 ---
@@ -323,10 +321,8 @@ Structured formatting gives you:
 - predictable, explicit control  
 - clean, readable logs  
 - consistent formatting across handlers  
-- JSON/NDJSON compatibility  
+- JSON / NDJSON compatibility  
 - flexible metadata fields  
 - customizable ordering  
 - color control  
 - exception structuring  
-
-The next chapter covers **JSON & NDJSON Logging** in depth — how they work, when to use them, and how to integrate them into ingestion pipelines.

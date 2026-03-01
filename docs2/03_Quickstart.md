@@ -11,7 +11,7 @@ SmartLogger is the synchronous logger for traditional Python applications, scrip
 from LogSmith import SmartLogger
 
 levels = SmartLogger.levels()
-logger = SmartLogger("demo", level=levels["INFO"])
+logger = SmartLogger("demo", level = levels["INFO"])
 logger.add_console()
 
 logger.info("Hello from LogSmith!")
@@ -38,7 +38,7 @@ import asyncio
 
 async def main():
     levels = AsyncSmartLogger.levels()
-    logger = AsyncSmartLogger("demo.async", level=levels["INFO"])
+    logger = AsyncSmartLogger("demo.async", level = levels["INFO"])
     logger.add_console()
 
     await logger.a_info("Hello from AsyncSmartLogger!")
@@ -64,13 +64,13 @@ File handlers are explicit. You choose where logs go and how they rotate.
 from LogSmith import RotationLogic, When
 
 logger.add_file(
-    log_dir="logs",
-    logfile_name="app.log",
-    rotation_logic=RotationLogic(
-        maxBytes=50_000,
-        when=When.SECOND,
-        interval=1800,
-        backupCount=5,
+    log_dir = "logs",
+    logfile_name = "app.log",
+    rotation_logic = RotationLogic(
+        maxBytes    = 50_000,
+        when        = When.SECOND,
+        interval    = 1800,
+        backupCount = 5,
     ),
 )
 ```
@@ -88,16 +88,16 @@ This creates:
 LogSmith treats named arguments as structured fields:
 
 ```python
-logger.info("User login", username="Gilad", action="login")
+logger.info("User login", username = "Gilad", action = "login")
 ```
 
 Console output includes:
 
 ```
-… • INFO • User login {username='Gilad', action='login'}
+… • INFO • User login {username = 'Gilad', action = 'login'}
 ```
 
-JSON/NDJSON output includes:
+JSON / NDJSON output includes:
 
 ```json
 {
@@ -118,12 +118,12 @@ Switch output modes per handler:
 ```python
 from LogSmith import OutputMode, LogRecordDetails
 
-logger.add_console(output_mode=OutputMode.JSON)
+logger.add_console(output_mode = OutputMode.JSON)
 logger.add_file(
-    log_dir="logs",
-    logfile_name="events.ndjson",
-    output_mode=OutputMode.NDJSON,
-    log_record_details=LogRecordDetails(),
+    log_dir            = "logs",
+    logfile_name       = "events.ndjson",
+    output_mode        = OutputMode.NDJSON,
+    log_record_details = LogRecordDetails(),
 )
 ```
 
@@ -141,7 +141,7 @@ Raw output bypasses formatting and writes directly to the handler:
 ```python
 from LogSmith import CPrint
 
-logger.raw(CPrint.colorize("RAW colored text", fg=CPrint.FG.BRIGHT_RED))
+logger.raw(CPrint.colorize("RAW colored text", fg = CPrint.FG.BRIGHT_RED))
 ```
 
 Use raw output for:
@@ -161,9 +161,9 @@ Add new levels at runtime:
 from LogSmith import LevelStyle, CPrint
 
 SmartLogger.register_level(
-    name="NOTICE",
-    value=25,
-    style=LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA)
+    name  = "NOTICE",
+    value = 25,
+    style = LevelStyle(fg = CPrint.FG.BRIGHT_MAGENTA)
 )
 
 logger.notice("This is a NOTICE message")
@@ -208,7 +208,7 @@ You now know how to:
 - create sync and async loggers  
 - attach console and file handlers  
 - use structured fields  
-- log JSON/NDJSON  
+- log JSON / NDJSON  
 - output raw ANSI text  
 - register dynamic levels  
 - apply themes  

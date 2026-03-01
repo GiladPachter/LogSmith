@@ -232,7 +232,7 @@ logger.add_file(
 
 ---
 
-## Rotation + JSON/NDJSON  
+## Rotation + JSON / NDJSON  
 Rotation works identically for JSON and NDJSON:
 
 ```python
@@ -286,6 +286,6 @@ LogSmith’s rotation engine provides:
 - concurrency‑safe file operations  
 - async‑aware rotation scheduling  
 - atomic renaming  
-- JSON/NDJSON compatibility  
+- JSON / NDJSON compatibility  
 
 The next chapter covers **Themes & Color System** — how LogSmith handles color, gradients, palettes, and theme customization.

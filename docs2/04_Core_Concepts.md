@@ -1,4 +1,4 @@
-# Core Concepts  
+# 🏛️ Core Concepts  
 LogSmith builds on Python’s logging module but reshapes it into a modern, structured, expressive system. Understanding these core ideas will help you get the most out of both SmartLogger and AsyncSmartLogger.
 
 ---
@@ -9,12 +9,12 @@ Traditional logging treats a log entry as a formatted string. LogSmith treats it
 - timestamp  
 - level  
 - message  
-- optional metadata (file, line, thread, process, logger name)  
+- optional metadata (file, line, thread, process, logger name, etc.)
 - structured fields (named arguments)  
 - exception info  
 - stack info  
 
-This structure is preserved across:
+This structure is preserved in both sync and async logging across:
 
 - console output  
 - file output  
@@ -33,24 +33,24 @@ Instead of format strings, LogSmith uses a declarative object:
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 details = LogRecordDetails(
-    datefmt="%Y-%m-%d %H:%M:%S.%3f",
-    separator="•",
-    optional_record_fields=OptionalRecordFields(
-        file_name=True,
-        lineno=True,
-        func_name=True,
+    datefmt   = "%Y-%m-%d %H:%M:%S.%3f",
+    separator = "•",
+    optional_record_fields = OptionalRecordFields(
+        file_name = True,
+        lineno    = True,
+        func_name = True,
     ),
-    message_parts_order=[
-        "level",
+    message_parts_order = [
+        "level",    # level must be positioned vs. optional record fields
         "file_name",
         "lineno",
         "func_name",
     ],
-    color_all_log_record_fields=False,
+    color_all_log_record_fields = False,
 )
 ```
 
-This controls:
+### This controls:
 
 - timestamp formatting  
 - which fields appear  
@@ -87,7 +87,7 @@ You attach handlers explicitly:
 
 ```python
 logger.add_console()
-logger.add_file(log_dir="logs", logfile_name="app.log")
+logger.add_file(log_dir = "logs", logfile_name = "app.log")
 ```
 
 A logger may have:
@@ -106,10 +106,10 @@ Rotation is handled by a dedicated object:
 from LogSmith import RotationLogic, When
 
 rotation = RotationLogic(
-    maxBytes=50_000,
-    when=When.SECOND,
-    interval=1,
-    backupCount=5,
+    maxBytes    = 50_000,
+    when        = When.SECOND,
+    interval    = 1,
+    backupCount = 5,
 )
 ```
 
@@ -135,7 +135,7 @@ RotationLogic can also delete old rotated files:
 ```python
 from LogSmith import ExpirationRule, ExpirationScale
 
-ExpirationRule(scale=ExpirationScale.Days, interval=7)
+ExpirationRule(scale = ExpirationScale.Days, interval = 7)
 ```
 
 This keeps log directories clean without external scripts.
@@ -146,16 +146,16 @@ This keeps log directories clean without external scripts.
 Named arguments become structured fields:
 
 ```python
-logger.info("User login", username="Gilad", action="login")
+logger.info("User login", username = "Gilad", action = "login")
 ```
 
 Console output:
 
 ```
-… • INFO • User login {username='Gilad', action='login'}
+… • INFO • User login {username = 'Gilad', action = 'login'}
 ```
 
-JSON/NDJSON output:
+JSON / NDJSON output:
 
 ```json
 {
@@ -186,7 +186,7 @@ Example:
 ```python
 from LogSmith import CPrint, GradientPalette
 
-logger.raw(CPrint.gradient("Hello", fg_codes=GradientPalette.RAINBOW))
+logger.raw(CPrint.gradient("Hello", fg_codes = GradientPalette.RAINBOW))
 ```
 
 ---
@@ -238,7 +238,7 @@ This keeps large applications organized.
 Auditing captures **all** loggers into a single file:
 
 ```python
-SmartLogger.audit_everything(log_dir="audit", logfile_name="audit.log")
+SmartLogger.audit_everything(log_dir = "audit", logfile_name = "audit.log")
 ```
 
 Auditing:

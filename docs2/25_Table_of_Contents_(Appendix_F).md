@@ -98,14 +98,14 @@ This appendix provides a complete, publication‑ready table of contents for the
 12.3 Async Auditing  
 12.4 Audit Formatter  
 12.5 Rotation + Auditing  
-12.6 JSON/NDJSON Audit Logs  
+12.6 JSON / NDJSON Audit Logs  
 12.7 Disabling Auditing  
 
 ## 13. Dynamic Log Levels  
 13.1 Registering Levels  
 13.2 Choosing Values  
 13.3 Styling Dynamic Levels  
-13.4 JSON/NDJSON Integration  
+13.4 JSON / NDJSON Integration  
 13.5 Auditing Integration  
 13.6 Best Practices  
 
@@ -131,7 +131,7 @@ This appendix provides a complete, publication‑ready table of contents for the
 16.2 Handler Inspection  
 16.3 Rotation Debugging  
 16.4 Async Queue Diagnostics  
-16.5 JSON/NDJSON Validation  
+16.5 JSON / NDJSON Validation  
 16.6 Theme Debugging  
 16.7 Auditing Debugging  
 
@@ -139,7 +139,7 @@ This appendix provides a complete, publication‑ready table of contents for the
 17.1 Sync vs Async  
 17.2 Throughput  
 17.3 Rotation Overhead  
-17.4 JSON/NDJSON Costs  
+17.4 JSON / NDJSON Costs  
 17.5 Structured Fields Performance  
 17.6 Multi‑Threaded Performance  
 17.7 Multi‑Process Performance  
@@ -151,7 +151,7 @@ This appendix provides a complete, publication‑ready table of contents for the
 18.3 Handlers  
 18.4 Rotation  
 18.5 Structured Fields  
-18.6 JSON/NDJSON  
+18.6 JSON / NDJSON  
 18.7 Themes  
 18.8 Dynamic Levels  
 18.9 Auditing  
@@ -162,7 +162,7 @@ This appendix provides a complete, publication‑ready table of contents for the
 ## 19. Examples & Recipes  
 19.1 Basic Logging  
 19.2 File Logging  
-19.3 JSON/NDJSON  
+19.3 JSON / NDJSON  
 19.4 Structured Fields  
 19.5 Custom Formatting  
 19.6 Themes  

@@ -121,7 +121,7 @@ logger.add_file(
 )
 ```
 
-### JSON/NDJSON
+### JSON / NDJSON
 
 ```python
 logger.add_file(
@@ -265,7 +265,7 @@ AsyncSmartLogger provides:
 - non‑blocking behavior  
 - async rotation  
 - structured fields  
-- JSON/NDJSON support  
+- JSON / NDJSON support  
 - synchronized printing (`a_stdout`)  
 - safe shutdown via `flush()`  
 

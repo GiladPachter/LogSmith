@@ -1,5 +1,5 @@
 # 🆕 Dynamic Log Levels  
-LogSmith allows you to define entirely new log levels at runtime. These levels behave exactly like built‑in levels: they have numeric values, names, colors, methods (`logger.notice()`, `logger.verbose()`, etc.), and full integration with themes, handlers, JSON/NDJSON, and auditing.
+LogSmith allows you to define entirely new log levels at runtime. These levels behave exactly like built‑in levels: they have numeric values, names, colors, methods (`logger.notice()`, `logger.verbose()`, etc.), and full integration with themes, handlers, JSON / NDJSON, and auditing.
 
 This chapter explains how dynamic levels work, how to register them, how to style them, and how they interact with the rest of the logging system.
 
@@ -36,7 +36,7 @@ This creates:
 - a numeric value of 25  
 - a new logger method: `logger.notice()`  
 - theme support for NOTICE  
-- JSON/NDJSON support  
+- JSON / NDJSON support  
 - auditing support  
 
 You can now log:
@@ -182,7 +182,7 @@ Dynamic levels work with:
 
 - console handlers  
 - file handlers  
-- JSON/NDJSON  
+- JSON / NDJSON  
 - rotation  
 - retention  
 - raw output  
@@ -204,7 +204,7 @@ This is intentional to avoid breaking existing loggers.
 - Use dynamic levels for domain‑specific events.  
 - Style them with themes for readability.  
 - Avoid creating too many levels — clarity matters.  
-- Use JSON/NDJSON for ingestion pipelines.  
+- Use JSON / NDJSON for ingestion pipelines.  
 
 ---
 
@@ -215,7 +215,7 @@ Dynamic log levels give you:
 - new numeric values  
 - new logger methods  
 - theme integration  
-- JSON/NDJSON support  
+- JSON / NDJSON support  
 - async support  
 - auditing support  
 - structured fields  

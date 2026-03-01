@@ -3,7 +3,7 @@ LogSmith’s file logging system is built for real‑world workloads: multi‑th
 
 ---
 
-## Adding a File Handler  
+## 🔹Adding a File Handler  
 File handlers are explicit — LogSmith never writes to files unless you tell it to.
 
 ```python
@@ -26,7 +26,7 @@ A logger may have **any number of file handlers**, each with its own formatting 
 
 ---
 
-## Output Modes for File Handlers  
+## 🔹Output Modes for File Handlers  
 File handlers support all output modes:
 
 - **PLAIN** — structured text, no color  
@@ -48,7 +48,7 @@ NDJSON is ideal for ingestion pipelines (ELK, Loki, BigQuery, etc.).
 
 ---
 
-## ANSI Sanitization (Color in Files)  
+## 🔹ANSI Sanitization (Color in Files)  
 By default, LogSmith **removes ANSI escape sequences** when writing to files.  
 This prevents corrupted logs and makes files safe for ingestion.
 
@@ -66,7 +66,7 @@ Use this only when you *intentionally* want colored log files (e.g., for demos o
 
 ---
 
-## Structured File Formatting  
+## 🔹Structured File Formatting  
 File handlers use the same formatting engine as console handlers.
 
 ```python
@@ -97,7 +97,7 @@ This produces clean, structured, machine‑friendly logs.
 
 ---
 
-## Rotation Logic  
+## 🔹Rotation Logic  
 Rotation is controlled by a dedicated object:
 
 ```python
@@ -130,7 +130,7 @@ This is hybrid rotation — size OR time.
 
 ---
 
-## Size‑Based Rotation  
+## 🔹Size‑Based Rotation  
 Rotate when the file grows too large:
 
 ```python
@@ -139,7 +139,7 @@ RotationLogic(maxBytes=100_000, backupCount=10)
 
 ---
 
-## Time‑Based Rotation  
+## 🔹Time‑Based Rotation  
 Rotate on a schedule:
 
 ```python
@@ -160,7 +160,7 @@ RotationLogic(
 
 ---
 
-## Combined Rotation  
+## 🔹Combined Rotation  
 Use both size and time:
 
 ```python
@@ -175,7 +175,7 @@ Whichever condition triggers first wins.
 
 ---
 
-## Retention Policies (Expiration Rules)  
+## 🔹Retention Policies (Expiration Rules)  
 RotationLogic can delete old rotated files automatically:
 
 ```python
@@ -196,7 +196,7 @@ Retention is independent of rotation triggers.
 
 ---
 
-## Concurrency‑Safe Rotation  
+## 🔹Concurrency‑Safe Rotation  
 LogSmith’s rotation handler is:
 
 - **thread‑safe**  
@@ -211,7 +211,7 @@ Multiple processes may write to the same *directory*, but not the same *base fil
 
 ---
 
-## Async File Logging  
+## 🔹Async File Logging  
 AsyncSmartLogger uses a dedicated async‑aware handler:
 
 - rotation is scheduled in the worker thread  
@@ -223,12 +223,15 @@ Example:
 
 ```python
 logger = AsyncSmartLogger("demo.async", level=10)
-logger.add_file(log_dir="logs", logfile_name="async.log")
+logger.add_file(
+    log_dir = str(Path(ROOT_DIR).resolve() / "logs" / "async"),    # enforces normalized path
+    # absent logfile_name defaults to logger name ('demo.async')
+)
 ```
 
 ---
 
-## Handler Introspection  
+## 🔹Handler Introspection  
 You can inspect all file handlers:
 
 ```python
@@ -245,11 +248,11 @@ Each entry includes:
 
 ---
 
-## Summary  
+# 🧩 Summary  
 File logging in LogSmith provides:
 
 - structured, readable output  
-- JSON/NDJSON support  
+- JSON / NDJSON support  
 - safe rotation (size, time, or both)  
 - retention policies  
 - ANSI sanitization  

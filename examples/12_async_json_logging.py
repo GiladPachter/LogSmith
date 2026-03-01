@@ -32,7 +32,7 @@ async def main():
         output_mode=OutputMode.NDJSON,
     )
 
-    await logger.a_info("Async JSON/NDJSON demo started")
+    await logger.a_info("Async JSON / NDJSON demo started")
 
     # Structured fields
     await logger.a_info("User login", username="Gilad", action="login")

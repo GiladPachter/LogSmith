@@ -263,7 +263,7 @@ These recipes demonstrate:
 - basic logging  
 - file logging  
 - rotation  
-- JSON/NDJSON  
+- JSON / NDJSON  
 - structured fields  
 - themes  
 - dynamic levels  

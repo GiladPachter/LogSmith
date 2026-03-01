@@ -41,7 +41,7 @@ This appendix documents the version history of LogSmith, including major feature
 - Added runtime level registration (`register_level`).  
 - Automatically generated new logger methods (sync + async).  
 - Added theme integration for dynamic levels.  
-- Updated JSON/NDJSON to include dynamic levels.  
+- Updated JSON / NDJSON to include dynamic levels.  
 - Improved level inheritance logic.
 
 ---
@@ -50,7 +50,7 @@ This appendix documents the version history of LogSmith, including major feature
 - Expanded `OptionalRecordFields` with new metadata fields.  
 - Added full control over message parts ordering.  
 - Added color‑all‑fields option.  
-- Improved exception formatting in JSON/NDJSON.  
+- Improved exception formatting in JSON / NDJSON.  
 - Added module name and pathname metadata.
 
 ---

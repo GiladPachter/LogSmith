@@ -1,5 +1,5 @@
 # ⚡Performance & Benchmarks  
-LogSmith is designed to be fast, predictable, and efficient under real‑world workloads. This chapter covers performance characteristics, throughput expectations, async vs sync behavior, rotation overhead, JSON/NDJSON costs, and best practices for achieving maximum performance.
+LogSmith is designed to be fast, predictable, and efficient under real‑world workloads. This chapter covers performance characteristics, throughput expectations, async vs sync behavior, rotation overhead, JSON / NDJSON costs, and best practices for achieving maximum performance.
 
 ---
 
@@ -43,12 +43,12 @@ These are typical (not theoretical) performance ranges measured on mid‑range h
 ### SmartLogger (sync)
 - ~150,000–300,000 logs/sec (console disabled, file only)  
 - ~50,000–120,000 logs/sec (console enabled)  
-- ~20,000–60,000 logs/sec (JSON/NDJSON)  
+- ~20,000–60,000 logs/sec (JSON / NDJSON)  
 
 ### AsyncSmartLogger (async)
 - enqueue cost: ~0.1–0.3 µs  
 - worker throughput: ~200,000–400,000 logs/sec (file only)  
-- JSON/NDJSON: ~50,000–100,000 logs/sec  
+- JSON / NDJSON: ~50,000–100,000 logs/sec  
 
 Async logging is generally 2–4× faster for heavy workloads.
 
@@ -221,7 +221,7 @@ LogSmith delivers:
 - high throughput  
 - predictable latency  
 - safe rotation  
-- efficient JSON/NDJSON  
+- efficient JSON / NDJSON  
 - async and sync performance tuning  
 - concurrency‑safe behavior  
 - low memory usage  

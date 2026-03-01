@@ -1,4 +1,4 @@
-# Console Logging  
+# 💻Console Logging  
 Console output is where LogSmith really shines. You get structured, readable log entries with level‑aware colors, optional metadata, gradients, themes, and full control over formatting.
 
 This chapter covers everything you can do with console logging — from basic usage to advanced customization.
@@ -9,7 +9,7 @@ This chapter covers everything you can do with console logging — from basic us
 A logger may have **one** console handler. You attach it explicitly:
 
 ```python
-logger.add_console(level=levels["INFO"])
+logger.add_console(level = levels["INFO"])
 ```
 
 This gives you:
@@ -35,16 +35,16 @@ logger.error("error message")
 logger.critical("critical message")
 ```
 
-Each level is styled according to its `LevelStyle`:
+Each level is styled by default according to its `LevelStyle`:
 
-- TRACE → dim grey  
-- DEBUG → blue  
-- INFO → green  
-- WARNING → orange  
-- ERROR → red  
-- CRITICAL → yellow on red  
+- TRACE → soft purple  
+- DEBUG → cyan  
+- INFO → neon green  
+- WARNING → neon yellow  
+- ERROR → neon red
+- CRITICAL → neon yellow on neon red  
 
-Themes can override these colors (covered later).
+Themes can override these colors (covered later on).
 
 ---
 
@@ -52,7 +52,7 @@ Themes can override these colors (covered later).
 Console logs are structured by default:
 
 ```
-2026‑02‑15 01:08:46.035 • INFO • User login {username='Gilad', action='login'}
+2026‑02‑15 01:08:46.035 • INFO • User login {username = 'Gilad', action = 'login'}
 ```
 
 You control the structure using `LogRecordDetails`.
@@ -74,25 +74,25 @@ Example:
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 details = LogRecordDetails(
-    datefmt="%Y-%m-%d %H:%M:%S.%2f",
-    separator="•",
-    optional_record_fields=OptionalRecordFields(
-        logger_name=True,
-        file_name=True,
-        lineno=True,
-        func_name=True,
+    datefmt = "%Y-%m-%d %H:%M:%S.%2f",
+    separator = "•",
+    optional_record_fields = OptionalRecordFields(
+        logger_name = True,
+        file_name   = True,
+        lineno      = True,
+        func_name   = True,
     ),
     message_parts_order=[
-        "level",
+        "level",        # level must be positioned vs. optional record fields
         "logger_name",
         "file_name",
         "lineno",
         "func_name",
     ],
-    color_all_log_record_fields=True,
+    color_all_log_record_fields = True,
 )
 
-logger.add_console(level=levels["TRACE"], log_record_details=details)
+logger.add_console(level = levels["TRACE"], log_record_details = details)
 ```
 
 This produces a fully colorized, structured entry.
@@ -103,16 +103,16 @@ This produces a fully colorized, structured entry.
 Named arguments become structured fields:
 
 ```python
-logger.info("User login", username="Gilad", action="login")
+logger.info("User login", username = "Gilad", action = "login")
 ```
 
 Console output:
 
 ```
-… • INFO • User login {username='Gilad', action='login'}
+… • INFO • User login {username = 'Gilad', action = 'login'}
 ```
 
-These fields also appear in JSON/NDJSON output.
+These fields also appear in JSON / NDJSON output.
 
 ---
 
@@ -126,7 +126,7 @@ logger.raw("This is raw text")
 Raw output:
 
 - preserves ANSI colors  
-- does not include timestamp or level  
+- does not include timestamp, level, name arguments or diagnostics (specified later on)
 - is ideal for banners, headers, and gradient art  
 
 Example:
@@ -134,7 +134,7 @@ Example:
 ```python
 from LogSmith import CPrint
 
-logger.raw(CPrint.colorize("RAW colored text", fg=CPrint.FG.BRIGHT_RED))
+logger.raw(CPrint.colorize("RAW colored text", fg = CPrint.FG.BRIGHT_RED))
 ```
 
 ---
@@ -147,11 +147,11 @@ from LogSmith import CPrint, GradientPalette
 
 logger.raw(CPrint.gradient(
     "Rainbow!",
-    fg_codes=GradientPalette.RAINBOW
+    fg_codes = GradientPalette.RAINBOW
 ))
 ```
 
-Supported gradient features:
+Out-of-the-box gradient styles:
 
 - foreground gradients  
 - background gradients  
@@ -160,7 +160,7 @@ Supported gradient features:
 - auto‑stretching  
 - palette blending  
 
-Gradients work anywhere raw ANSI is allowed.
+Gradients work anywhere raw ANSI does.
 
 ---
 
@@ -198,7 +198,7 @@ Console handlers support multiple output modes:
 Example:
 
 ```python
-logger.add_console(output_mode=OutputMode.JSON)
+logger.add_console(output_mode = OutputMode.JSON)
 ```
 
 This is great for debugging or piping logs into tools.
@@ -214,7 +214,8 @@ print(logger.console_handler)
 
 This returns a clean dictionary describing:
 
-- level  
+- handler type
+- level
 - formatter  
 - output mode  
 
@@ -228,7 +229,7 @@ Console logging in LogSmith gives you:
 - themes  
 - gradients  
 - raw ANSI output  
-- JSON/NDJSON modes  
+- JSON / NDJSON modes  
 - full control over formatting  
 
 The next chapter covers file logging — rotation, retention, sanitization, and concurrency safety.

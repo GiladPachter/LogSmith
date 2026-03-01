@@ -9,7 +9,7 @@ A well‑structured logging system is predictable, easy to debug, and easy to ex
 - use dot‑separated logger names to mirror your module structure  
 - attach a console handler only to the root logger  
 - attach file handlers to specific modules or subsystems  
-- use JSON/NDJSON for ingestion pipelines  
+- use JSON / NDJSON for ingestion pipelines  
 - use themes for readability in development  
 - use auditing in production for global capture  
 
@@ -178,7 +178,7 @@ These best practices help you build:
 - predictable handler setups  
 - efficient rotation and retention  
 - readable console output  
-- ingestion‑friendly JSON/NDJSON logs  
+- ingestion‑friendly JSON / NDJSON logs  
 - safe async logging  
 - maintainable lifecycle management  
 - high‑performance logging pipelines  

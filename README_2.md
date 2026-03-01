@@ -174,7 +174,7 @@ Full documentation lives in the docs/ directory and covers:
 - File logging  
 - Rotation & retention  
 - Async logging  
-- JSON/NDJSON  
+- JSON / NDJSON  
 - Structured formatting  
 - Themes  
 - Gradients  

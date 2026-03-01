@@ -5,65 +5,62 @@
 28-Security_Notes.md
 
 
-# Core Concepts: 🧠   📘   🧩   🪢   🏛️
-
+# Core Concepts: 🧠   📘   🏛️
 # Core Methods: 🛠️   🧰   🔧   ⚙️   🧪
-
 # Expectations: 🎯   📌   📝   🔍   🧭
-
 # Requirements: 📋   ✔️   📐   🧾   🔒
-
 # Diagram: 🗺️   📊   🖼️   🧷   🔎
-
 # Blueprint: 🧱   📐   🗂️   🏗️   🧭
-
 # Optional: 🎛️   🧩   🪄   🔘   ➕/➖
-
 # Order / Ordering: 🔢   📏   🧭   🗂️   🔀
-
 # Why / Motivation: 💡   🤔   🧠   🌱
-
 # JSON / NDJSON: 🧾   📄   🗂️   💽   🔣
-
 # Magic Wand: ✨   🪄   🌟   🔮   💫
-
 # Examples: 📚   🧪   📝   💡   🧾
-
 # Constructor: 🏗️   🧱   🔧   🛠️   🧩
-
 # Handle / Handler: 🎛️   🪝   🧲   🧰   ⚙️
-
 # API Reference: 📘   📚   🧭   🗂️   🔎
-
 # Glossary: 📖   🗂️   🧾   🔤   🧠
-
 # Credits: 🙏   🎉   🏅   🤝   🌟
-
 # Table of Contents: 📑📚🗂️🧭🧾
-
 # Handle / Handler: 🚪🔑🛎️🪝🧲
-
 # Changelog: 📜   ♻️   🧾   
-
+# Packaging: 📦 📫 📮 🎁 🧳
+# Graph: 📊 📈 📉 🗠
+# Terminal: ➜
+# Connection: 🧬 🪢
+# Link: 🔗
+# Geometry: 📐 📏
+# prompt: ❯
+# Shell: ▶️
+# pager: 📟
 # Progress: 📈
-
 # Shred: 🗳️
-
-# Paper: 🗞️
-
-# Inspection: 🔍
+# Newspaper: 🗞️
+# Inspection / magnifying glass: 🔍
+# math symbol: ➗
+# map: 🗺️
+# pinned: 🧷
 
 
 
 # 🚀	-	Rocket (Quickstart)
 # ✔		-	Good / Achieved Objective
+# 🕸️    -   web / network
 # 🖥️	-	Computer
+# 💻️	-	Console
+# ⌨️    -   Keyboard 
 # 📁	-	Folder
 # 🗂️	-	Folders
 # 📘	-	Book/Manual (How to Use SmartLogger)
 # 📚	-	Books (API Reference Overview)
 # 📄	-	Document (License)
 # 📝	-	File Logging
+# 🚪    -   Door (includes a knob, but not a standalone knob)
+# 🔑    -   Key
+# 🗝     -️   Old key
+# 🪟    -   Window
+# 🏠    -   House
 # 🧠	-	Brain (Best Practices & Patterns)
 # 🔹 	-	Verse 
 # 🧩 	-	Puzzle
@@ -96,7 +93,8 @@
 # 🚫 	-	No Entrance (Do Not Log Sensitive Data)
 # 🛡️ 	-	Shield (Sanitizing Input)
 # 🧨 	-	Dynamite (Avoid Logging Secrets in Exceptions)
-# 🧮 	-	חשבוניה (Versioning)
+# 🧮 	-	abacus (חשבוניה)
 # 🎯 	-	Bullseye
 # ❓	-   FAQ
 # �     -   Why / Motivation
+# 🎛️    -   Controls

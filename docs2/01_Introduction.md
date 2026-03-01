@@ -8,7 +8,7 @@ It takes Python’s built‑in `logging` module — a solid but aging foundation
 ✔ Color & Gradients <br/>
 ✔ Safe Rotation & Retention <br/>
 ✔ Async support <br/>
-✔ JSON/NDJSON <br/>
+✔ JSON / NDJSON <br/>
 ✔ Themes <br/>
 ✔ Predictable, explicit API <br/>
 
@@ -81,7 +81,7 @@ LogSmith is ideal for:
 - Developer tools  
 - Anything that benefits from readable, structured logs  
 
-It is **not** a replacement for distributed logging systems like ELK, Loki, or Datadog — but it integrates beautifully with them via JSON/NDJSON.
+It is **not** a replacement for distributed logging systems like ELK, Loki, or Datadog — but it integrates beautifully with them via JSON / NDJSON.
 
 ---
 
@@ -105,7 +105,7 @@ Both support:
 - dynamic levels  
 - auditing  
 - raw output  
-- JSON/NDJSON  
+- JSON / NDJSON  
 
 The async version adds:
 
@@ -125,7 +125,7 @@ The remaining chapters walk through LogSmith from the ground up:
 - Console logging  
 - File logging  
 - Rotation  
-- JSON/NDJSON  
+- JSON / NDJSON  
 - Async logging  
 - Structured formatting  
 - Themes and gradients  

@@ -249,7 +249,7 @@ Diagnostics & Debugging tools in LogSmith provide:
 - async queue diagnostics  
 - theme debugging  
 - auditing verification  
-- JSON/NDJSON validation  
+- JSON / NDJSON validation  
 - multi‑process safety checks  
 
 The next chapter covers **Performance & Benchmarks**, showing how LogSmith behaves under load and how to optimize your logging configuration.

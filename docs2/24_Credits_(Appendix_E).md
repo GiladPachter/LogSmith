@@ -31,7 +31,7 @@ LogSmith is built entirely in Python and relies only on the standard library:
 
 - `asyncio` — async queue and worker engine  
 - `threading` — rotation offloading  
-- `json` — JSON/NDJSON serialization  
+- `json` — JSON / NDJSON serialization  
 - `os`, `pathlib`, `shutil` — file operations and rotation  
 - `fcntl` / `msvcrt` — cross‑platform file locking  
 - `datetime` — timestamping and rotation scheduling  
@@ -46,7 +46,7 @@ LogSmith’s stability is the result of extensive testing:
 - unit tests for sync and async loggers  
 - rotation stress tests  
 - concurrency tests across threads and processes  
-- JSON/NDJSON validation  
+- JSON / NDJSON validation  
 - ANSI sanitization tests  
 - theme rendering checks  
 - audit pipeline verification  

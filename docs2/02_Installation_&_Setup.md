@@ -92,6 +92,13 @@ LogSmith/
 └─ README.md
 ```
 
+## This structure ensures:
+- **Core logic is isolated** in `LogSmith/`
+- **Demonstrations are complete and runnable** in `examples/`
+- **Packaging is clean** via `pyproject.toml`
+- **No dependencies on external packages** &nbsp; — &nbsp; everything is pure Python
+
+<br/>
 You can run any example directly:
 
 ```
@@ -100,16 +107,16 @@ python examples/01_basic_logging.py
 
 ---
 
-## 🔹Initialization Requirements
+## 🔹Initialization Requirements - None
 
 ### SmartLogger (sync)
 
-SmartLogger does **not** require global initialization anymore.  
+SmartLogger does **not** require global initialization.  
 You can create loggers immediately:
 
 ```python
 from LogSmith import SmartLogger
-logger = SmartLogger("demo", level=10)
+logger = SmartLogger("demo", level = 10)
 logger.add_console()
 ```
 
@@ -120,7 +127,7 @@ It integrates directly with `asyncio`:
 
 ```python
 from LogSmith import AsyncSmartLogger
-logger = AsyncSmartLogger("demo.async", level=10)
+logger = AsyncSmartLogger("demo.async", level = 10)
 logger.add_console()
 ```
 
