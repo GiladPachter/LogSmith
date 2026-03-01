@@ -206,18 +206,30 @@ This is great for debugging or piping logs into tools.
 ---
 
 ## 🔹Handler Introspection  
-You can inspect the console handler:
-
-```python
-print(logger.console_handler)
-```
+You can use `logger.console_handler` to access metadata that describes a logger's console handler.
 
 This returns a clean dictionary describing:
-
 - handler type
 - level
 - formatter  
 - output mode  
+
+---
+
+## stdout(): Synchronized Printing
+Python's built in `print()` function causes interleaving and does not synchronize well with logging.
+Therefore, LogSmith provides a function that does everything that `print()` does but also synchronizes perfectly with SmartLogger logging.
+
+```python
+from LogSmith import SmartLogger, stdout
+
+stdout("This prints in sync with SmartLogger logs")
+```
+
+This ensures:
+- no interleaving  
+- consistent ordering  
+- clean and sensible console output  
 
 ---
 

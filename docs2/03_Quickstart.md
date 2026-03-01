@@ -193,8 +193,8 @@ Themes affect only console output.
 SmartLogger and AsyncSmartLogger includes a synchronized print() wrappers:
 
 ```python
-stdout("This prints in sync with async logs")
-await a_stdout("This prints in sync with async logs")
+stdout("This prints in sync with SmartLogger logs")
+await a_stdout("This prints in sync with AsyncSmartLogger logs")
 ```
 
 This prevents interleaving between print() and console logs.

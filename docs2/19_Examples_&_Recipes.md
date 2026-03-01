@@ -235,14 +235,20 @@ logger.raw(CPrint.gradient(
 
 ---
 
-## Temporary Logger Disablement  
-Retire a logger without destroying it.
+## Retiring / Destroying a logger
+Decommission a logger name
 
+The following call renders a logger no longer functional and makes logger.name unavailable.
 ```python
 logger.retire()
 ```
+A retired logger cannot be salvaged.<br/>
+To release all the retired logger's resources and make logger.name available once more call: 
 
-Re-enable by reattaching handlers.
+```python
+logger.destroy()
+```
+Destroying a logger does bot require retiring it beforehand.
 
 ---
 

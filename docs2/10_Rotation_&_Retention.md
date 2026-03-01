@@ -1,4 +1,4 @@
-# Rotation & Retention  
+# ♻️ Rotation & Retention  
 Log rotation is one of the hardest parts of logging systems. It must be safe, predictable, atomic, and compatible with multi‑threaded and multi‑process workloads. LogSmith’s rotation engine is designed to handle all of this cleanly, both in synchronous and asynchronous environments.
 
 This chapter explains rotation triggers, retention policies, timestamp anchors, concurrency guarantees, and how rotation integrates with SmartLogger and AsyncSmartLogger.
