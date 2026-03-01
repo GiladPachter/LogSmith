@@ -216,7 +216,7 @@ Structured exception output.
 try:
     risky_operation()
 except Exception:
-    logger.exception("Operation failed", operation="risky_operation")
+    logger.error("Operation failed", operation="risky_operation", exc_info = True)
 ```
 
 ---

@@ -4,6 +4,15 @@
 
 28-Security_Notes.md
 
+08_JSON_&_NDJSON_Logging.md:
+  ============================
+    !!Temporary!! Logger Disablement
+        Retire a logger without destroying it.
+        
+        logger.retire()
+    Re-enable by reattaching handlers.  !!!
+
+
 
 # Core Concepts: 🧠   📘   🏛️
 # Core Methods: 🛠️   🧰   🔧   ⚙️   🧪

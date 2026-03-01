@@ -200,7 +200,7 @@ LogSmith formats exceptions cleanly:
 try:
     1 / 0
 except Exception:
-    logger.exception("Something went wrong")
+    logger.error("Something went wrong", exc_info = True)
 ```
 
 Output includes:
