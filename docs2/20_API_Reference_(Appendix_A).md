@@ -28,7 +28,6 @@ SmartLogger(name: str, level: int = NOTSET)
 - `warning(msg, **fields)`  
 - `error(msg, **fields)`  
 - `critical(msg, **fields)`  
-- `exception(msg, **fields)`  
 - `raw(text)` — unformatted output  
 
 Dynamic levels automatically add new methods.

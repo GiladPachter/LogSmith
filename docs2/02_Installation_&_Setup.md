@@ -17,7 +17,7 @@ LogSmith is pure Python, dependency‑free, and works on all major platforms. Th
 
 ---
 
-## Installing LogSmith
+## 🔹Installing LogSmith
 
 ### Install from wheel (recommended)
 
@@ -41,7 +41,7 @@ This lets you edit the codebase and immediately test changes without reinstallin
 
 ---
 
-## Building the Wheel (optional)
+## 🔹Building the Wheel (optional)
 
 LogSmith includes helper scripts for building distributable wheels.
 
@@ -65,7 +65,7 @@ dist/logsmith-1.8.0-py3-none-any.whl
 
 ---
 
-## Verifying Your Installation
+## 🔹Verifying Your Installation
 
 Run the following:
 
@@ -78,7 +78,7 @@ If this prints a version string, your installation is good to go.
 
 ---
 
-# 🗂️ Project Layout (for contributors)
+## 🔹Project Layout (for contributors)
 
 A typical LogSmith checkout looks like this:
 
@@ -100,7 +100,7 @@ python examples/01_basic_logging.py
 
 ---
 
-## Initialization Requirements
+## 🔹Initialization Requirements
 
 ### SmartLogger (sync)
 
@@ -128,7 +128,7 @@ Both logger types are ready to use as soon as you instantiate them.
 
 ---
 
-## 🔧 Class & Package Diagrams
+## 🔹 Class & Package Diagrams
 
 1. Install `pylint`
 2. Install Graphviz from https://graphviz.org/download/ (ensure “Add to PATH” is selected)
@@ -162,7 +162,7 @@ python -m pylint.pyreverse.main -o png -p MyProject .
 
 ---
 
-## Summary
+# 🧩Summary
 
 - Install via wheel or editable mode  
 - No global initialization required  

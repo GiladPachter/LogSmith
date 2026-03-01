@@ -1,9 +1,9 @@
-# Lifecycle Management  
+# 🔄Lifecycle Management  
 LogSmith gives you explicit control over the entire lifecycle of a logger: creation, configuration, retirement, destruction, and safe shutdown. This chapter explains how loggers live, how they die, and how to manage them cleanly in both synchronous and asynchronous applications.
 
 ---
 
-## Why Lifecycle Management Matters  
+## � Why Lifecycle Management Matters  
 Large applications often need to:
 
 - recreate loggers with the same name  

@@ -1,9 +1,9 @@
-# Quickstart  
+# 🚀 Quickstart  
 This chapter gets you from zero to logging in under a minute — both in sync and async applications. No configuration files, no global initialization, no magic. Just create a logger, attach a handler, and start logging.
 
 ---
 
-## Your First Logger (Sync)
+## 🔹Your First Logger (Sync)
 
 SmartLogger is the synchronous logger for traditional Python applications, scripts, CLIs, and multi‑threaded workloads.
 
@@ -28,7 +28,7 @@ Nothing else is required.
 
 ---
 
-## Your First Logger (Async)
+## 🔹Your First Logger (Async)
 
 AsyncSmartLogger is designed for asyncio applications, servers, bots, and pipelines.
 
@@ -56,7 +56,7 @@ AsyncSmartLogger guarantees:
 
 ---
 
-## Adding a File Handler
+## 🔹Adding a File Handler
 
 File handlers are explicit. You choose where logs go and how they rotate.
 
@@ -83,7 +83,7 @@ This creates:
 
 ---
 
-## Structured Fields (Named Arguments)
+## 🔹Structured Fields (Named Arguments)
 
 LogSmith treats named arguments as structured fields:
 
@@ -111,7 +111,7 @@ JSON/NDJSON output includes:
 
 ---
 
-## JSON & NDJSON Logging
+## 🔹JSON & NDJSON Logging
 
 Switch output modes per handler:
 
@@ -134,7 +134,7 @@ Perfect for ingestion pipelines.
 
 ---
 
-## Raw Output (ANSI‑Preserving)
+## 🔹Raw Output (ANSI‑Preserving)
 
 Raw output bypasses formatting and writes directly to the handler:
 
@@ -153,7 +153,7 @@ Use raw output for:
 
 ---
 
-## Dynamic Log Levels
+## 🔹Dynamic Log Levels
 
 Add new levels at runtime:
 
@@ -173,7 +173,7 @@ Dynamic levels automatically become logger methods.
 
 ---
 
-## Themes
+## 🔹Themes
 
 Apply a built‑in theme:
 
@@ -188,19 +188,20 @@ Themes affect only console output.
 
 ---
 
-## Async Printing (a_stdout)
+## 🔹Sync / Async Printing (stdout / a_stdout)
 
-AsyncSmartLogger includes a synchronized print replacement:
+SmartLogger and AsyncSmartLogger includes a synchronized print() wrappers:
 
 ```python
+stdout("This prints in sync with async logs")
 await a_stdout("This prints in sync with async logs")
 ```
 
-This prevents interleaving between print() and async logs.
+This prevents interleaving between print() and console logs.
 
 ---
 
-## Summary
+# 🧩Summary
 
 You now know how to:
 
@@ -211,5 +212,3 @@ You now know how to:
 - output raw ANSI text  
 - register dynamic levels  
 - apply themes  
-
-The next chapter dives into the core concepts that make LogSmith predictable, expressive, and safe.

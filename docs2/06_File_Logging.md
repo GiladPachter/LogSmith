@@ -1,4 +1,4 @@
-# File Logging  
+# 📝 File Logging  
 LogSmith’s file logging system is built for real‑world workloads: multi‑threaded apps, multi‑process services, long‑running daemons, ingestion pipelines, and anything that needs safe, predictable log rotation. This chapter covers file handlers, rotation, retention, ANSI sanitization, and concurrency guarantees.
 
 ---

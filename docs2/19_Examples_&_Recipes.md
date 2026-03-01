@@ -3,7 +3,7 @@ This chapter provides ready‑to‑use patterns for common real‑world scenario
 
 ---
 
-# Basic Logging Setup  
+## Basic Logging Setup  
 A minimal, clean configuration for small scripts or CLI tools.
 
 ```python
@@ -18,7 +18,7 @@ logger.debug("Debug message")
 
 ---
 
-# File Logging with Rotation  
+## File Logging with Rotation  
 A rotating file handler for long‑running applications.
 
 ```python
@@ -38,7 +38,7 @@ logger.add_file(
 
 ---
 
-# JSON Logging for Ingestion  
+## JSON Logging for Ingestion  
 NDJSON is ideal for ELK, Loki, BigQuery, and pipelines.
 
 ```python
@@ -55,7 +55,7 @@ logger.add_file(
 
 ---
 
-# Structured Fields  
+## Structured Fields  
 Attach metadata to log entries using named arguments.
 
 ```python
@@ -70,7 +70,7 @@ NDJSON output:
 
 ---
 
-# Custom Formatting  
+## Custom Formatting  
 A fully customized structured format.
 
 ```python
@@ -95,7 +95,7 @@ logger.add_console(log_record_details=details)
 
 ---
 
-# Themes  
+## Themes  
 Apply a built‑in theme.
 
 ```python
@@ -106,7 +106,7 @@ SmartLogger.apply_color_theme(DARK_THEME)
 
 ---
 
-# Custom Theme  
+## Custom Theme  
 Define your own color scheme.
 
 ```python
@@ -122,7 +122,7 @@ SmartLogger.apply_color_theme(MY_THEME)
 
 ---
 
-# Dynamic Log Levels  
+## Dynamic Log Levels  
 Add a new level and use it immediately.
 
 ```python
@@ -134,7 +134,7 @@ logger.notice("This is a NOTICE message")
 
 ---
 
-# Async Logging  
+## Async Logging  
 Non‑blocking logging for asyncio applications.
 
 ```python
@@ -149,7 +149,7 @@ await logger.flush()
 
 ---
 
-# Async File Logging with Rotation  
+## Async File Logging with Rotation  
 Async rotation runs in a worker thread.
 
 ```python
@@ -166,7 +166,7 @@ logger.add_file(
 
 ---
 
-# Synchronized Async Printing  
+## Synchronized Async Printing  
 Prevent interleaving between print() and async logs.
 
 ```python
@@ -177,7 +177,7 @@ await a_stdout("This prints in sync with async logs")
 
 ---
 
-# Auditing Everything  
+## Auditing Everything  
 Capture all logs from all loggers into a unified audit file.
 
 ```python
@@ -191,7 +191,7 @@ SmartLogger.audit_everything(
 
 ---
 
-# Multi‑Module Application Structure  
+## Multi‑Module Application Structure  
 A clean layout for large applications.
 
 ```python
@@ -209,7 +209,7 @@ users.add_file(log_dir="logs", logfile_name="users.log")
 
 ---
 
-# Exception Logging  
+## Exception Logging  
 Structured exception output.
 
 ```python
@@ -221,7 +221,7 @@ except Exception:
 
 ---
 
-# Raw Output for Banners  
+## Raw Output for Banners  
 Use raw output for headers, banners, and gradient art.
 
 ```python
@@ -235,7 +235,7 @@ logger.raw(CPrint.gradient(
 
 ---
 
-# Temporary Logger Disablement  
+## Temporary Logger Disablement  
 Retire a logger without destroying it.
 
 ```python
@@ -246,7 +246,7 @@ Re-enable by reattaching handlers.
 
 ---
 
-# Full Logger Reset  
+## Full Logger Reset  
 Destroy and recreate a logger cleanly.
 
 ```python
@@ -257,7 +257,7 @@ logger.add_console()
 
 ---
 
-# Summary  
+# 🧩 Summary  
 These recipes demonstrate:
 
 - basic logging  

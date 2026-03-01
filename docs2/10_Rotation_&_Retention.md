@@ -5,7 +5,7 @@ This chapter explains rotation triggers, retention policies, timestamp anchors, 
 
 ---
 
-## Why Rotation Matters  
+## � Why Rotation Matters  
 Without rotation, log files grow indefinitely. This leads to:
 
 - disk exhaustion  

@@ -1,9 +1,9 @@
-# Structured Formatting  
+# 🧱 Structured Formatting  
 LogSmith’s formatting engine is the heart of the entire framework. Instead of brittle format strings, LogSmith uses a declarative model that describes *what* a log entry should contain and *how* it should look. This chapter explains how structured formatting works, how to customize it, and how it integrates with console, file, JSON, and NDJSON output.
 
 ---
 
-## Why Structured Formatting Matters  
+## � Why Structured Formatting Matters  
 Traditional logging forces you to build format strings like:
 
 ```
@@ -16,13 +16,13 @@ These are:
 - hard to maintain  
 - inconsistent across handlers  
 - difficult to extend with new fields  
-- incompatible with JSON/NDJSON  
+- incompatible with JSON / NDJSON  
 
-LogSmith replaces this with a **structured, explicit, predictable model**.
+LogSmith replaces this with a **structured, explicit, predictable and easy to use model**.
 
 ---
 
-## LogRecordDetails: The Formatting Blueprint  
+## 🔹LogRecordDetails: The Formatting Blueprint  
 Every handler (console or file) uses a `LogRecordDetails` object to define:
 
 - timestamp format  
@@ -69,7 +69,7 @@ logger.add_console(log_record_details=details)
 
 ---
 
-## OptionalRecordFields  
+## 🔹OptionalRecordFields  
 This object controls which metadata fields appear in the log entry:
 
 - logger_name  
@@ -95,7 +95,7 @@ If a field is disabled, it simply doesn’t appear — no empty placeholders.
 
 ---
 
-## Field Ordering  
+## 🔹Field Ordering  
 `message_parts_order` defines the order of metadata fields.  
 Two fields are *always* fixed:
 
@@ -122,7 +122,7 @@ Produces:
 
 ---
 
-## Separator  
+## 🔹Separator  
 The separator appears between metadata fields:
 
 ```python
@@ -139,7 +139,7 @@ Common choices:
 
 ---
 
-## Coloring Rules  
+## 🔹Coloring Rules  
 You control how color is applied:
 
 ### Color only level + message (default)
@@ -162,7 +162,7 @@ Color is not included in JSON output.
 
 ---
 
-## Structured Fields (Named Arguments)  
+## 🔹Structured Fields (Named Arguments)  
 Named arguments become structured fields:
 
 ```python
@@ -195,7 +195,7 @@ NDJSON output:
 
 ---
 
-## Exception & Stack Formatting  
+## 🔹Exception & Stack Formatting  
 LogSmith formats exceptions cleanly:
 
 ```python
@@ -216,7 +216,7 @@ JSON/NDJSON include structured exception objects.
 
 ---
 
-## JSON Formatting  
+## 🔹JSON Formatting  
 Pretty JSON output:
 
 ```python
@@ -238,7 +238,7 @@ Produces:
 
 ---
 
-## NDJSON Formatting  
+## 🔹NDJSON Formatting  
 NDJSON is compact and ingestion‑friendly:
 
 ```python
@@ -265,7 +265,7 @@ Perfect for:
 
 ---
 
-## Raw Output  
+## 🔹Raw Output  
 Raw output bypasses formatting:
 
 ```python
@@ -283,7 +283,7 @@ File handlers sanitize ANSI unless disabled.
 
 ---
 
-## Putting It All Together  
+## 🧱 Putting It All Together  
 A fully customized handler:
 
 ```python
@@ -317,7 +317,7 @@ Produces:
 
 ---
 
-## Summary  
+## 🧩 Summary  
 Structured formatting gives you:
 
 - predictable, explicit control  

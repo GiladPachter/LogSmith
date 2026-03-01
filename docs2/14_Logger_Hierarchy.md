@@ -1,4 +1,4 @@
-# Logger Hierarchy  
+# 🌳 Logger Hierarchy  
 LogSmith uses a predictable, explicit hierarchy model inspired by Python’s built‑in logging system but redesigned to avoid the pitfalls of implicit propagation, handler duplication, and confusing inheritance. This chapter explains how logger names define hierarchy, how levels are inherited, how handlers behave, and how to structure large applications cleanly.
 
 ---

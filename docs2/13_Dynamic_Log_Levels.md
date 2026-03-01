@@ -1,11 +1,11 @@
-# Dynamic Log Levels  
+# 🆕 Dynamic Log Levels  
 LogSmith allows you to define entirely new log levels at runtime. These levels behave exactly like built‑in levels: they have numeric values, names, colors, methods (`logger.notice()`, `logger.verbose()`, etc.), and full integration with themes, handlers, JSON/NDJSON, and auditing.
 
 This chapter explains how dynamic levels work, how to register them, how to style them, and how they interact with the rest of the logging system.
 
 ---
 
-## Why Dynamic Levels Matter  
+## � Why Dynamic Levels Matter  
 Built‑in levels (TRACE, DEBUG, INFO, WARNING, ERROR, CRITICAL) cover most use cases, but real applications often need more nuance:
 
 - distinguishing between *normal* INFO and *important* INFO  

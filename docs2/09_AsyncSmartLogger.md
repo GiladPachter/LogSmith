@@ -5,7 +5,7 @@ This chapter explains how AsyncSmartLogger works, how to use it, and how it inte
 
 ---
 
-## Why Async Logging Matters  
+## � Why Async Logging Matters  
 Async applications often suffer from logging problems:
 
 - `print()` interleaves output across tasks  

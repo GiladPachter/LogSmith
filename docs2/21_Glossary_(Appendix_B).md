@@ -1,4 +1,4 @@
-# Appendix B — Glossary  
+# Appendix B — 📖 Glossary  
 This glossary defines all key terms used throughout the LogSmith documentation. It serves as a quick reference for concepts, components, and terminology that appear across the system.
 
 ---

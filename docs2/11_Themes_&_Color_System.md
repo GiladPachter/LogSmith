@@ -1,11 +1,11 @@
-# Themes & Color System  
+# 🎭 Themes & Color System  
 LogSmith includes a full ANSI color engine with solid colors, gradients, palettes, and theme support. Themes let you redefine how log levels appear in the console, while the color engine gives you fine‑grained control over styling, intensity, and gradients.
 
 This chapter explains how themes work, how to customize them, and how the color system integrates with structured formatting.
 
 ---
 
-## Why Themes Matter  
+## � Why Themes Matter  
 Color is one of the fastest ways to make logs readable. Themes let you:
 
 - standardize color usage across your application  

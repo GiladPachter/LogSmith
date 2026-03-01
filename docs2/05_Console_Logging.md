@@ -5,7 +5,7 @@ This chapter covers everything you can do with console logging — from basic us
 
 ---
 
-## Adding a Console Handler  
+## 🔹Adding a Console Handler  
 A logger may have **one** console handler. You attach it explicitly:
 
 ```python
@@ -23,7 +23,7 @@ No global configuration, no format strings.
 
 ---
 
-## Basic Console Output  
+## 🔹Basic Console Output  
 Once the console handler is attached:
 
 ```python
@@ -48,7 +48,7 @@ Themes can override these colors (covered later).
 
 ---
 
-## Structured Console Output  
+## 🔹Structured Console Output  
 Console logs are structured by default:
 
 ```
@@ -59,7 +59,7 @@ You control the structure using `LogRecordDetails`.
 
 ---
 
-## Customizing Console Formatting  
+## 🔹Customizing Console Formatting  
 You can choose:
 
 - which metadata fields appear  
@@ -99,7 +99,7 @@ This produces a fully colorized, structured entry.
 
 ---
 
-## Named Arguments (Structured Fields)  
+## 🔹Named Arguments (Structured Fields)  
 Named arguments become structured fields:
 
 ```python
@@ -116,7 +116,7 @@ These fields also appear in JSON/NDJSON output.
 
 ---
 
-## Raw Console Output  
+## 🔹Raw Console Output  
 Raw output bypasses formatting and writes directly to the console handler:
 
 ```python
@@ -139,7 +139,7 @@ logger.raw(CPrint.colorize("RAW colored text", fg=CPrint.FG.BRIGHT_RED))
 
 ---
 
-## Gradient Output  
+## 🔹Gradient Output  
 LogSmith integrates a full gradient engine:
 
 ```python
@@ -164,7 +164,7 @@ Gradients work anywhere raw ANSI is allowed.
 
 ---
 
-## Themes  
+## 🔹Themes  
 Themes redefine how levels are colored:
 
 ```python
@@ -187,7 +187,7 @@ Themes affect only console output.
 
 ---
 
-## Output Modes  
+## 🔹Output Modes  
 Console handlers support multiple output modes:
 
 - **COLOR** — structured, colorized text (default)  
@@ -205,7 +205,7 @@ This is great for debugging or piping logs into tools.
 
 ---
 
-## Handler Introspection  
+## 🔹Handler Introspection  
 You can inspect the console handler:
 
 ```python
@@ -220,7 +220,7 @@ This returns a clean dictionary describing:
 
 ---
 
-## Summary  
+# 🧩Summary  
 Console logging in LogSmith gives you:
 
 - structured, readable output  

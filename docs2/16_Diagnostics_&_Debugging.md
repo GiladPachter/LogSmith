@@ -1,9 +1,9 @@
-# Diagnostics & Debugging  
+# ⚠️ Diagnostics & Debugging  
 LogSmith includes built‑in diagnostics to help you understand how loggers behave, how handlers are configured, and why certain logs appear (or don’t appear). This chapter covers introspection tools, debugging rotation, analyzing async behavior, and detecting misconfiguration in large applications.
 
 ---
 
-## Purpose of Diagnostics  
+## � Purpose of Diagnostics  
 Diagnostics help you answer questions like:
 
 - Why isn’t this log appearing?  

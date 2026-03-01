@@ -1,4 +1,4 @@
-# Performance & Benchmarks  
+# ⚡Performance & Benchmarks  
 LogSmith is designed to be fast, predictable, and efficient under real‑world workloads. This chapter covers performance characteristics, throughput expectations, async vs sync behavior, rotation overhead, JSON/NDJSON costs, and best practices for achieving maximum performance.
 
 ---

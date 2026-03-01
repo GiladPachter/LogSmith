@@ -1,11 +1,11 @@
-# Auditing  
+# 🛰️ Auditing  
 Auditing is LogSmith’s mechanism for capturing **all logs from all loggers** into a single unified audit file. It is designed for security‑sensitive environments, debugging large systems, compliance logging, and any situation where you need a complete, authoritative record of everything the application emits.
 
 This chapter explains how auditing works, how to enable it, how it interacts with logger hierarchy, and how it behaves in both synchronous and asynchronous applications.
 
 ---
 
-## Purpose of Auditing  
+## � Purpose of Auditing  
 Auditing solves several real‑world problems:
 
 - capturing logs from *every* logger, even those you didn’t create  

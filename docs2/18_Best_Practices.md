@@ -1,4 +1,4 @@
-# Best Practices  
+# 🧠 Best Practices  
 This chapter distills everything in LogSmith into practical, real‑world guidance. These best practices help you design clean, maintainable, high‑performance logging setups for applications of any size — from tiny scripts to distributed async systems.
 
 ---
