@@ -41,8 +41,8 @@ Enable auditing for SmartLogger:
 from LogSmith import SmartLogger
 
 SmartLogger.audit_everything(
-    log_dir="audit",
-    logfile_name="audit.log",
+    log_dir      = "audit",
+    logfile_name = "audit.log",
 )
 ```
 
@@ -65,8 +65,8 @@ AsyncSmartLogger includes an async‑aware auditing system:
 from LogSmith import AsyncSmartLogger
 
 AsyncSmartLogger.audit_everything(
-    log_dir="audit",
-    logfile_name="audit_async.log",
+    log_dir      = "audit",
+    logfile_name = "audit_async.log",
 )
 ```
 
@@ -108,11 +108,11 @@ Audit files support full rotation:
 
 ```python
 SmartLogger.audit_everything(
-    log_dir="audit",
-    logfile_name="audit.log",
-    rotation_logic=RotationLogic(
-        maxBytes=50_000,
-        backupCount=10,
+    log_dir = "audit",
+    logfile_name = "audit.log",
+    rotation_logic = RotationLogic(
+        maxBytes    = 50_000,
+        backupCount = 10,
     ),
 )
 ```
@@ -127,9 +127,9 @@ Audit handlers can output JSON or NDJSON:
 
 ```python
 SmartLogger.audit_everything(
-    log_dir="audit",
-    logfile_name="audit.ndjson",
-    output_mode=OutputMode.NDJSON,
+    log_dir      = "audit",
+    logfile_name = "audit.ndjson",
+    output_mode  = OutputMode.NDJSON,
 )
 ```
 

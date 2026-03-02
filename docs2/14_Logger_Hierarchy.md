@@ -1,9 +1,11 @@
-# 🌳 Logger Hierarchy  
+# 🌳 Logger Hierarchy
+
 LogSmith uses a predictable, explicit hierarchy model inspired by Python’s built‑in logging system but redesigned to avoid the pitfalls of implicit propagation, handler duplication, and confusing inheritance. This chapter explains how logger names define hierarchy, how levels are inherited, how handlers behave, and how to structure large applications cleanly.
 
 ---
 
-## How Logger Hierarchy Works  
+## 🧬 How Logger Hierarchy Works
+
 Logger names define a tree structure:
 
 ```
@@ -23,19 +25,20 @@ Each dot (`.`) creates a parent–child relationship:
 Hierarchy affects:
 
 - level inheritance  
-- propagation (when auditing is enabled)  
+- level propagation (when "offspring" set level to NOTSET)
 - organization of large applications  
 
-Handlers do **not** propagate by default — this is a major improvement over Python’s logging module.
+Handlers do not propagate — this is a major improvement over Python’s logging module.
 
 ---
 
-## Creating Loggers in a Hierarchy  
+## 🏗️ Creating Loggers in a Hierarchy
+
 You can create loggers anywhere in the hierarchy:
 
 ```python
-root = SmartLogger("myapp", level=20)
-api = SmartLogger("myapp.api")
+root  = SmartLogger("myapp", level = 20)
+api   = SmartLogger("myapp.api")
 users = SmartLogger("myapp.api.users")
 ```
 
@@ -52,7 +55,8 @@ Both inherit level 20 from `myapp`.
 
 ---
 
-## Level Inheritance  
+## 🔢 Level Inheritance
+
 Level inheritance follows these rules:
 
 - If a logger’s level is NOTSET → inherit from parent  
@@ -62,16 +66,17 @@ Level inheritance follows these rules:
 Example:
 
 ```python
-root = SmartLogger("myapp", level=30)  # INFO
-api = SmartLogger("myapp.api")         # inherits INFO
-users = SmartLogger("myapp.api.users", level=10)  # DEBUG
+root  = SmartLogger("myapp", level = 30)  # INFO
+api   = SmartLogger("myapp.api")         # inherits INFO
+users = SmartLogger("myapp.api.users", level = 10)  # DEBUG
 ```
 
 `users` logs DEBUG and above, while `api` logs INFO and above.
 
 ---
 
-## Handler Behavior  
+## 🧰 Handler Behavior
+
 LogSmith’s handler model is intentionally simple:
 
 - **Handlers do NOT propagate upward**  
@@ -85,21 +90,21 @@ Example:
 
 ```python
 root.add_console()
-api.add_file(log_dir="logs", logfile_name="api.log")
-users.add_file(log_dir="logs", logfile_name="users.log")
+api.add_file(log_dir = "logs", logfile_name = "api.log")
+users.add_file(log_dir = "logs", logfile_name = "users.log")
 ```
 
 Each logger writes only to its own handlers.
 
 ---
 
-## Propagation and Auditing  
-Propagation is disabled by default.
+## 🔄 Propagation and Auditing
 
-It is only enabled when auditing is turned on:
+Propagation is disabled by default.<br/>
+It is enabled only when auditing is turned on:
 
 ```python
-SmartLogger.audit_everything(log_dir="audit", logfile_name="audit.log")
+SmartLogger.audit_everything(log_dir = "audit", logfile_name = "audit.log")
 ```
 
 When auditing is active:
@@ -108,26 +113,26 @@ When auditing is active:
 - the audit handler receives all events  
 - individual handlers still work normally  
 
-This gives you a global audit trail without interfering with normal logging.
+This provides a global audit trail without interfering with normal logging behavior.
 
 ---
 
-## Logger Discovery  
+## 🔍 Logger Discovery
 You can retrieve existing loggers:
 
 ```python
 logger = SmartLogger.get_logger("myapp.api.users")
 ```
 
-If the logger does not exist, it is created automatically.
+If the logger does not exist, it is created automatically. This ensures consistent behavior across modules and dynamic imports.
 
 ---
 
-## Replacing or Resetting Loggers  
-Loggers can be:
+## 🛑 Retiring or Destroying Loggers
 
-### Retired  
-Handlers are closed and the logger is disabled:
+Loggers can be retired or destroyed depending on your needs.
+
+### Retiring a logger
 
 ```python
 logger.retire()
@@ -170,36 +175,37 @@ Recommended structure:
 Example:
 
 ```python
-root = SmartLogger("myapp", level=20)
+root = SmartLogger("myapp", level = 20)
 root.add_console()
 
 api = SmartLogger("myapp.api")
-api.add_file(log_dir="logs", logfile_name="api.log")
+api.add_file(log_dir = "logs", logfile_name = "api.log")
 
 users = SmartLogger("myapp.api.users")
-users.add_file(log_dir="logs", logfile_name="users.log")
+users.add_file(log_dir = "logs", logfile_name = "users.log")
 ```
 
 ---
 
-## Hierarchy in AsyncSmartLogger  
+## 🌀 Hierarchy in AsyncSmartLogger
+
 AsyncSmartLogger uses the same hierarchy rules:
 
 ```python
-root = AsyncSmartLogger("service")
-api = AsyncSmartLogger("service.api")
+root  = AsyncSmartLogger("service")
+api   = AsyncSmartLogger("service.api")
 users = AsyncSmartLogger("service.api.users")
 ```
 
-Async logging methods (`a_info`, `a_error`, etc.) work identically across the hierarchy.
-
+Async logging methods (`a_info`, `a_error`, etc.) work identically across the hierarchy.<br/>
 Auditing also works the same way, with async‑aware propagation.
 
 ---
 
-## Best Practices  
-- Use dot‑separated names to organize modules.  
-- Set levels at higher nodes; inherit downward.  
+## 🧠 Best Practices
+
+- Use dot‑separated names to mirror your module structure.  
+- Set levels at higher nodes and inherit downward.  
 - Attach console handlers only to the root logger.  
 - Attach file handlers to specific modules.  
 - Use auditing for global capture.  
@@ -207,7 +213,8 @@ Auditing also works the same way, with async‑aware propagation.
 
 ---
 
-## Summary  
+## 📘 Summary
+
 Logger hierarchy in LogSmith provides:
 
 - predictable parent–child relationships  

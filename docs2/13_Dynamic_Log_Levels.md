@@ -27,8 +27,8 @@ Register a new level globally:
 from LogSmith import SmartLogger
 
 SmartLogger.register_level(
-    name="NOTICE",
-    value=25,
+    name  = "NOTICE",
+    value = 25,
 )
 ```
 
@@ -72,7 +72,7 @@ Example:
 from LogSmith import LevelStyle, CPrint
 
 MY_THEME = {
-    "NOTICE": LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA),
+    "NOTICE": LevelStyle(fg = CPrint.FG.BRIGHT_MAGENTA),
 }
 ```
 
@@ -148,7 +148,7 @@ The audit formatter treats dynamic levels exactly like built‑in ones. No speci
 Dynamic levels support structured fields the same way built‑in levels do:
 
 ```python
-logger.notice("User login", username="Gilad", action="login")
+logger.notice("User login", username = "Gilad", action = "login")
 ```
 
 JSON output:
@@ -169,8 +169,8 @@ Themes can style dynamic levels just like built‑in ones:
 
 ```python
 MY_THEME["SECURITY"] = LevelStyle(
-    fg=CPrint.FG.BRIGHT_RED,
-    bold=True,
+    fg   = CPrint.FG.BRIGHT_RED,
+    bold = True,
 )
 ```
 
