@@ -233,7 +233,7 @@ This ensures:
 
 ---
 
-# 🧩Summary  
+## 🧩 Summary  
 Console logging in LogSmith gives you:
 
 - structured, readable output  

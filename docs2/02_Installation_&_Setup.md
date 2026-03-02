@@ -170,7 +170,7 @@ python -m pylint.pyreverse.main -o png -p MyProject .
 
 ---
 
-# 🧩 Summary
+## 🧩 Summary
 
 - Install via wheel or editable mode  
 - No global initialization required  
