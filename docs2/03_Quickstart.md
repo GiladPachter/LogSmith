@@ -201,7 +201,7 @@ This prevents interleaving between print() and console logs.
 
 ---
 
-# 🧩 Summary
+## 📘 Summary
 
 You now know how to:
 

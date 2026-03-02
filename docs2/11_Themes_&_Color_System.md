@@ -1,11 +1,12 @@
 # 🎭 Themes & Color System  
-LogSmith includes a full ANSI color engine with solid colors, gradients, palettes, and theme support. Themes let you redefine how log levels appear in the console, while the color engine gives you fine‑grained control over styling, intensity, and gradients.
 
+LogSmith includes a full ANSI color engine with solid colors, gradients, palettes, and theme support. Themes let you redefine how log levels appear in the console, while the color engine gives you fine‑grained control over styling, intensity, and gradients.<br/>
 This chapter explains how themes work, how to customize them, and how the color system integrates with structured formatting.
 
 ---
 
-## � Why Themes Matter  
+## 💡 Why Themes Matter
+
 Color is one of the fastest ways to make logs readable. Themes let you:
 
 - standardize color usage across your application  
@@ -19,13 +20,13 @@ Themes affect **only console output** — file handlers remain clean and machine
 ---
 
 ## Built‑In Themes  
-LogSmith ships with several built‑in themes:
+LogSmith ships with several built‑in themes designed for different environments and visual preferences:
 
 - **LIGHT_THEME** — bright, high‑contrast colors  
 - **DARK_THEME** — muted, dark‑mode‑friendly palette  
 - **NEON_THEME** — vibrant, saturated colors  
 - **PASTEL_THEME** — soft, low‑intensity colors  
-- **FIRE_THEME** — warm reds, oranges, yellows  
+- **FIRE_THEME** — warm reds, oranges, and yellows  
 - **OCEAN_THEME** — cool blues and greens  
 
 Apply a theme globally:
@@ -36,12 +37,13 @@ from LogSmith import SmartLogger, DARK_THEME
 SmartLogger.apply_color_theme(DARK_THEME)
 ```
 
-All console handlers created afterward use the new theme.
+All console handlers created afterward use the new theme automatically.
 
 ---
 
-## LevelStyle: The Building Block  
-Each log level has a `LevelStyle` that defines:
+## 🧩 LevelStyle — The Building Block
+
+Each log level is styled using a `LevelStyle` object. It defines:
 
 - foreground color  
 - background color  
@@ -54,29 +56,30 @@ Example:
 from LogSmith import LevelStyle, CPrint
 
 style = LevelStyle(
-    fg=CPrint.FG.BRIGHT_MAGENTA,
-    bg=CPrint.BG.BLACK,
-    bold=True,
+    fg   = CPrint.FG.BRIGHT_MAGENTA,
+    bg   = CPrint.BG.BLACK,
+    bold = True,
 )
 ```
 
-Themes are simply dictionaries mapping levels to `LevelStyle` objects.
+Themes are dictionaries mapping level names to `LevelStyle` objects.
 
 ---
 
-## Creating a Custom Theme  
-A theme is a dictionary:
+## 🏗️ Creating a Custom Theme
+
+A theme is simply a dictionary mapping level names to styles:
 
 ```python
 from LogSmith import LevelStyle, CPrint
 
 MY_THEME = {
-    "TRACE": LevelStyle(fg=CPrint.FG.CYAN),
-    "DEBUG": LevelStyle(fg=CPrint.FG.BLUE),
-    "INFO": LevelStyle(fg=CPrint.FG.GREEN),
-    "WARNING": LevelStyle(fg=CPrint.FG.YELLOW),
-    "ERROR": LevelStyle(fg=CPrint.FG.RED),
-    "CRITICAL": LevelStyle(fg=CPrint.FG.WHITE, bg=CPrint.BG.RED, bold=True),
+    "TRACE":    LevelStyle(fg = CPrint.FG.CYAN),
+    "DEBUG":    LevelStyle(fg = CPrint.FG.BLUE),
+    "INFO":     LevelStyle(fg = CPrint.FG.GREEN),
+    "WARNING":  LevelStyle(fg = CPrint.FG.YELLOW),
+    "ERROR":    LevelStyle(fg = CPrint.FG.RED),
+    "CRITICAL": LevelStyle(fg = CPrint.FG.WHITE, bg = CPrint.BG.RED, bold = True),
 }
 ```
 
@@ -86,28 +89,18 @@ Apply it:
 SmartLogger.apply_color_theme(MY_THEME)
 ```
 
-You can switch themes at any time.
+Themes can be switched at any time, and all new console handlers will use the active theme.
 
 ---
 
-## Resetting Themes  
-Reset to the default theme:
+## 🎨 CPrint — The Color Engine
 
-```python
-SmartLogger.reset_color_theme()
-```
-
-This restores the built‑in level colors.
-
----
-
-## CPrint: The Color Engine  
-`CPrint` is LogSmith’s ANSI engine. It supports:
+`CPrint` is LogSmith’s ANSI engine. It provides the low‑level building blocks that themes use to render colors and styles. It supports:
 
 - 16‑color ANSI  
 - 256‑color extended palette  
 - bold, dim, underline, italic, strike  
-- foreground/background colors  
+- foreground and background colors  
 - gradients  
 - palette blending  
 
@@ -116,14 +109,17 @@ Example:
 ```python
 from LogSmith import CPrint
 
-text = CPrint.colorize("Hello", fg=CPrint.FG.BRIGHT_GREEN, bold=True)
+text = CPrint.colorize("Hello", fg = CPrint.FG.BRIGHT_GREEN, bold = True)
 logger.raw(text)
 ```
 
+`CPrint` is used internally by themes, but you can also use it directly for banners, headers, and artistic output.
+
 ---
 
-## Gradients  
-Gradients are one of LogSmith’s most expressive features.
+## 🌈 Gradients
+
+Gradients are one of LogSmith’s most expressive features. They allow multi‑color transitions across text, with automatic stretching and palette blending.
 
 Example:
 
@@ -132,24 +128,25 @@ from LogSmith import CPrint, GradientPalette
 
 logger.raw(CPrint.gradient(
     "Rainbow!",
-    fg_codes=GradientPalette.RAINBOW
+    fg_codes = GradientPalette.RAINBOW
 ))
 ```
 
-Supported gradient features:
+Gradient features include:
 
 - foreground gradients  
 - background gradients  
-- multi‑stop gradients  
+- multi‑stop palettes  
 - palette blending  
-- auto‑stretching to text length  
+- automatic scaling to text length  
 
-Gradients work only in raw output.
+Gradients are available only in raw output, not structured log messages.
 
 ---
 
-## Gradient Palettes  
-LogSmith includes several palettes:
+## 🎨 Gradient Palettes
+
+LogSmith includes several predefined gradient palettes:
 
 - **RAINBOW**  
 - **FIRE**  
@@ -166,32 +163,35 @@ from LogSmith import GradientPalette
 MY_PALETTE = GradientPalette([196, 202, 208, 214, 220])
 ```
 
+Palettes can be used for both foreground and background gradients.
+
 ---
 
-## Raw Output and Themes  
-Themes affect only structured console output.  
-Raw output bypasses themes entirely:
+## 🚫 Themes and Raw Output
+
+Themes affect only structured console output. Raw output bypasses themes entirely:
 
 ```python
 logger.raw("This text ignores themes")
 ```
 
-This is intentional — raw output is meant for banners, headers, and artistic output.
+This is intentional. Raw output is meant for banners, headers, ASCII art, and gradient‑based visual elements. It should not be used for normal log messages.
 
 ---
 
-## Themes + Structured Formatting  
-Themes integrate seamlessly with `LogRecordDetails`.
+## 🧱 Themes and Structured Formatting
+
+Themes integrate seamlessly with `LogRecordDetails`. When structured formatting is enabled, themes colorize all log record fields unless configured otherwise.
 
 Example:
 
 ```python
 details = LogRecordDetails(
-    color_all_log_record_fields=True,
-    separator="•",
+    color_all_log_record_fields = True,
+    separator = "•",
 )
 
-logger.add_console(log_record_details=details)
+logger.add_console(log_record_details = details)
 SmartLogger.apply_color_theme(DARK_THEME)
 ```
 
@@ -209,13 +209,16 @@ SmartLogger.register_level("NOTICE", 25)
 To style it:
 
 ```python
-MY_THEME["NOTICE"] = LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA)
+MY_THEME["NOTICE"] = LevelStyle(fg = CPrint.FG.BRIGHT_MAGENTA)
 SmartLogger.apply_color_theme(MY_THEME)
 ```
 
+If a dynamic level is not defined in the theme, it is unaffected by the applied theme.
+
 ---
 
-## Summary  
+## 📘 Summary
+
 LogSmith’s theme and color system provides:
 
 - built‑in themes  
@@ -226,4 +229,4 @@ LogSmith’s theme and color system provides:
 - integration with structured formatting  
 - dynamic level styling  
 
-The next chapter covers **Auditing**, LogSmith’s system for capturing all logs from all loggers into a unified audit file.
+Themes make console output expressive, readable, and consistent across your application.

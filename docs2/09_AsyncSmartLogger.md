@@ -1,11 +1,11 @@
-# 🧵 AsyncSmartLogger  
+# 🧵 AsyncSmartLogger
 AsyncSmartLogger is LogSmith’s asynchronous logging engine. It is designed for asyncio applications that need high‑throughput logging without blocking the event loop, while still guaranteeing ordering, safe rotation, and consistent formatting.
 
 This chapter explains how AsyncSmartLogger works, how to use it, and how it integrates with the rest of LogSmith.
 
 ---
 
-## � Why Async Logging Matters  
+## 💡 Why Async Logging Matters
 Async applications often suffer from logging problems:
 
 - `print()` interleaves output across tasks  
@@ -25,7 +25,7 @@ AsyncSmartLogger solves all of these with:
 
 ---
 
-## 🔹Creating an AsyncSmartLogger  
+## 🔹 Creating an AsyncSmartLogger
 AsyncSmartLogger mirrors SmartLogger’s API:
 
 ```python
@@ -40,7 +40,7 @@ You can start logging immediately.
 
 ---
 
-## 🔹Async Logging Methods  
+## 🔹 Async Logging Methods
 AsyncSmartLogger provides async versions of all log methods:
 
 ```python
@@ -62,7 +62,7 @@ The worker task handles formatting and output.
 
 ---
 
-## 🔹Ordering Guarantees  
+## 🔹 Ordering Guarantees
 AsyncSmartLogger guarantees:
 
 - **FIFO ordering** for all log events  
@@ -73,7 +73,7 @@ This is critical for debugging async systems.
 
 ---
 
-## 🔹The Worker Task  
+## 🔹 The Worker Task
 Internally, AsyncSmartLogger runs a worker task that:
 
 - pulls log events from an asyncio queue  
@@ -86,7 +86,7 @@ You never interact with the worker directly — it is managed automatically.
 
 ---
 
-## 🔹Flushing and Shutdown  
+## 🔹 Flushing and Shutdown
 Before shutting down your application, call:
 
 ```python
@@ -103,7 +103,7 @@ If you forget, LogSmith attempts a best‑effort flush during garbage collection
 
 ---
 
-## 🔹Adding Handlers  
+## 🔹 Adding Handlers
 AsyncSmartLogger supports the same handlers as SmartLogger:
 
 ### Console handler
@@ -145,7 +145,7 @@ Rotation is handled in the worker thread, not the event loop.
 
 ---
 
-## 🔹a_stdout(): Synchronized Printing  
+## 🔹 a_stdout(): Synchronized Printing
 Mixing `print()` with logging causes interleaving.
 
 AsyncSmartLogger provides a synchronized print replacement:
@@ -157,13 +157,14 @@ await a_stdout("This prints in sync with async logs")
 ```
 
 This ensures:
+
 - no interleaving  
 - consistent ordering  
 - clean and sensible console output  
 
 ---
 
-## 🔹Structured Fields  
+## 🔹 Structured Fields
 Async logging supports structured fields exactly like SmartLogger:
 
 ```python
@@ -179,7 +180,7 @@ These fields appear in:
 
 ---
 
-## 🔹Exceptions in Async Logging  
+## 🔹 Exceptions in Async Logging
 Exceptions inside async tasks are common.  
 AsyncSmartLogger captures them cleanly:
 
@@ -199,7 +200,7 @@ Output includes:
 
 ---
 
-## 🔹Async Rotation  
+## 🔹 Async Rotation
 Rotation is fully async‑aware:
 
 - rotation checks run in the worker  
@@ -221,7 +222,7 @@ logger.add_file(
 
 ---
 
-## 🔹Performance Characteristics  
+## 🔹 Performance Characteristics
 AsyncSmartLogger is optimized for:
 
 - high‑throughput logging  
@@ -237,7 +238,7 @@ Typical performance:
 
 ---
 
-## 🔹When to Use AsyncSmartLogger  
+## 🔹 When to Use AsyncSmartLogger
 Use AsyncSmartLogger when:
 
 - your application uses asyncio  
@@ -256,7 +257,7 @@ Both loggers share the same API and formatting model.
 
 ---
 
-## 🧩 Summary  
+## 📘 Summary
 AsyncSmartLogger provides:
 
 - async logging methods (`a_info`, `a_error`, etc.)  

@@ -248,7 +248,7 @@ Each entry includes:
 
 ---
 
-# 🧩 Summary  
+## 📘 Summary  
 File logging in LogSmith provides:
 
 - structured, readable output  

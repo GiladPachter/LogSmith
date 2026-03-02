@@ -1,11 +1,11 @@
-# ♻️ Rotation & Retention  
+# ♻️ Rotation & Retention
 Log rotation is one of the hardest parts of logging systems. It must be safe, predictable, atomic, and compatible with multi‑threaded and multi‑process workloads. LogSmith’s rotation engine is designed to handle all of this cleanly, both in synchronous and asynchronous environments.
 
 This chapter explains rotation triggers, retention policies, timestamp anchors, concurrency guarantees, and how rotation integrates with SmartLogger and AsyncSmartLogger.
 
 ---
 
-## � Why Rotation Matters  
+## 💡 Why Rotation Matters
 Without rotation, log files grow indefinitely. This leads to:
 
 - disk exhaustion  
@@ -25,7 +25,7 @@ LogSmith solves these problems with:
 
 ---
 
-## 🔹RotationLogic: The Core Object  
+## 🔹 RotationLogic: The Core Object
 Rotation is configured using a `RotationLogic` object:
 
 ```python
@@ -51,14 +51,14 @@ logger.add_file(
 
 ---
 
-## 🔹Size‑Based Rotation  
+## 🔹 Size‑Based Rotation
 Rotate when the file exceeds a maximum size:
 
 ```python
 RotationLogic(maxBytes = 100_000, backupCount = 10)
 ```
 
-This is ideal for:
+Ideal for:
 
 - CLI tools  
 - services with unpredictable log volume  
@@ -68,7 +68,7 @@ Rotation occurs immediately after a write pushes the file over the threshold.
 
 ---
 
-## 🔹Time‑Based Rotation  
+## 🔹 Time‑Based Rotation
 Rotate on a schedule:
 
 ```python
@@ -93,7 +93,7 @@ Daily/weekly rotation uses a timestamp anchor.
 
 ---
 
-## 🔹Timestamp Anchors  
+## 🔹 Timestamp Anchors
 For daily/weekly rotation, you can specify the exact time of day:
 
 ```python
@@ -120,7 +120,7 @@ Rotates every Monday at 03:00.
 
 ---
 
-## 🔹Hybrid Rotation (Size OR Time)  
+## 🔹 Hybrid Rotation (Size OR Time)
 LogSmith supports hybrid rotation:
 
 ```python
@@ -141,13 +141,14 @@ This is ideal for:
 
 ---
 
-## 🔹Rotation File Naming  
+## 🔹 Rotation File Naming
 Rotated files follow this pattern:
 
 ```
 app.log
-app.log.2026-02-15_01-08-46
-app.log.2026-02-15_01-08-47
+app.log.1
+app.log.2
+app.log.3
 ...
 ```
 
@@ -157,7 +158,7 @@ If `backupCount` is set, older rotated files are deleted automatically.
 
 ---
 
-## 🔹Retention Policies (Expiration Rules)  
+## 🔹 Retention Policies (Expiration Rules)
 Retention is controlled by an `ExpirationRule`:
 
 ```python
@@ -187,7 +188,7 @@ Retention is evaluated after each rotation.
 
 ---
 
-## 🔹Concurrency‑Safe Rotation  
+## 🔹 Concurrency‑Safe Rotation
 Rotation must be safe even when multiple threads or processes write to the same file.
 
 LogSmith uses:
@@ -210,7 +211,7 @@ Use per‑process log files instead.
 
 ---
 
-## 🔹Rotation in AsyncSmartLogger  
+## 🔹 Rotation in AsyncSmartLogger
 AsyncSmartLogger handles rotation in its worker thread:
 
 - rotation checks do not block the event loop  
@@ -232,7 +233,7 @@ logger.add_file(
 
 ---
 
-## 🔹Rotation + JSON / NDJSON  
+## 🔹 Rotation + JSON / NDJSON
 Rotation works identically for JSON and NDJSON:
 
 ```python
@@ -248,7 +249,7 @@ Rotated files remain valid NDJSON.
 
 ---
 
-## 🔹Rotation + Raw Output  
+## 🔹 Rotation + Raw Output
 Raw output is also rotated safely:
 
 ```python
@@ -259,7 +260,7 @@ ANSI is sanitized unless disabled.
 
 ---
 
-## 🔹Inspecting Rotation State  
+## 🔹 Inspecting Rotation State
 You can inspect rotation settings:
 
 ```python
@@ -275,7 +276,7 @@ Each handler reports:
 
 ---
 
-# 🧩 Summary  
+## 📘 Summary
 LogSmith’s rotation engine provides:
 
 - size‑based rotation  
@@ -286,6 +287,4 @@ LogSmith’s rotation engine provides:
 - concurrency‑safe file operations  
 - async‑aware rotation scheduling  
 - atomic renaming  
-- JSON / NDJSON compatibility  
-
-The next chapter covers **Themes & Color System** — how LogSmith handles color, gradients, palettes, and theme customization.
+- JSON / NDJSON compatibility

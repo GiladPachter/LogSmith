@@ -317,7 +317,7 @@ Produces:
 
 ---
 
-## 🧩 Summary  
+## 📘 Summary  
 Structured formatting gives you:
 
 - predictable, explicit control  

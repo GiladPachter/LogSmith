@@ -293,7 +293,7 @@ This allows clean recreation of loggers with the same name.
 
 ---
 
-# 🧩Summary  
+## 📘 Summary  
 These concepts form the foundation of LogSmith:
 
 - structured events  
