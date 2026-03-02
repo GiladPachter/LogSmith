@@ -25,17 +25,17 @@ LogSmith solves these problems with:
 
 ---
 
-## RotationLogic: The Core Object  
+## 🔹RotationLogic: The Core Object  
 Rotation is configured using a `RotationLogic` object:
 
 ```python
 from LogSmith import RotationLogic, When
 
 rotation = RotationLogic(
-    maxBytes=50_000,
-    when=When.SECOND,
-    interval=1,
-    backupCount=5,
+    maxBytes    = 50_000,
+    when        = When.SECOND,
+    interval    = 1800,
+    backupCount = 5,
 )
 ```
 
@@ -43,19 +43,19 @@ Attach it to a file handler:
 
 ```python
 logger.add_file(
-    log_dir="logs",
-    logfile_name="app.log",
-    rotation_logic=rotation,
+    log_dir        = "logs",
+    logfile_name   = "app.log",
+    rotation_logic = rotation,
 )
 ```
 
 ---
 
-## Size‑Based Rotation  
+## 🔹Size‑Based Rotation  
 Rotate when the file exceeds a maximum size:
 
 ```python
-RotationLogic(maxBytes=100_000, backupCount=10)
+RotationLogic(maxBytes = 100_000, backupCount = 10)
 ```
 
 This is ideal for:
@@ -68,13 +68,13 @@ Rotation occurs immediately after a write pushes the file over the threshold.
 
 ---
 
-## Time‑Based Rotation  
+## 🔹Time‑Based Rotation  
 Rotate on a schedule:
 
 ```python
 RotationLogic(
-    when=When.MINUTE,
-    interval=5,  # rotate every 5 minutes
+    when     = When.MINUTE,
+    interval = 5,  # rotate every 5 minutes
 )
 ```
 
@@ -93,15 +93,15 @@ Daily/weekly rotation uses a timestamp anchor.
 
 ---
 
-## Timestamp Anchors  
+## 🔹Timestamp Anchors  
 For daily/weekly rotation, you can specify the exact time of day:
 
 ```python
 from LogSmith import RotationTimestamp
 
 RotationLogic(
-    when=When.EVERYDAY,
-    timestamp=RotationTimestamp(hour=0, minute=0, second=0),
+    when      = When.EVERYDAY,
+    timestamp = RotationTimestamp(hour = 0, minute = 0, second = 0),
 )
 ```
 
@@ -111,8 +111,8 @@ Weekly rotation example:
 
 ```python
 RotationLogic(
-    when=When.MONDAY,
-    timestamp=RotationTimestamp(hour=3),
+    when      = When.MONDAY,
+    timestamp = RotationTimestamp(hour = 3),
 )
 ```
 
@@ -120,14 +120,14 @@ Rotates every Monday at 03:00.
 
 ---
 
-## Hybrid Rotation (Size OR Time)  
+## 🔹Hybrid Rotation (Size OR Time)  
 LogSmith supports hybrid rotation:
 
 ```python
 RotationLogic(
-    maxBytes=1500,
-    when=When.SECOND,
-    interval=1,
+    maxBytes = 1500,
+    when     = When.SECOND,
+    interval = 1,
 )
 ```
 
@@ -141,7 +141,7 @@ This is ideal for:
 
 ---
 
-## Rotation File Naming  
+## 🔹Rotation File Naming  
 Rotated files follow this pattern:
 
 ```
@@ -157,15 +157,15 @@ If `backupCount` is set, older rotated files are deleted automatically.
 
 ---
 
-## Retention Policies (Expiration Rules)  
+## 🔹Retention Policies (Expiration Rules)  
 Retention is controlled by an `ExpirationRule`:
 
 ```python
 from LogSmith import ExpirationRule, ExpirationScale
 
 ExpirationRule(
-    scale=ExpirationScale.Days,
-    interval=7,  # delete rotated files older than 7 days
+    scale    = ExpirationScale.Days,
+    interval = 7,  # delete rotated files older than 7 days
 )
 ```
 
@@ -173,12 +173,12 @@ Attach it to rotation:
 
 ```python
 rotation = RotationLogic(
-    when=When.SECOND,
-    interval=1,
-    backupCount=10,
-    expiration_rule=ExpirationRule(
-        scale=ExpirationScale.Days,
-        interval=7,
+    when = When.SECOND,
+    interval    = 1,
+    backupCount = 10,
+    expiration_rule = ExpirationRule(
+        scale    = ExpirationScale.Days,
+        interval = 7,
     ),
 )
 ```
@@ -187,7 +187,7 @@ Retention is evaluated after each rotation.
 
 ---
 
-## Concurrency‑Safe Rotation  
+## 🔹Concurrency‑Safe Rotation  
 Rotation must be safe even when multiple threads or processes write to the same file.
 
 LogSmith uses:
@@ -210,7 +210,7 @@ Use per‑process log files instead.
 
 ---
 
-## Rotation in AsyncSmartLogger  
+## 🔹Rotation in AsyncSmartLogger  
 AsyncSmartLogger handles rotation in its worker thread:
 
 - rotation checks do not block the event loop  
@@ -221,26 +221,26 @@ AsyncSmartLogger handles rotation in its worker thread:
 Example:
 
 ```python
-logger = AsyncSmartLogger("demo.async", level=10)
+logger = AsyncSmartLogger("demo.async", level = 10)
 
 logger.add_file(
-    log_dir="logs",
-    logfile_name="async.log",
-    rotation_logic=RotationLogic(maxBytes=50_000),
+    log_dir        = "logs",
+    logfile_name   = "async.log",
+    rotation_logic = RotationLogic(maxBytes = 50_000),
 )
 ```
 
 ---
 
-## Rotation + JSON / NDJSON  
+## 🔹Rotation + JSON / NDJSON  
 Rotation works identically for JSON and NDJSON:
 
 ```python
 logger.add_file(
-    log_dir="logs",
-    logfile_name="events.ndjson",
-    output_mode=OutputMode.NDJSON,
-    rotation_logic=RotationLogic(maxBytes=50_000),
+    log_dir        = "logs",
+    logfile_name   = "events.ndjson",
+    output_mode    = OutputMode.NDJSON,
+    rotation_logic = RotationLogic(maxBytes = 50_000),
 )
 ```
 
@@ -248,7 +248,7 @@ Rotated files remain valid NDJSON.
 
 ---
 
-## Rotation + Raw Output  
+## 🔹Rotation + Raw Output  
 Raw output is also rotated safely:
 
 ```python
@@ -259,7 +259,7 @@ ANSI is sanitized unless disabled.
 
 ---
 
-## Inspecting Rotation State  
+## 🔹Inspecting Rotation State  
 You can inspect rotation settings:
 
 ```python
@@ -275,7 +275,7 @@ Each handler reports:
 
 ---
 
-## Summary  
+# 🧩 Summary  
 LogSmith’s rotation engine provides:
 
 - size‑based rotation  

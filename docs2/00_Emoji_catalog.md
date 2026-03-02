@@ -5,6 +5,8 @@
 28-Security_Notes.md
 
 
+log_dir     = "logs"
+
 
 # Core Concepts: 🧠   📘   🏛️
 # Core Methods: 🛠️   🧰   🔧   ⚙️   🧪
@@ -99,3 +101,6 @@
 # ❓	-   FAQ
 # �     -   Why / Motivation
 # 🎛️    -   Controls
+# 🔮    -   Crystal Ball
+# 🌀    -   Spiral
+# ⏳    -   hourglass
