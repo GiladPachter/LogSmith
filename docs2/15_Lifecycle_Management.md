@@ -46,8 +46,7 @@ Loggers are singletons by name:
 
 ```python
 a = SmartLogger("myapp.api")
-b = SmartLogger("myapp.api")
-assert a is b
+b = SmartLogger("myapp.api")    # Error!
 ```
 
 This ensures consistent configuration across your application and prevents accidental duplication of handlers or state.

@@ -122,7 +122,7 @@ async def main():
 
             async with lock:
                 done = AsyncSmartLogger.messages_processed()
-                backlog = logger.queue_depth()
+                backlog = logger.queue_size
 
             pct = done / TOTAL
             filled = int(pct * bar_width)

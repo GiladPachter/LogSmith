@@ -89,7 +89,8 @@ class AsyncSmartLogger:
     def messages_processed(cls) -> int:
         return cls.__messages_processed
 
-    def queue_depth(self) -> int:
+    @property
+    def queue_size(self) -> int:
         return self._queue.qsize()
 
     # ------------------------------------------------------------------
