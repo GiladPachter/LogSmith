@@ -1,11 +1,12 @@
-# 🆕 Dynamic Log Levels  
-LogSmith allows you to define entirely new log levels at runtime. These levels behave exactly like built‑in levels: they have numeric values, names, colors, methods (`logger.notice()`, `logger.verbose()`, etc.), and full integration with themes, handlers, JSON / NDJSON, and auditing.
+# 🆕 Dynamic Log Levels
 
+LogSmith allows you to define entirely new log levels at runtime. These levels behave exactly like built‑in levels: they have numeric values, names, colors, methods (`logger.notice()`, `logger.verbose()`, etc.), and full integration with themes, handlers, JSON / NDJSON, and auditing.<br/>
 This chapter explains how dynamic levels work, how to register them, how to style them, and how they interact with the rest of the logging system.
 
 ---
 
-## � Why Dynamic Levels Matter  
+## 💡 Why Dynamic Levels Matter
+
 Built‑in levels (TRACE, DEBUG, INFO, WARNING, ERROR, CRITICAL) cover most use cases, but real applications often need more nuance:
 
 - distinguishing between *normal* INFO and *important* INFO  
@@ -18,7 +19,8 @@ Dynamic levels give you expressive power without hacks or workarounds.
 
 ---
 
-## Registering a New Level  
+## 🏗️ Registering a New Level
+
 Register a new level globally:
 
 ```python
@@ -30,14 +32,12 @@ SmartLogger.register_level(
 )
 ```
 
-This creates:
+This:
 
-- a new level named `NOTICE`  
-- a numeric value of 25  
-- a new logger method: `logger.notice()`  
-- theme support for NOTICE  
-- JSON / NDJSON support  
-- auditing support  
+- creates a new level named `NOTICE`  
+- assigns it a numeric value of 25  
+- generates a new logger method: `logger.notice()`  
+- integrates it with themes, JSON / NDJSON, and auditing
 
 You can now log:
 
@@ -47,27 +47,24 @@ logger.notice("This is a NOTICE message")
 
 ---
 
-## Choosing a Level Value  
-Level values determine ordering and filtering.
+## 🔢 Choosing a Level Value
 
 Common patterns:
 
-- VERBOSE → 5  
-- TRACE → 10  
-- DEBUG → 20  
-- NOTICE → 25  
-- INFO → 30  
-- SUCCESS → 35  
-- WARNING → 40  
-- ERROR → 50  
-- CRITICAL → 60  
+- TRACE    → 5
+- DEBUG    → 10  
+- INFO     → 20  
+- SUCCESS  → 22  
+- NOTICE   → 25  
+- WARNING  → 30  
+- ERROR    → 40
+- CRITICAL → 50  
 
-You can choose any integer, but avoid collisions with existing levels unless you intentionally want identical behavior.
+You can choose any integer, but you cannot assign existing level names or level values.
 
 ---
 
-## Styling Dynamic Levels  
-Dynamic levels automatically inherit theme colors if defined.
+## 🎨 Styling Dynamic Levels
 
 Example:
 
@@ -85,11 +82,12 @@ Apply it:
 SmartLogger.apply_color_theme(MY_THEME)
 ```
 
-Now NOTICE logs appear in bright magenta.
+Dynamic levels behave exactly like built‑in ones in theme mappings.
 
 ---
 
-## Dynamic Levels in AsyncSmartLogger  
+## 🌀 Dynamic Levels in AsyncSmartLogger
+
 AsyncSmartLogger supports dynamic levels identically:
 
 ```python
@@ -104,12 +102,15 @@ Async logging methods are generated automatically:
 - `a_notice()`  
 - `a_success()`  
 - `a_verbose()`  
-- etc.  
+- and so on  
+
+Dynamic levels integrate seamlessly with async logging, including ordering guarantees and async rotation.
 
 ---
 
-## Dynamic Levels + JSON / NDJSON  
-Dynamic levels appear naturally in JSON output:
+## 🧾 Dynamic Levels in JSON / NDJSON
+
+Dynamic levels appear naturally in JSON and NDJSON output without any additional configuration. Log entries include the dynamic level name exactly as registered:
 
 ```json
 {
@@ -120,35 +121,37 @@ Dynamic levels appear naturally in JSON output:
 }
 ```
 
-NDJSON:
+NDJSON example:
 
 ```
 {"timestamp":"...","level":"NOTICE","message":"User logged in"}
 ```
 
-No extra configuration required.
+This makes dynamic levels fully compatible with ingestion pipelines such as ELK, Loki, BigQuery, and SIEM systems.
 
 ---
 
-## Dynamic Levels + Auditing  
+## 🛰️ Dynamic Levels in Auditing
+
 Audit logs include dynamic levels automatically:
 
 ```
 2026‑02‑15 01:08:46.035 • NOTICE • User logged in
 ```
 
-Audit formatters treat them like any other level.
+The audit formatter treats dynamic levels exactly like built‑in ones. No special configuration is required.
 
 ---
 
-## Dynamic Levels + Structured Fields  
-Dynamic levels support structured fields:
+## 🧩 Dynamic Levels and Structured Fields
+
+Dynamic levels support structured fields the same way built‑in levels do:
 
 ```python
 logger.notice("User login", username="Gilad", action="login")
 ```
 
-JSON:
+JSON output:
 
 ```json
 "fields": {
@@ -156,6 +159,8 @@ JSON:
   "action": "login"
 }
 ```
+
+Structured fields remain fully compatible with themes, JSON, NDJSON, and auditing.
 
 ---
 
@@ -169,46 +174,46 @@ MY_THEME["SECURITY"] = LevelStyle(
 )
 ```
 
-Apply:
-
-```python
-SmartLogger.apply_color_theme(MY_THEME)
-```
-
 ---
 
-## Dynamic Levels + Handlers  
-Dynamic levels work with:
+## 🧰 Dynamic Levels and Handlers
+
+Dynamic levels work seamlessly with all handler types:
 
 - console handlers  
 - file handlers  
-- JSON / NDJSON  
-- rotation  
-- retention  
+- JSON / NDJSON handlers  
+- rotation and retention  
 - raw output  
 - async logging  
 - auditing  
 
-Handlers do not need special configuration.
+Handlers do not require any special configuration to support dynamic levels.
 
 ---
 
-## Removing Dynamic Levels  
-Dynamic levels cannot be removed at runtime.  
+## 🚫 Removing Dynamic Levels
+
+Dynamic levels cannot be removed at runtime.<br/>
 This is intentional to avoid breaking existing loggers.
 
 ---
 
-## Best Practices  
+## 🧠 Best Practices for Dynamic Levels
+
 - Choose numeric values that fit between existing levels.  
-- Use dynamic levels for domain‑specific events.  
-- Style them with themes for readability.  
+- Use dynamic levels for domain‑specific events (e.g., SQL, CACHE, EVENT).  
+- Style dynamic levels with themes for readability.  
 - Avoid creating too many levels — clarity matters.  
 - Use JSON / NDJSON for ingestion pipelines.  
+- Keep level names short, descriptive, and consistent.  
+
+Dynamic levels should enhance clarity, not create noise.
 
 ---
 
-## Summary  
+## 📘 Summary
+
 Dynamic log levels give you:
 
 - new level names  
@@ -219,5 +224,6 @@ Dynamic log levels give you:
 - async support  
 - auditing support  
 - structured fields  
+- seamless handler compatibility  
 
-The next chapter covers **Logger Hierarchy**, explaining how loggers inherit levels, how propagation works, and how to organize large applications cleanly.
+Dynamic levels provide expressive power and flexibility, allowing you to tailor LogSmith to your application’s domain and logging needs.

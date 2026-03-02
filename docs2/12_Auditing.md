@@ -5,7 +5,7 @@ This chapter explains how auditing works, how to enable it, how it interacts wit
 
 ---
 
-## � Purpose of Auditing  
+## 💡 Purpose of Auditing
 Auditing solves several real‑world problems:
 
 - capturing logs from *every* logger, even those you didn’t create  
@@ -19,7 +19,8 @@ Auditing is **opt‑in** and must be enabled explicitly.
 
 ---
 
-## How Auditing Works  
+## 🧬 How Auditing Works
+
 When auditing is enabled:
 
 1. All loggers propagate upward to the root audit logger.  
@@ -32,7 +33,8 @@ Auditing does **not** modify existing handlers — it adds a new global sink.
 
 ---
 
-## Enabling Auditing (Sync)  
+## ▶️ Enabling Auditing (Sync)
+
 Enable auditing for SmartLogger:
 
 ```python
@@ -55,8 +57,9 @@ You can still attach normal handlers to individual loggers.
 
 ---
 
-## Enabling Auditing (Async)  
-AsyncSmartLogger has its own async‑aware auditing system:
+## ▶️ Enabling Auditing (Async)
+
+AsyncSmartLogger includes an async‑aware auditing system:
 
 ```python
 from LogSmith import AsyncSmartLogger
@@ -72,11 +75,11 @@ This creates a dedicated async audit worker that:
 - receives all log events  
 - writes them in order  
 - performs rotation in a thread pool  
-- flushes cleanly on shutdown  
+- flushes cleanly on shutdown
 
 ---
 
-## Audit Formatter  
+## 🧾 Audit Formatter
 Audit logs use a special formatter optimized for:
 
 - machine parsing  
@@ -91,15 +94,16 @@ Audit entries include:
 - logger name  
 - message  
 - structured fields  
-- file/line/function  
-- thread/process IDs  
-- exception info  
+- file, line, and function  
+- thread and process IDs  
+- exception information  
 
-Audit formatting is intentionally strict and consistent.
+Audit formatting is intentionally strict and consistent to ensure reliable ingestion.
 
 ---
 
-## Audit File Rotation  
+## 🔄 Audit File Rotation
+
 Audit files support full rotation:
 
 ```python
@@ -113,13 +117,12 @@ SmartLogger.audit_everything(
 )
 ```
 
-Rotated audit files remain valid structured logs.
-
-Retention rules also apply normally.
+Rotated audit files remain valid structured logs, and retention rules apply normally. Rotation is concurrency‑safe and works identically to standard file handlers.
 
 ---
 
-## Audit + JSON / NDJSON  
+## 🧾 Audit + JSON / NDJSON
+
 Audit handlers can output JSON or NDJSON:
 
 ```python
@@ -135,25 +138,28 @@ This is ideal for:
 - ELK  
 - Loki  
 - BigQuery  
-- SIEM systems  
-- Compliance pipelines  
+- SIEM pipelines  
+- Compliance frameworks.
+Each line is a standalone JSON object, making it easy to stream and index.
 
 ---
 
-## Audit + Raw Output  
-Audit handlers ignore raw output.  
-Raw output is intended for console‑only use.
+## 🚫 Audit + Raw Output
+
+Audit handlers ignore raw output.<br/>
+> >Raw output is intended for console‑only use and is not included in audit files. This ensures audit logs remain clean, structured, and machine‑friendly.
 
 ---
 
-## Disabling Auditing  
+## 🛑 Disabling Auditing
+
 Disable auditing cleanly:
 
 ```python
 SmartLogger.stop_auditing()
 ```
 
-For async:
+Async version:
 
 ```python
 await AsyncSmartLogger.stop_auditing()
@@ -168,7 +174,8 @@ This:
 
 ---
 
-## Auditing and Logger Hierarchy  
+## 🌳 Auditing and Logger Hierarchy
+
 When auditing is enabled:
 
 - all loggers propagate upward  
@@ -181,7 +188,8 @@ Auditing does **not** change how loggers behave — it only adds a global listen
 
 ---
 
-## Auditing in Multi‑Process Environments  
+## 🧵 Auditing in Multi‑Process Environments
+
 Audit files are concurrency‑safe:
 
 - fcntl locks on Unix  
@@ -189,14 +197,12 @@ Audit files are concurrency‑safe:
 - atomic renaming  
 - safe rotation  
 
-However:
-
-- multiple processes should not write to the same audit file on Windows  
-- use per‑process audit files if needed  
+However, on Windows, multiple processes should not write to the same audit file. Use per‑process audit files if needed.
 
 ---
 
-## When to Use Auditing  
+## 🎯 When to Use Auditing
+
 Auditing is ideal for:
 
 - production services  
@@ -215,7 +221,8 @@ Avoid auditing when:
 
 ---
 
-## Summary  
+## 📘 Summary
+
 Auditing provides:
 
 - a unified audit file for all loggers  
@@ -225,5 +232,3 @@ Auditing provides:
 - concurrency‑safe writes  
 - JSON / NDJSON support  
 - clean enable/disable lifecycle  
-
-The next chapter covers **Dynamic Log Levels** — how to create new levels, style them, and integrate them into your logging workflow.
