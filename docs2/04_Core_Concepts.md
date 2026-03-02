@@ -3,7 +3,7 @@ LogSmith builds on Python’s logging module but reshapes it into a modern, stru
 
 ---
 
-## 🔹Logging as a Structured Event  
+## 🔹 Logging as a Structured Event  
 Traditional logging treats a log entry as a formatted string. LogSmith treats it as a **structured event**:
 
 - timestamp  
@@ -26,7 +26,7 @@ You choose which fields appear and in what order.
 
 ---
 
-## 🔹LogRecordDetails: The Formatting Blueprint  
+## 🔹 LogRecordDetails — The Formatting Blueprint  
 Instead of format strings, LogSmith uses a declarative object:
 
 ```python
@@ -50,7 +50,7 @@ details = LogRecordDetails(
 )
 ```
 
-### This controls:
+This controls:
 
 - timestamp formatting  
 - which fields appear  
@@ -58,11 +58,11 @@ details = LogRecordDetails(
 - how color is applied  
 - how exceptions and stack traces are shown  
 
-It’s the backbone of LogSmith’s formatting system.
+It is the backbone of LogSmith’s formatting system.
 
 ---
 
-## 🔹Output Modes  
+## 🔹 Output Modes  
 Each handler chooses its own output mode:
 
 - **PLAIN** — structured text, no color  
@@ -81,7 +81,7 @@ All from the same logger.
 
 ---
 
-## 🔹Handlers: Explicit and Predictable  
+## 🔹 Handlers: Explicit and Predictable  
 LogSmith does not guess where logs should go.  
 You attach handlers explicitly:
 
@@ -99,7 +99,7 @@ Handlers never propagate upward unless auditing is enabled.
 
 ---
 
-## 🔹Rotation Logic  
+## 🔹 Rotation Logic  
 Rotation is handled by a dedicated object:
 
 ```python
@@ -129,8 +129,8 @@ AsyncSmartLogger schedules rotation in its worker thread.
 
 ---
 
-## 🔹Retention Policies  
-RotationLogic can also delete old rotated files:
+## 🔹 Retention Policies  
+RotationLogic can delete old rotated files:
 
 ```python
 from LogSmith import ExpirationRule, ExpirationScale
@@ -142,7 +142,7 @@ This keeps log directories clean without external scripts.
 
 ---
 
-## 🔹Structured Fields (Named Arguments)  
+## 🔹 Structured Fields (Named Arguments)  
 Named arguments become structured fields:
 
 ```python
@@ -171,7 +171,7 @@ This makes LogSmith ideal for ingestion pipelines.
 
 ---
 
-## 🔹Color Engine & Gradients  
+## 🔹 Color Engine & Gradients  
 LogSmith includes a full ANSI engine:
 
 - solid colors  
@@ -191,7 +191,7 @@ logger.raw(CPrint.gradient("Hello", fg_codes = GradientPalette.RAINBOW))
 
 ---
 
-## 🔹Themes  
+## 🔹 Themes  
 Themes map log levels to colors:
 
 ```python
@@ -203,7 +203,7 @@ Themes affect only console output and can be reset at any time.
 
 ---
 
-## 🔹Dynamic Log Levels  
+## 🔹 Dynamic Log Levels  
 You can register new levels at runtime:
 
 ```python
@@ -215,7 +215,7 @@ Dynamic levels automatically become logger methods.
 
 ---
 
-## 🔹Hierarchy  
+## 🔹 Hierarchy  
 Logger names define hierarchy:
 
 ```
@@ -234,7 +234,7 @@ This keeps large applications organized.
 
 ---
 
-## 🔹Auditing  
+## 🔹 Auditing  
 Auditing captures **all** loggers into a single file:
 
 ```python
@@ -252,7 +252,7 @@ AsyncSmartLogger has its own async auditing system.
 
 ---
 
-## 🔹Raw Output  
+## 🔹 Raw Output  
 Raw output bypasses formatting:
 
 ```python
@@ -270,7 +270,7 @@ File handlers sanitize ANSI unless explicitly told not to.
 
 ---
 
-## 🔹Async Logging Model  
+## 🔹 Async Logging Model  
 AsyncSmartLogger uses:
 
 - an asyncio queue  
@@ -283,11 +283,11 @@ This keeps your event loop clean and responsive.
 
 ---
 
-## 🔹Logger Lifecycle  
+## 🔹 Logger Lifecycle  
 Loggers can be:
 
 - **retired** — handlers closed, logger disabled  
-- **destroyed** — removed from logging system entirely  
+- **destroyed** — removed from the logging system entirely  
 
 This allows clean recreation of loggers with the same name.
 

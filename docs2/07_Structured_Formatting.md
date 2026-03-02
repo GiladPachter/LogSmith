@@ -3,7 +3,7 @@ LogSmith’s formatting engine is the heart of the entire framework. Instead of 
 
 ---
 
-## � Why Structured Formatting Matters  
+## 💡 Why Structured Formatting Matters  
 Traditional logging forces you to build format strings like:
 
 ```
@@ -67,7 +67,7 @@ logger.add_console(log_record_details = details)
 
 ---
 
-## 🔹OptionalRecordFields  
+## 🔹 OptionalRecordFields  
 This object controls which metadata fields appear in the log entry:
 
 - logger_name  
@@ -93,7 +93,7 @@ If a field is disabled, it simply doesn’t appear — no empty placeholders.
 
 ---
 
-## 🔹Field Ordering  
+## 🔹 Field Ordering  
 `message_parts_order` defines the order of metadata fields.  
 Two fields are *always* fixed:
 
@@ -120,7 +120,7 @@ Produces:
 
 ---
 
-## 🔹Separator  
+## 🔹 Separator  
 The separator appears between metadata fields:
 
 ```python
@@ -137,7 +137,7 @@ Common choices:
 
 ---
 
-## 🔹Coloring Rules  
+## 🔹 Coloring Rules  
 You control how color is applied:
 
 ### Color only level + message (default)
@@ -160,7 +160,7 @@ Color is not included in JSON output.
 
 ---
 
-## 🔹Structured Fields (Named Arguments)  
+## 🔹 Structured Fields (Named Arguments)  
 Named arguments become structured fields:
 
 ```python
@@ -193,7 +193,7 @@ NDJSON output:
 
 ---
 
-## 🔹Exception & Stack Formatting  
+## 🔹 Exception & Stack Formatting  
 LogSmith formats exceptions cleanly:
 
 ```python
@@ -214,7 +214,7 @@ JSON / NDJSON include structured exception objects.
 
 ---
 
-## 🔹JSON Formatting  
+## 🔹 JSON Formatting  
 Pretty JSON output:
 
 ```python
@@ -236,7 +236,7 @@ Produces:
 
 ---
 
-## 🔹NDJSON Formatting  
+## 🔹 NDJSON Formatting  
 NDJSON is compact and ingestion‑friendly:
 
 ```python
@@ -258,12 +258,14 @@ Perfect for:
 - ELK  
 - Loki  
 - BigQuery  
-- Data pipelines  
-- Log processors  
+- Datadog  
+- CloudWatch  
+- FluentBit  
+- Kafka  
 
 ---
 
-## 🔹Raw Output  
+## 🔹 Raw Output  
 Raw output bypasses formatting:
 
 ```python
@@ -325,4 +327,4 @@ Structured formatting gives you:
 - flexible metadata fields  
 - customizable ordering  
 - color control  
-- exception structuring  
+- structured exceptions

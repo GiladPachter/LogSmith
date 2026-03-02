@@ -3,7 +3,7 @@ This chapter gets you from zero to logging in under a minute — both in sync an
 
 ---
 
-## 🔹Your First Logger (Sync)
+## 🔹 Your First Logger (Sync)
 
 SmartLogger is the synchronous logger for traditional Python applications, scripts, CLIs, and multi‑threaded workloads.
 
@@ -28,7 +28,7 @@ Nothing else is required.
 
 ---
 
-## 🔹Your First Logger (Async)
+## 🔹 Your First Logger (Async)
 
 AsyncSmartLogger is designed for asyncio applications, servers, bots, and pipelines.
 
@@ -56,7 +56,7 @@ AsyncSmartLogger guarantees:
 
 ---
 
-## 🔹Adding a File Handler
+## 🔹 Adding a File Handler
 
 File handlers are explicit. You choose where logs go and how they rotate.
 
@@ -83,7 +83,7 @@ This creates:
 
 ---
 
-## 🔹Structured Fields (Named Arguments)
+## 🔹 Structured Fields (Named Arguments)
 
 LogSmith treats named arguments as structured fields:
 
@@ -111,7 +111,7 @@ JSON / NDJSON output includes:
 
 ---
 
-## 🔹JSON & NDJSON Logging
+## 🔹 JSON & NDJSON Logging
 
 Switch output modes per handler:
 
@@ -134,7 +134,7 @@ Perfect for ingestion pipelines.
 
 ---
 
-## 🔹Raw Output (ANSI‑Preserving)
+## 🔹 Raw Output (ANSI‑Preserving)
 
 Raw output bypasses formatting and writes directly to the handler:
 
@@ -153,7 +153,7 @@ Use raw output for:
 
 ---
 
-## 🔹Dynamic Log Levels
+## 🔹 Dynamic Log Levels
 
 Add new levels at runtime:
 
@@ -173,7 +173,7 @@ Dynamic levels automatically become logger methods.
 
 ---
 
-## 🔹Themes
+## 🔹 Themes
 
 Apply a built‑in theme:
 
@@ -188,7 +188,7 @@ Themes affect only console output.
 
 ---
 
-## 🔹Sync / Async Printing (stdout / a_stdout)
+## 🔹 Sync / Async Printing (stdout / a_stdout)
 
 SmartLogger and AsyncSmartLogger includes a synchronized print() wrappers:
 
@@ -201,7 +201,7 @@ This prevents interleaving between print() and console logs.
 
 ---
 
-# 🧩Summary
+# 🧩 Summary
 
 You now know how to:
 

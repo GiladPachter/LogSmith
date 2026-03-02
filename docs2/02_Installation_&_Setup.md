@@ -17,7 +17,7 @@ LogSmith is pure Python, dependency‑free, and works on all major platforms. Th
 
 ---
 
-## 🔹Installing LogSmith
+## 🔹 Installing LogSmith
 
 ### Install from wheel (recommended)
 
@@ -41,7 +41,7 @@ This lets you edit the codebase and immediately test changes without reinstallin
 
 ---
 
-## 🔹Building the Wheel (optional)
+## 🔹 Building the Wheel (optional)
 
 LogSmith includes helper scripts for building distributable wheels.
 
@@ -65,7 +65,7 @@ dist/logsmith-1.8.0-py3-none-any.whl
 
 ---
 
-## 🔹Verifying Your Installation
+## 🔹 Verifying Your Installation
 
 Run the following:
 
@@ -78,7 +78,7 @@ If this prints a version string, your installation is good to go.
 
 ---
 
-## 🔹Project Layout (for contributors)
+## 🔹 Project Layout (for contributors)
 
 A typical LogSmith checkout looks like this:
 
@@ -92,11 +92,11 @@ LogSmith/
 └─ README.md
 ```
 
-## This structure ensures:
+This structure ensures:
 - **Core logic is isolated** in `LogSmith/`
 - **Demonstrations are complete and runnable** in `examples/`
 - **Packaging is clean** via `pyproject.toml`
-- **No dependencies on external packages** &nbsp; — &nbsp; everything is pure Python
+- **No external dependencies** &nbsp; — &nbsp; everything is pure Python
 
 <br/>
 You can run any example directly:
@@ -107,11 +107,11 @@ python examples/01_basic_logging.py
 
 ---
 
-## 🔹Initialization Requirements - None
+## 🔹 Initialization Requirements - None
 
 ### SmartLogger (sync)
 
-SmartLogger does **not** require global initialization.  
+SmartLogger requires **no global initialization**.  
 You can create loggers immediately:
 
 ```python
@@ -150,6 +150,7 @@ python -m pylint.pyreverse.main -o png -p MyProject .
 
 - `classes_MyProject.png`
 - `packages_MyProject.png`
+
 ---
 
 ## 🔹 Platform Notes
@@ -157,7 +158,7 @@ python -m pylint.pyreverse.main -o png -p MyProject .
 ### Linux & macOS
 - Uses `fcntl` for concurrency‑safe rotation  
 - Fully supports ANSI colors  
-- Ideal environment for multi‑process logging
+- Ideal for multi‑process logging
 
 ### Windows
 - Uses `msvcrt` for rotation locking  
@@ -169,7 +170,7 @@ python -m pylint.pyreverse.main -o png -p MyProject .
 
 ---
 
-# 🧩Summary
+# 🧩 Summary
 
 - Install via wheel or editable mode  
 - No global initialization required  
