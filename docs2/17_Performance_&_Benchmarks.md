@@ -1,9 +1,13 @@
-# ⚡Performance & Benchmarks  
-LogSmith is designed to be fast, predictable, and efficient under real‑world workloads. This chapter covers performance characteristics, throughput expectations, async vs sync behavior, rotation overhead, JSON / NDJSON costs, and best practices for achieving maximum performance.
+# 🚀 Performance & Optimization
+
+LogSmith is designed for high‑volume, production‑grade logging.<br/>
+It can handle tens of thousands of log events per second when configured correctly.<br/>
+This chapter explains how to optimize performance, reduce overhead, tune async behavior, and choose the right handlers and formatters for your workload.
 
 ---
 
 ## Performance Philosophy  
+
 LogSmith prioritizes:
 
 - low overhead per log call  

@@ -88,8 +88,10 @@ async def main():
     # --------------------------------------------------------------
     # Stress test parameters
     # --------------------------------------------------------------
-    TASK_COUNT = 16
-    ITERATIONS = 2000
+    # TASK_COUNT = 16
+    # ITERATIONS = 2000
+    TASK_COUNT = 32
+    ITERATIONS = 5000
     TOTAL = TASK_COUNT * ITERATIONS
 
     # Shared progress counter
@@ -120,31 +122,38 @@ async def main():
         while True:
             await asyncio.sleep(0.2)
 
-            async with lock:
-                done = AsyncSmartLogger.messages_processed()
-                backlog = logger.queue_size
+            # Read both counters
+            produced = logger.messages_enqueued()
+            processed = AsyncSmartLogger.messages_processed()
+            backlog = produced - processed
 
-            pct = done / TOTAL
+            # Progress is based on processed messages
+            pct = processed / TOTAL
             filled = int(pct * bar_width)
-            bar = "█" * filled + "-" * (bar_width - filled)     #   Alt+219 = "█"   (filled progress-bar character)
+            bar = "█" * filled + "-" * (bar_width - filled)
 
             elapsed = time.time() - start_time
-            rate = done / elapsed if elapsed > 0 else 0
-            eta = (TOTAL - done) / rate if rate > 0 else 0
+            rate = processed / elapsed if elapsed > 0 else 0
 
+            # ETA based on remaining processed work
+            remaining = TOTAL - processed
+            eta = remaining / rate if rate > 0 else 0
+
+            # Display both progress and backlog
             await a_stdout(
-                f"\r[{bar}] {pct*100:5.1f}%  "
-                f"done={done}/{TOTAL}  "
+                f"\r[{bar}] {pct * 100:5.1f}%  "
+                f"done={processed}/{TOTAL}  "
+                f"produced={produced}  "
                 f"backlog={backlog}  "
                 f"{rate:7.1f} msg/s  "
                 f"ETA {eta:5.1f}s",
                 end="",
             )
 
-            if done >= TOTAL:
+            if processed >= TOTAL:
                 break
 
-        await a_stdout()  # newline after progress bar
+        await a_stdout()  # newline after finishing
 
     # --------------------------------------------------------------
     # Run workers + monitor

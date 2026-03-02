@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import threading
 import time
 import logging
 from datetime import datetime, timedelta
@@ -53,6 +54,8 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
         self.when = rotation_logic.when
         self.interval = rotation_logic.interval or 1
         self.timestamp = rotation_logic.timestamp
+
+        self.write_lock = threading.Lock()
 
         self._rollover_at = None
         if self.when is not None:

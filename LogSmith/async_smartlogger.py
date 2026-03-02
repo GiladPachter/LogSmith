@@ -118,6 +118,8 @@ class AsyncSmartLogger:
         self._handlers: list[AsyncHandlerInfo] = []
         self._real_handlers: list[logging.Handler] = []
 
+        self._messages_enqueued = 0
+
         self._retired = False
 
         self._start_worker()
@@ -125,10 +127,13 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # WORKER
     # ------------------------------------------------------------------
-    def _start_worker(self) -> None:
-        if self._worker_task is not None:
+    def _start_worker(self, workers: int = 1):
+        if hasattr(self, "_worker_tasks"):
             return
-        self._worker_task = self._loop.create_task(self._worker())
+        self._worker_tasks = [
+            self._loop.create_task(self._worker())
+            for _ in range(workers)
+        ]
 
     async def _worker(self) -> None:
         while True:
@@ -197,7 +202,36 @@ class AsyncSmartLogger:
         )
         record.__dict__.update(extra)
 
-        self._py_logger.handle(record)
+        for handler in self._py_logger.handlers:
+            formatter = handler.formatter
+
+            # JSON / NDJSON: offload formatting, then write
+            if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
+                formatted = await asyncio.to_thread(formatter.format, record)
+                stream = getattr(handler, "stream", None)
+                if stream is None and hasattr(handler, "_open"):
+                    handler.stream = handler._open()
+                    stream = handler.stream
+                if stream is None:
+                    continue
+
+                if isinstance(handler, Async_TimedSizedRotatingFileHandler):
+                    # Protect file rotation + writes
+                    with handler.write_lock:
+                        stream.write(formatted + "\n")
+                        stream.flush()
+                else:
+                    # Console / plain file handlers
+                    stream.write(formatted + "\n")
+                    stream.flush()
+
+            else:
+                # Non-JSON handlers: only lock rotating file handlers
+                if isinstance(handler, Async_TimedSizedRotatingFileHandler):
+                    with handler.write_lock:
+                        handler.emit(record)
+                else:
+                    handler.emit(record)
 
         AsyncSmartLogger.__messages_processed += 1
 
@@ -243,33 +277,23 @@ class AsyncSmartLogger:
     @staticmethod
     async def _process_rotate(payload: dict[str, Any]) -> None:
         handler: Async_TimedSizedRotatingFileHandler = payload["handler"]
-        await asyncio.to_thread(handler.perform_rotation)
+        with handler.write_lock:
+            await asyncio.to_thread(handler.perform_rotation)
 
     # ------------------------------------------------------------------
     # CALLER RESOLUTION
     # ------------------------------------------------------------------
     @staticmethod
     def _find_caller():
-        stack = inspect.stack()
-
-        for frame_info in stack[2:]:
-            frame = frame_info.frame
+        frame = inspect.currentframe()
+        # Skip internal frames
+        while frame:
             code = frame.f_code
             filename = code.co_filename
-
-            if filename.startswith("<"):
-                continue
-
-            if "asyncio" in filename.replace("\\", "/"):
-                continue
-
-            module = frame.f_globals.get("__name__", "")
-            if module.startswith("LogSmith.async_smartlogger"):
-                continue
-
-            return frame
-
-        return stack[1].frame
+            if "async_smartlogger" not in filename and "logging" not in filename:
+                return frame
+            frame = frame.f_back
+        return frame
 
     # ------------------------------------------------------------------
     # RAW COLOR BLEACHING
@@ -339,7 +363,8 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # PUBLIC: HANDLER MANAGEMENT
     # ------------------------------------------------------------------
-    def _normalize_output_mode(self, mode: str | OutputMode) -> OutputMode:
+    @staticmethod
+    def _normalize_output_mode(mode: str | OutputMode) -> OutputMode:
         if isinstance(mode, OutputMode):
             return mode
         try:
@@ -355,6 +380,11 @@ class AsyncSmartLogger:
     ) -> None:
         if self._retired:
             raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot accept handlers.")
+
+        # 🔹 NEW: avoid adding duplicate console handlers
+        for h in self._py_logger.handlers:
+            if isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename"):
+                return  # console handler already attached
 
         mode = self._normalize_output_mode(output_mode)
 
@@ -526,20 +556,30 @@ class AsyncSmartLogger:
         if self._retired:
             raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot be used.")
 
-        await self._queue.put(
-            _QueueItem(
-                op=AsyncOp.LOG,
-                payload={
-                    "level": level,
-                    "msg": msg,
-                    "args": args,
-                    "extra": extra,
-                    "fields": fields,
-                    "exc_info": exc_info,
-                    "stack_info_flag": stack_info_flag,
-                },
-            )
+        queue_item = _QueueItem(
+            op=AsyncOp.LOG,
+            payload={
+                "level": level,
+                "msg": msg,
+                "args": args,
+                "extra": extra,
+                "fields": fields,
+                "exc_info": exc_info,
+                "stack_info_flag": stack_info_flag,
+            },
         )
+
+        try:
+            self._queue.put_nowait(queue_item)
+        except asyncio.QueueFull:
+            # cooperative yield, then retry
+            await asyncio.sleep(0)
+            await self._queue.put(queue_item)
+
+        self._messages_enqueued += 1
+
+    def messages_enqueued(self):
+        return self._messages_enqueued
 
     async def _enqueue_raw(self, message: str, end: str) -> None:
         if self._stopped:
@@ -554,13 +594,9 @@ class AsyncSmartLogger:
             )
         )
 
-    def __enqueue_rotation(self, handler: Async_TimedSizedRotatingFileHandler) -> None:
+    def __enqueue_rotation(self, handler):
         if self._stopped or self._retired:
             return
-
-        if not self._py_logger.handlers:
-            return
-
         self._loop.call_soon_threadsafe(
             self._queue.put_nowait,
             _QueueItem(op=AsyncOp.ROTATE, payload={"handler": handler}),
@@ -711,10 +747,15 @@ class AsyncSmartLogger:
         self._stopped = True
 
         await self._queue.join()
-        await self._queue.put(_QueueItem(op=AsyncOp.SENTINEL, payload={}))
+        sentinel = _QueueItem(op=AsyncOp.SENTINEL, payload={})
+        try:
+            self._queue.put_nowait(sentinel)
+        except asyncio.QueueFull:
+            await asyncio.sleep(0)
+            await self._queue.put(sentinel)
 
         if self._worker_task is not None:
-            await self._worker_task
+                await self._worker_task
 
     # ------------------------------------------------------------------
     # AUDITING (class-level)
