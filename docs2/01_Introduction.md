@@ -4,13 +4,13 @@
 LogSmith is a logging framework built for developers who care about both **readability** and **reliability**.<br/>
 It takes Python’s built‑in `logging` module — a solid but aging foundation — and layers on the features modern applications actually need:
 
-✔ Structured Logs <br/>
-✔ Color & Gradients <br/>
-✔ Safe Rotation & Retention <br/>
-✔ Async support <br/>
-✔ JSON / NDJSON <br/>
-✔ Themes <br/>
-✔ Predictable, explicit API <br/>
+✔ Structured Logs  
+✔ Color & Gradients  
+✔ Safe Rotation & Retention  
+✔ Async support  
+✔ JSON / NDJSON  
+✔ Themes  
+✔ Predictable, explicit API  
 
 This chapter gives you a high‑level understanding of what LogSmith is, why it exists, and how it fits into real‑world applications.
 
@@ -37,22 +37,22 @@ LogSmith answers all of these and more with a unified, consistent design.
 
 LogSmith is built around a few core principles:
 
-### 🔹Explicit is better than implicit**
+### 🔹 Explicit is better than implicit
 Nothing happens behind your back.  
 You attach handlers explicitly.  
 You choose formatting explicitly.  
 You enable auditing explicitly.
 
-### 🔹Structure first, color second**
+### 🔹 Structure first, color second
 Color is great for humans.  
 Structure is essential for machines.  
 LogSmith gives you both — without mixing concerns.
 
-### 🔹Async and sync should feel the same**
+### 🔹 Async and sync should feel the same
 SmartLogger (sync) and AsyncSmartLogger (async) share the same API and formatting model.  
 If you know one, you know the other.
 
-### 🔹Rotation must be safe**
+### 🔹 Rotation must be safe
 Rotation is notoriously tricky.  
 LogSmith’s rotation handlers are:
 
@@ -62,7 +62,7 @@ LogSmith’s rotation handlers are:
 
 Async rotation is handled in a worker thread so your event loop stays clean.
 
-### 🔹Logging should be expressive**
+### 🔹 Logging should be expressive**
 Gradients, themes, raw ANSI output, palette blending — these are tools for developers who want their logs to *communicate*, not just print.
 
 ---
@@ -116,7 +116,7 @@ The async version adds:
 
 ---
 
-## ❓What You Can Expect From the Rest of the Documentation
+## ❓ What You Can Expect From the Rest of the Documentation
 
 The remaining chapters walk through LogSmith from the ground up:
 

@@ -1,11 +1,11 @@
-# 💻Console Logging  
+# 💻 Console Logging  
 Console output is where LogSmith really shines. You get structured, readable log entries with level‑aware colors, optional metadata, gradients, themes, and full control over formatting.
 
 This chapter covers everything you can do with console logging — from basic usage to advanced customization.
 
 ---
 
-## 🔹Adding a Console Handler  
+## 🔹 Adding a Console Handler  
 A logger may have **one** console handler. You attach it explicitly:
 
 ```python
@@ -23,7 +23,7 @@ No global configuration, no format strings.
 
 ---
 
-## 🔹Basic Console Output  
+## 🔹 Basic Console Output  
 Once the console handler is attached:
 
 ```python
@@ -48,7 +48,7 @@ Themes can override these colors (covered later on).
 
 ---
 
-## 🔹Structured Console Output  
+## 🔹 Structured Console Output  
 Console logs are structured by default:
 
 ```
@@ -59,7 +59,7 @@ You control the structure using `LogRecordDetails`.
 
 ---
 
-## 🔹Customizing Console Formatting  
+## 🔹 Customizing Console Formatting  
 You can choose:
 
 - which metadata fields appear  
@@ -99,7 +99,7 @@ This produces a fully colorized, structured entry.
 
 ---
 
-## 🔹Named Arguments (Structured Fields)  
+## 🔹 Named Arguments (Structured Fields)  
 Named arguments become structured fields:
 
 ```python
@@ -116,7 +116,7 @@ These fields also appear in JSON / NDJSON output.
 
 ---
 
-## 🔹Raw Console Output  
+## 🔹 Raw Console Output  
 Raw output bypasses formatting and writes directly to the console handler:
 
 ```python
@@ -126,7 +126,7 @@ logger.raw("This is raw text")
 Raw output:
 
 - preserves ANSI colors  
-- does not include timestamp, level, name arguments or diagnostics (specified later on)
+- does not include timestamp, level, named arguments or diagnostics (specified later on)
 - is ideal for banners, headers, and gradient art  
 
 Example:
@@ -139,7 +139,7 @@ logger.raw(CPrint.colorize("RAW colored text", fg = CPrint.FG.BRIGHT_RED))
 
 ---
 
-## 🔹Gradient Output  
+## 🔹 Gradient Output  
 LogSmith integrates a full gradient engine:
 
 ```python
@@ -164,7 +164,7 @@ Gradients work anywhere raw ANSI does.
 
 ---
 
-## 🔹Themes  
+## 🔹 Themes  
 Themes redefine how levels are colored:
 
 ```python
@@ -187,7 +187,7 @@ Themes affect only console output.
 
 ---
 
-## 🔹Output Modes  
+## 🔹 Output Modes  
 Console handlers support multiple output modes:
 
 - **COLOR** — structured, colorized text (default)  
@@ -205,8 +205,8 @@ This is great for debugging or piping logs into tools.
 
 ---
 
-## 🔹Handler Introspection  
-You can use `logger.console_handler` to access metadata that describes a logger's console handler.
+## 🔹 Handler Introspection  
+You can inspect `logger.console_handler` to access metadata that describes a logger's console handler.
 
 This returns a clean dictionary describing:
 - handler type
@@ -216,9 +216,9 @@ This returns a clean dictionary describing:
 
 ---
 
-## stdout(): Synchronized Printing
-Python's built in `print()` function causes interleaving and does not synchronize well with logging.
-Therefore, LogSmith provides a function that does everything that `print()` does but also synchronizes perfectly with SmartLogger logging.
+## 🔹 stdout(): Synchronized Printing
+Python's built-in `print()` interleaves output and does not synchronize with logging.
+LogSmith provides a synchronized replacement.
 
 ```python
 from LogSmith import SmartLogger, stdout
