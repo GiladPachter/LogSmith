@@ -111,24 +111,6 @@ If you need maximum throughput:
 
 ---
 
-## Rotation Overhead
-Rotation is designed to be safe and efficient:
-
-- atomic renaming (`os.replace`)  
-- minimal blocking  
-- async rotation offloaded to thread pool  
-- concurrency‑safe locks  
-- retention checks optimized  
-
-Rotation overhead is typically:
-
-- **sync:** 0.1–3 ms depending on file size  
-- **async:** 0.1–1 ms (event loop unaffected)  
-
-Rotation frequency has a much larger impact than rotation cost.
-
----
-
 ## 🧩 Structured Field Overhead
 
 Structured fields are powerful but add overhead:
@@ -155,6 +137,85 @@ Structured logging is worth the cost, but it should be used intentionally.
 
 ---
 
+## 🔄 Rotation Optimization
+
+Rotation can become a bottleneck under heavy load. To optimize:
+
+- use async logging so rotation happens in a worker  
+- increase `maxBytes` to reduce rotation frequency  
+- avoid rotation in small time intervals
+- use SSDs instead of HDDs  
+- avoid rotating multiple loggers into the same directory at the same moment  
+
+Async rotation uses a thread pool to ensure that rotation does not block the main worker.
+
+---
+
+## 🔓 Minimizing Lock Contention
+
+File handlers use OS‑level locks to ensure safe writes.
+Contention increases when:
+
+- multiple processes write to the same file
+- rotation triggers frequently
+- slow disks cause long lock durations
+
+To reduce contention:
+
+- avoid multi‑process writes on Windows  
+- increase rotation thresholds  
+- use async logging to shorten lock durations  
+
+On Unix, fcntl locks are efficient, but Windows file locks are more restrictive.
+
+---
+
+## 🧱 Avoiding Bottlenecks
+
+Common bottlenecks include:
+
+- synchronous file writes  
+- JSON encoding of large payloads  
+- excessively structured fields  
+- slow disks  
+- too many handlers attached to one logger  
+- logging inside tight loops  
+
+To minimize bottlenecks:
+
+- use async logging for all file handlers  
+- keep structured fields shallow  
+- avoid logging large objects  
+- avoid logging inside micro‑loops  
+- prefer NDJSON over JSON for ingestion pipelines  
+
+Logging should never be the slowest part of your application.
+
+---
+
+## Multi‑Process Performance  
+LogSmith supports multi‑process logging with caveats:
+
+- safe on Unix (fcntl locks)  
+- safe on Windows only if each process writes to its own base file(s)  
+- rotation is atomic across processes  
+- retention is safe  
+
+File handlers use OS-level locks to ensure safe writes.
+Contention increases when multiple processes write to the same file
+On Linux, fcntl locks are efficient, but Windows file locks are more restrictive and a lot more challenging.
+Therefore, for the forseeable future LogSmith does not provide means for logging to the same base file from multiple processes.
+
+For multi‑process apps, use:
+
+```
+logs/app_worker_1.log
+logs/app_worker_2.log
+...
+```
+
+---
+
 ## Color & Gradient Performance  
 Color output is fast.  
 Gradients are slower due to per‑character ANSI generation.
@@ -171,74 +232,6 @@ Gradients should be used sparingly in production.
 
 ---
 
-## File I/O Performance  
-File writes are buffered and efficient.
-
-Performance depends on:
-
-- disk speed  
-- filesystem  
-- rotation frequency  
-- sanitization settings  
-
-ANSI sanitization adds a small overhead (~1–3 µs per log).
-
----
-
-## Async Queue Performance  
-AsyncSmartLogger uses an asyncio queue:
-
-- enqueue is extremely fast  
-- worker processes logs in batches  
-- rotation happens in worker thread  
-- ordering is preserved  
-
-Queue size can be inspected via:
-
-```python
-logger.describe()
-```
-
-If queue grows too large:
-
-- increase worker throughput (fewer JSON logs)  
-- reduce rotation frequency  
-- reduce structured field complexity  
-
----
-
-## Multi‑Threaded Performance  
-SmartLogger is thread‑safe:
-
-- per‑handler locks  
-- atomic rotation  
-- safe concurrent writes  
-
-Performance scales well across threads, but:
-
-- too many threads writing simultaneously can increase contention  
-- async logging avoids this entirely  
-
----
-
-## Multi‑Process Performance  
-LogSmith supports multi‑process logging with caveats:
-
-- safe on Unix (fcntl locks)  
-- safe on Windows only if each process writes to its own base file  
-- rotation is atomic across processes  
-- retention is safe  
-
-For multi‑process apps, use:
-
-```
-logs/app_worker_1.log
-logs/app_worker_2.log
-...
-```
-
----
-
 ## Memory Usage  
 LogSmith is lightweight:
 
@@ -251,27 +244,29 @@ Async queue memory depends on backlog size.
 
 ---
 
-## Performance Best Practices  
-- prefer NDJSON for structured logs  
-- avoid gradients in high‑volume logs  
-- minimize rotation frequency  
-- avoid attaching too many handlers  
-- use async logging for servers  
-- use per‑process log files on Windows  
-- avoid extremely large structured fields  
+## 🧠 Best Practices
+
+- use async logging for high‑volume workloads  
+- minimize rotation frequency (by using smart time/size based rotation rules)  
+- avoid logging large objects or payloads  
+- prefer NDJSON over indented JSON for ingestion pipelines  
+- avoid excessive structured fields
+- avoid multi‑process writes to the same base file on Windows  
+- minimize the use of gradients in log files
 - flush async loggers before shutdown  
 
 ---
 
 ## Summary  
-LogSmith delivers:
 
-- high throughput  
-- predictable latency  
-- safe rotation  
-- efficient JSON / NDJSON  
-- async and sync performance tuning  
-- concurrency‑safe behavior  
-- low memory usage  
+Performance & Optimization in LogSmith provides tools and strategies for:
 
-The next chapter covers **Best Practices**, summarizing recommended patterns for real‑world applications.
+- high throughput
+- predictable latency
+- rotation optimization
+- minimal lock contention
+- high sync and async performance
+- concurrency‑safe behavior
+- low memory usage
+
+With proper tuning, LogSmith can handle extremely high log volumes while remaining fast, predictable, and safe.
