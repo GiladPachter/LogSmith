@@ -38,6 +38,10 @@ SmartLogger(name: str, level: int = NOTSET)
 - `terminate_auditing()` — stop auditing
 - `get_record()` — get all log record metadata fields
 
+## Properties
+- `name` — logger's name
+- `level` — logger's log level
+
 Dynamic levels automatically add new methods.
 
 ---

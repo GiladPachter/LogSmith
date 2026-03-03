@@ -535,7 +535,7 @@ class AsyncSmartLogger:
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")
 
-        handler.setLevel(level or self.level)
+        handler.setLevel(level or self._py_logger.level)
         handler.setFormatter(formatter)
 
         setattr(handler, "do_not_sanitize_colors_from_string", do_not_sanitize_colors_from_string)
@@ -546,7 +546,7 @@ class AsyncSmartLogger:
 
         self._py_logger.addHandler(handler)
 
-        level_name = logging.getLevelName(level or self.level)
+        level_name = logging.getLevelName(level or self._py_logger.level)
         rotation_meta = None
         if rotation_logic:
             rotation_meta = {

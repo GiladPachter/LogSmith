@@ -561,7 +561,7 @@ class SmartLogger:
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")
 
-        handler.setLevel(level or self.level)
+        handler.setLevel(level or self._py_logger.level)
         handler.setFormatter(formatter)
 
         handler.log_record_details = log_record_details
@@ -595,7 +595,7 @@ class SmartLogger:
             self._smart_state.handlers.append(
                 HandlerInfo(
                     kind="file",
-                    level=level or self.level,
+                    level=level or self._py_logger.level,
                     formatter=str(mode.value),
                     path=resolved_path,
                     rotation_logic=rotation_logic,
