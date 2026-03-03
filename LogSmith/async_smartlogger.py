@@ -417,9 +417,14 @@ class AsyncSmartLogger:
     def name(self) -> str:
         return self._name
 
-    def set_level(self, level: int) -> None:
-        self._level = level
-        self._py_logger.setLevel(level)
+    @property
+    def level(self) -> int:
+        return self._level
+
+    @level.setter
+    def level(self, value) -> None:
+        self._level = value
+        self._py_logger.setLevel(value)
 
     # ------------------------------------------------------------------
     # PUBLIC: HANDLER MANAGEMENT

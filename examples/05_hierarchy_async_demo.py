@@ -98,7 +98,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     await a_stdout("\nChanging parent level to INFO...")
 
-    parent.set_level(levels["INFO"])
+    parent.level = levels["INFO"]
     await exercise()
 
     # ------------------------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     await a_stdout("\nChanging parent level to TRACE...")
 
-    parent.set_level(levels["TRACE"])
+    parent.level = levels["TRACE"]
     await exercise()
 
     # ------------------------------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     await a_stdout("\nChanging parent level to WARNING...")
 
-    parent.set_level(levels["WARNING"])
+    parent.level = levels["WARNING"]
     await exercise()
 
     await a_stdout("\nAsync hierarchy demo complete.\n")

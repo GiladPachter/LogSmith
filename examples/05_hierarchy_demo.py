@@ -95,7 +95,7 @@ exercise()
 # ----------------------------------------------------------------------------------------------------------
 stdout("\nChanging parent level to INFO...")
 
-parent.set_level(levels["INFO"])
+parent.level = levels["INFO"]
 exercise()
 
 # ----------------------------------------------------------------------------------------------------------
@@ -103,7 +103,7 @@ exercise()
 # ----------------------------------------------------------------------------------------------------------
 stdout("\nChanging parent level to TRACE...")
 
-parent.set_level(levels["TRACE"])
+parent.level = levels["TRACE"]
 exercise()
 
 # ----------------------------------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ exercise()
 # ----------------------------------------------------------------------------------------------------------
 stdout("\nChanging parent level to WARNING...")
 
-parent.set_level(levels["WARNING"])
+parent.level = levels["WARNING"]
 exercise()
 
 stdout("\nHierarchy demo complete.\n")
