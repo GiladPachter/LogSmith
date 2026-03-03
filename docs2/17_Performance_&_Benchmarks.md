@@ -6,9 +6,20 @@ This chapter explains how to optimize performance, reduce overhead, tune async b
 
 ---
 
-## Performance Philosophy  
+## 💡 Why Performance Tuning Matters
 
-LogSmith prioritizes:
+Logging is often overlooked as a performance bottleneck.
+In real systems, logging can:
+- slow down request handlers
+- block event loops
+- saturate disks
+- overwhelm ingestion pipelines
+- create backpressure in async applications.
+
+
+Performance tuning ensures that logging remains fast, predictable, and unobtrusive even under heavy load.
+
+LogSmith prioritizes include:
 
 - low overhead per log call  
 - predictable latency  
@@ -22,43 +33,85 @@ The goal is to provide rich features without sacrificing speed.
 
 ---
 
-## Sync vs Async Performance  
-### SmartLogger (sync)
-- extremely low overhead  
-- ideal for CLI tools, scripts, and multi‑threaded apps  
-- rotation is thread‑safe and atomic  
-- formatting is optimized to minimize allocations  
+## ⚙️ Sync vs Async Performance
 
-### AsyncSmartLogger (async)
-- non‑blocking  
-- ideal for servers, bots, pipelines  
-- uses an asyncio queue  
-- worker thread handles formatting + rotation  
-- preserves ordering  
-- higher throughput under load  
+Synchronous logging writes directly to disk or stdout. It is simple and predictable but can block the application during:
 
-Async logging is typically faster for high‑volume workloads because the event loop never blocks.
+- slow disk writes  
+- rotation events  
+- large JSON encoding  
+- high‑volume bursts  
 
----
+Async logging offloads all I/O to a background worker. This provides:
 
-## Throughput Benchmarks  
-These are typical (not theoretical) performance ranges measured on mid‑range hardware.
+- non‑blocking logging  
+- smoother throughput  
+- better CPU utilization  
+- safer rotation under load  
 
-### SmartLogger (sync)
-- ~150,000–300,000 logs/sec (console disabled, file only)  
-- ~50,000–120,000 logs/sec (console enabled)  
-- ~20,000–60,000 logs/sec (JSON / NDJSON)  
+Async logging is recommended for:
 
-### AsyncSmartLogger (async)
-- enqueue cost: ~0.1–0.3 µs  
-- worker throughput: ~200,000–400,000 logs/sec (file only)  
-- JSON / NDJSON: ~50,000–100,000 logs/sec  
+- web servers  
+- microservices  
+- data pipelines  
+- high‑volume batch jobs  
 
-Async logging is generally 2–4× faster for heavy workloads.
+Sync logging is fine for:
+
+- CLI tools  
+- small scripts  
+- low‑volume services  
 
 ---
 
-## Rotation Overhead  
+## 🧰 Handler Efficiency
+
+Handlers vary in cost:
+
+- console handler → fastest  
+- file handler → fast, depends on disk  
+- JSON handler → moderate cost  
+- NDJSON handler → moderate cost, less than indented JSON
+- audit handler → moderate to high cost  
+- raw handler → fast, but not structured  
+
+The most expensive operations are:
+
+- JSON encoding  
+- NDJSON line generation  
+- rotation under heavy load  
+
+If performance is critical:
+
+- prefer NDJSON over JSON  
+- avoid excessive structured fields  
+- avoid large multi‑line messages  
+- use async logging for file handlers  
+
+---
+
+## 🧾 Formatter Cost
+
+Formatters determine how much CPU time is spent per log event. Cost increases with:
+
+- JSON encoding  
+- deep structured fields  
+- exception formatting  
+- stack trace extraction  
+- theme rendering  
+
+Theme rendering is negligible compared to JSON encoding. Exception formatting is the most expensive operation in the entire logging pipeline.
+
+If you need maximum throughput:
+
+- avoid logging exceptions in hot loops  
+- avoid deep structured fields  
+- avoid large dictionaries or lists in fields  
+- prefer NDJSON for ingestion pipelines  
+
+---
+
+## Rotation Overhead
 Rotation is designed to be safe and efficient:
 
 - atomic renaming (`os.replace`)  
@@ -76,38 +129,29 @@ Rotation frequency has a much larger impact than rotation cost.
 
 ---
 
-## JSON & NDJSON Performance  
-JSON formatting is more expensive than plain text.
+## 🧩 Structured Field Overhead
 
-### JSON (pretty)
-- slower due to indentation  
-- best for debugging  
-- not recommended for high‑volume production logs  
-
-### NDJSON (compact)
-- significantly faster  
-- ideal for ingestion pipelines  
-- minimal whitespace  
-- one JSON object per line  
-
-NDJSON is the recommended format for high‑volume structured logging.
-
----
-
-## Structured Fields Performance  
-Structured fields (named arguments) add minimal overhead:
+Structured fields are powerful but add overhead:
 
 ```python
-logger.info("User login", username="Gilad", action="login")
+logger.info("User login", username = "Gilad", roles = ["admin", "editor"])
 ```
 
-Cost depends on:
+Each field must be:
 
-- number of fields  
-- JSON serialization (if enabled)  
-- formatting complexity  
+- sanitized  
+- serialized  
+- merged into the log record  
+- encoded into JSON or NDJSON  
 
-Typical overhead: 1–5 µs per log entry.
+For high‑volume systems:
+
+- keep structured fields shallow  
+- avoid large lists or nested objects  
+- avoid storing raw payloads (e.g., entire HTTP bodies)  
+- prefer references or IDs instead of full objects  
+
+Structured logging is worth the cost, but it should be used intentionally.
 
 ---
 

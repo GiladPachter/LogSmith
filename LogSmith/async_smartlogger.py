@@ -637,6 +637,14 @@ class AsyncSmartLogger:
 
         self._messages_enqueued += 1
 
+        # Coping with Backpressure:
+        # auto-flush when queue is too deep
+        if self._queue.qsize() > 10000:
+            # hand control back to the event loop to give worker a chance to drain
+            await asyncio.sleep(0)
+            # WARNING: don't use "await self._queue.join()"
+            #          that's an actual blocking point that would defeat the purpose of async logging.
+
     def messages_enqueued(self):
         return self._messages_enqueued
 
