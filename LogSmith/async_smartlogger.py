@@ -206,6 +206,7 @@ class AsyncSmartLogger:
         frame = self._find_caller()
         # =========================
         if self._profile_enabled:
+            # noinspection PyUnboundLocalVariable
             self._profile_stats["find_caller"] += time.perf_counter() - t1
 
         pathname = frame.f_code.co_filename
@@ -288,6 +289,7 @@ class AsyncSmartLogger:
             self._profile_stats["handlers"] += time.perf_counter() - t1
 
         if self._profile_enabled:
+            # noinspection PyUnboundLocalVariable
             self._profile_stats["total"] += time.perf_counter() - t0
             self._profile_stats["count"] += 1
 

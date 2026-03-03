@@ -134,11 +134,11 @@ Auditing is ideal for compliance, debugging, and forensics.
 ## Lifecycle Best Practices  
 Clean lifecycle management prevents leaks and corruption.
 
-- retire loggers when temporarily disabling them  
-- destroy loggers when resetting configuration  
-- flush async loggers before shutdown  
-- use global shutdown at application exit  
-- avoid creating many short‑lived loggers  
+- retire loggers when those are no longer useful
+- destroy loggers when resetting configuration
+- flush async loggers before shutdown
+- use global shutdown at application exit
+- avoid creating many short‑lived loggers
 
 Lifecycle management keeps your logging system stable.
 
@@ -171,7 +171,8 @@ This ensures clean, reproducible test output.
 
 ---
 
-## Summary  
+## 📘 Summary
+
 These best practices help you build:
 
 - clean logging architectures  
@@ -182,5 +183,3 @@ These best practices help you build:
 - safe async logging  
 - maintainable lifecycle management  
 - high‑performance logging pipelines  
-
-The next chapter covers **Examples & Recipes**, providing ready‑to‑use patterns for common real‑world scenarios.

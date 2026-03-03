@@ -9,7 +9,8 @@ A minimal, clean configuration for small scripts or CLI tools.
 ```python
 from LogSmith import SmartLogger
 
-logger = SmartLogger("demo", level=20)
+levels = SmartLogger.levels()
+logger = SmartLogger("demo", levels["DEBUG"])
 logger.add_console()
 
 logger.info("Hello world")
@@ -24,7 +25,8 @@ A rotating file handler for long‑running applications.
 ```python
 from LogSmith import SmartLogger, RotationLogic
 
-logger = SmartLogger("service", level=20)
+levels = SmartLogger.levels()
+logger = SmartLogger("service", levels["INFO"])
 
 logger.add_file(
     log_dir="logs",
@@ -44,7 +46,8 @@ NDJSON is ideal for ELK, Loki, BigQuery, and pipelines.
 ```python
 from LogSmith import SmartLogger, OutputMode
 
-logger = SmartLogger("ingest", level=20)
+levels = SmartLogger.levels()
+logger = SmartLogger("service", levels["INFO"])
 
 logger.add_file(
     log_dir="logs",
@@ -129,6 +132,7 @@ Add a new level and use it immediately.
 from LogSmith import SmartLogger
 
 SmartLogger.register_level("NOTICE", 25)
+. . .
 logger.notice("This is a NOTICE message")
 ```
 
@@ -242,13 +246,14 @@ The following call renders a logger no longer functional and makes logger.name u
 ```python
 logger.retire()
 ```
-A retired logger cannot be salvaged.<br/>
+A retired logger cannot be salvaged.
+
 To release all the retired logger's resources and make logger.name available once more call: 
 
 ```python
 logger.destroy()
 ```
-Destroying a logger does bot require retiring it beforehand.
+Destroying a logger does not require retiring it beforehand.
 
 ---
 
@@ -263,7 +268,7 @@ logger.add_console()
 
 ---
 
-# 🧩 Summary  
+## 📘 Summary
 These recipes demonstrate:
 
 - basic logging  

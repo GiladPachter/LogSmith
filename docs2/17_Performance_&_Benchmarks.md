@@ -247,7 +247,7 @@ Async queue memory usage depends on backlog size.
 
 ---
 
-## Summary
+## 📘 Summary
 
 LogSmith provides tools and strategies for:
 

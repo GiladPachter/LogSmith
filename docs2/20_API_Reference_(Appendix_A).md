@@ -12,14 +12,14 @@ SmartLogger(name: str, level: int = NOTSET)
 ```
 
 ## Core Methods
-- `setLevel(level: int)` — set explicit level  
-- `getEffectiveLevel()` — inherited or explicit level  
-- `add_console(...)` — attach console handler  
+- `add_console()` — attach console handler
+- `remove_console(...)` — remove the console handler
 - `add_file(...)` — attach file handler  
-- `clear_handlers()` — remove all handlers  
-- `retire()` — disable logger, close handlers  
-- `destroy()` — remove logger entirely  
-- `describe()` — return structured logger info  
+- `remove_file_handler(...)` — remove a file handler by file name and directory
+- `handler_info` — metadata of all logger's handlers
+- `output_targets` — specified where all logger's handlers output logs
+- `retire()` — disable logger, close handlers
+- `destroy()` — remove logger entirely
 
 ## Logging Methods
 - `trace(msg, **fields)`  
@@ -30,6 +30,14 @@ SmartLogger(name: str, level: int = NOTSET)
 - `critical(msg, **fields)`  
 - `raw(text)` — unformatted output  
 
+## Static Methods
+- `levels()` — a dictionary specifying all log levels
+- `register_level(...)` — add dynamic logging level at runtime
+- `apply_color_theme(...)` — change color and style of the built-in log levels
+- `audit_everything()` — audit all loggers to one "root" superset log
+- `terminate_auditing()` — stop auditing
+- `get_record()` — get all log record metadata fields
+
 Dynamic levels automatically add new methods.
 
 ---
@@ -37,10 +45,7 @@ Dynamic levels automatically add new methods.
 # AsyncSmartLogger  
 Async version of SmartLogger.
 
-## Constructor
-```python
-AsyncSmartLogger(name: str, level: int = NOTSET)
-```
+The differences are as follows:
 
 ## Async Logging Methods
 - `await a_trace(msg, **fields)`  
@@ -56,6 +61,17 @@ AsyncSmartLogger(name: str, level: int = NOTSET)
 - `await flush()` — flush queue  
 - `await destroy_async()` — destroy logger  
 - `describe()` — includes queue diagnostics  
+
+## Methods
+- `queue_size` — current size of entries pending in the queue for logging
+- `enable_profiling(...)` — track performance bottlenecks  
+- `get_profiling_details(...)` — get profiling details  
+- `await flush()` — flush queue  
+
+## Static methods
+- `messages_processed()` — total async log entries processed  
+- `queue_size` — current size of entries pending in the queue for logging
+- `await flush()` — flush queue  
 
 ---
 

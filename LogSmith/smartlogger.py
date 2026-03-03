@@ -206,7 +206,6 @@ class SmartLogger(logging.Logger):
     _audit_handler: logging.Handler | None = None
     _audit_enabled: bool = False
     _audit_details: LogRecordDetails | None = None
-    _default_log_record_details: LogRecordDetails = LogRecordDetails()
 
     _file_handler_lock = threading.RLock()
 
@@ -382,10 +381,6 @@ class SmartLogger(logging.Logger):
                 self._log(level_value, msg, args, stacklevel=stacklevel, **kwargs)
 
         return log_method
-
-    @staticmethod
-    def set_global_log_record_details(details: LogRecordDetails) -> None:
-        SmartLogger._default_log_record_details = details
 
     @staticmethod
     def _normalize_output_mode(mode: str | OutputMode) -> OutputMode:
@@ -912,7 +907,7 @@ class SmartLogger(logging.Logger):
 
         # Use provided details or fallback to SmartLogger defaults
         if details is None:
-            details = SmartLogger._default_log_record_details
+            details = LogRecordDetails()
 
         handler.setFormatter(AuditFormatter(details))
 
