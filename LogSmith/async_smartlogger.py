@@ -119,7 +119,7 @@ class AsyncSmartLogger:
 
         self._retired = False
 
-        self._start_worker()
+        self.__start_worker()
 
         # =====================================
 
@@ -155,15 +155,15 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # WORKER
     # ------------------------------------------------------------------
-    def _start_worker(self, workers: int = 1):
+    def __start_worker(self, workers: int = 1):
         if hasattr(self, "_worker_tasks"):
             return
         self._worker_tasks = [
-            self._loop.create_task(self._worker())
+            self._loop.create_task(self.__worker())
             for _ in range(workers)
         ]
 
-    async def _worker(self) -> None:
+    async def __worker(self) -> None:
         while True:
             item = await self._queue.get()
             try:
@@ -171,18 +171,18 @@ class AsyncSmartLogger:
                     return
 
                 if item.op is AsyncOp.LOG:
-                    await self._process_log(item.payload)
+                    await self.__process_log(item.payload)
                 elif item.op is AsyncOp.RAW:
-                    await self._process_raw(item.payload)
+                    await self.__process_raw(item.payload)
                 elif item.op is AsyncOp.ROTATE:
-                    await self._process_rotate(item.payload)
+                    await self.__process_rotate(item.payload)
             finally:
                 self._queue.task_done()
 
     # ------------------------------------------------------------------
     # PROCESS LOG
     # ------------------------------------------------------------------
-    async def _process_log(self, payload: dict[str, Any]) -> None:
+    async def __process_log(self, payload: dict[str, Any]) -> None:
         level: int = payload["level"]
         msg: str = payload["msg"]
         args: tuple[Any, ...] = payload["args"]
@@ -200,7 +200,7 @@ class AsyncSmartLogger:
         if self._profile_enabled:
             t1 = time.perf_counter()
         # =========================
-        frame = self._find_caller()
+        frame = self.__find_caller()
         # =========================
         if self._profile_enabled:
             # noinspection PyUnboundLocalVariable
@@ -296,7 +296,7 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # PROCESS RAW
     # ------------------------------------------------------------------
-    async def _process_raw(self, payload: dict[str, Any]) -> None:
+    async def __process_raw(self, payload: dict[str, Any]) -> None:
         message: str = payload["message"]
         end: str = payload["end"]
 
@@ -318,7 +318,7 @@ class AsyncSmartLogger:
             )
 
             if is_console:
-                text = self._bleach_non_colored_text(message)
+                text = self.__bleach_non_colored_text(message)
             else:
                 do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
                 text = message if do_not_sanitize else CPrint.strip_ansi(message)
@@ -333,7 +333,7 @@ class AsyncSmartLogger:
     # PROCESS ROTATION
     # ------------------------------------------------------------------
     @staticmethod
-    async def _process_rotate(payload: dict[str, Any]) -> None:
+    async def __process_rotate(payload: dict[str, Any]) -> None:
         handler: Async_TimedSizedRotatingFileHandler = payload["handler"]
         with handler.write_lock:
             await asyncio.to_thread(handler.perform_rotation)
@@ -342,7 +342,7 @@ class AsyncSmartLogger:
     # CALLER RESOLUTION
     # ------------------------------------------------------------------
     @staticmethod
-    def _find_caller():
+    def __find_caller():
         frame = inspect.currentframe()
         # Skip internal frames
         while frame:
@@ -357,7 +357,7 @@ class AsyncSmartLogger:
     # RAW COLOR BLEACHING
     # ------------------------------------------------------------------
     @staticmethod
-    def _bleach_non_colored_text(message: str) -> str:
+    def __bleach_non_colored_text(message: str) -> str:
         result: list[str] = []
         plain_buffer: list[str] = []
 
@@ -426,7 +426,7 @@ class AsyncSmartLogger:
     # PUBLIC: HANDLER MANAGEMENT
     # ------------------------------------------------------------------
     @staticmethod
-    def _normalize_output_mode(mode: str | OutputMode) -> OutputMode:
+    def __normalize_output_mode(mode: str | OutputMode) -> OutputMode:
         if isinstance(mode, OutputMode):
             return mode
         try:
@@ -448,7 +448,7 @@ class AsyncSmartLogger:
             if isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename"):
                 return  # console handler already attached
 
-        mode = self._normalize_output_mode(output_mode)
+        mode = self.__normalize_output_mode(output_mode)
 
         if log_record_details is None:
             log_record_details = LogRecordDetails()
@@ -496,7 +496,7 @@ class AsyncSmartLogger:
         if self._retired:
             raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot accept handlers.")
 
-        mode = self._normalize_output_mode(output_mode)
+        mode = self.__normalize_output_mode(output_mode)
 
         normalized = os.path.abspath(os.path.normpath(log_dir))
         if log_dir != normalized:
@@ -651,7 +651,7 @@ class AsyncSmartLogger:
     def messages_enqueued(self):
         return self._messages_enqueued
 
-    async def _enqueue_raw(self, message: str, end: str) -> None:
+    async def __enqueue_raw(self, message: str, end: str) -> None:
         if self._stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
         if self._retired:
@@ -721,7 +721,7 @@ class AsyncSmartLogger:
     async def a_raw(self, message: str, end: str = "\n") -> None:
         if self._retired:
             raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot be used.")
-        await self._enqueue_raw(message, end)
+        await self.__enqueue_raw(message, end)
 
     # ------------------------------------------------------------------
     # DYNAMIC LEVEL SUPPORT
@@ -958,24 +958,24 @@ class AsyncSmartLogger:
 #  Global stdout logger (lazy initialization)
 # ======================================================================
 
-_async_stdout_logger = None
-_async_stdout_lock = threading.Lock()
+__async_stdout_logger = None
+__async_stdout_lock = threading.Lock()
 
 
-def _get_async_stdout_logger() -> "AsyncSmartLogger":
-    global _async_stdout_logger
+def __get_async_stdout_logger() -> AsyncSmartLogger:
+    global __async_stdout_logger
 
-    if _async_stdout_logger is not None:
-        return _async_stdout_logger
+    if __async_stdout_logger is not None:
+        return __async_stdout_logger
 
-    with _async_stdout_lock:
-        if _async_stdout_logger is None:
+    with __async_stdout_lock:
+        if __async_stdout_logger is None:
             lg = AsyncSmartLogger("_async_stdout", level=logging.INFO)
             lg.add_console(level=logging.INFO)
             lg._py_logger.propagate = False
-            _async_stdout_logger = lg
+            __async_stdout_logger = lg
 
-    return _async_stdout_logger
+    return __async_stdout_logger
 
 
 async def a_stdout(*args, sep=" ", end="\n"):
@@ -988,7 +988,7 @@ async def a_stdout(*args, sep=" ", end="\n"):
 
     Auto-flushes to guarantee ordering with async log messages.
     """
-    lg = _get_async_stdout_logger()
+    lg = __get_async_stdout_logger()
 
     # Capture print() output exactly as Python formats it
     buffer = io.StringIO()

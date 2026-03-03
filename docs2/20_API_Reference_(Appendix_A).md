@@ -17,6 +17,9 @@ SmartLogger(name: str, level: int = NOTSET)
 - `add_file(...)` — attach file handler  
 - `remove_file_handler(...)` — remove a file handler by file name and directory
 - `handler_info` — metadata of all logger's handlers
+- `handler_info_json` — a json string representing handler_info (handler_info is not serializable)
+- `console_handler`
+- `file_handlers`
 - `output_targets` — specified where all logger's handlers output logs
 - `retire()` — disable logger, close handlers
 - `destroy()` — remove logger entirely
@@ -61,11 +64,6 @@ The differences are as follows:
 - `await a_exception(msg, **fields)`  
 - `await a_stdout(text)` — synchronized printing  
 
-## Lifecycle
-- `await flush()` — flush queue  
-- `await destroy_async()` — destroy logger  
-- `describe()` — includes queue diagnostics  
-
 ## Methods
 - `queue_size` — current size of entries pending in the queue for logging
 - `enable_profiling(...)` — track performance bottlenecks  
@@ -75,7 +73,6 @@ The differences are as follows:
 ## Static methods
 - `messages_processed()` — total async log entries processed  
 - `queue_size` — current size of entries pending in the queue for logging
-- `await flush()` — flush queue  
 
 ---
 

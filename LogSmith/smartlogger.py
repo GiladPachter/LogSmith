@@ -203,11 +203,11 @@ class SmartLogger:
     visually expressive logging.
     """
 
-    _audit_handler: logging.Handler | None = None
-    _audit_enabled: bool = False
-    _audit_details: LogRecordDetails | None = None
+    __audit_handler: logging.Handler | None = None
+    __audit_enabled: bool = False
+    __audit_details: LogRecordDetails | None = None
 
-    _file_handler_lock = threading.RLock()
+    __file_handler_lock = threading.RLock()
 
     def __init__(self, name: str, level: int = logging.NOTSET) -> None:
         self._smart_state = _SmartLoggerState()
@@ -238,25 +238,25 @@ class SmartLogger:
         self._py_logger.setLevel(level)
 
         # Auditing still controls propagation
-        self._py_logger.propagate = SmartLogger._audit_enabled
+        self._py_logger.propagate = SmartLogger.__audit_enabled
 
     def trace(self, msg, *args, **kwargs):
-        self._log(TRACE, msg, args, **kwargs)
+        self.__log(TRACE, msg, args, **kwargs)
 
     def debug(self, msg, *args, **kwargs):
-        self._log(logging.DEBUG, msg, args, **kwargs)
+        self.__log(logging.DEBUG, msg, args, **kwargs)
 
     def info(self, msg, *args, **kwargs):
-        self._log(logging.INFO, msg, args, **kwargs)
+        self.__log(logging.INFO, msg, args, **kwargs)
 
     def warning(self, msg, *args, **kwargs):
-        self._log(logging.WARNING, msg, args, **kwargs)
+        self.__log(logging.WARNING, msg, args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
-        self._log(logging.ERROR, msg, args, **kwargs)
+        self.__log(logging.ERROR, msg, args, **kwargs)
 
     def critical(self, msg, *args, **kwargs):
-        self._log(logging.CRITICAL, msg, args, **kwargs)
+        self.__log(logging.CRITICAL, msg, args, **kwargs)
 
     @property
     def name(self) -> str:
@@ -271,7 +271,7 @@ class SmartLogger:
         self._py_logger.setLevel(value)
 
     @staticmethod
-    def _bleach_non_colored_text(message: str) -> str:
+    def __bleach_non_colored_text(message: str) -> str:
         """
         Isolating non-colored text and coloring it with console default.
         """
@@ -343,7 +343,7 @@ class SmartLogger:
             is_console = isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename")
 
             if is_console:
-                text = self._bleach_non_colored_text(message)
+                text = self.__bleach_non_colored_text(message)
             else:
                 do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
                 text = message if do_not_sanitize else CPrint.strip_ansi(message)
@@ -355,7 +355,7 @@ class SmartLogger:
     #  CORE LOGGING BEHAVIOR
     # ------------------------------------------------------------------
     @staticmethod
-    def _find_caller():
+    def __find_caller():
         frame = inspect.currentframe()
         # Skip frames until we reach user code
         while frame:
@@ -377,7 +377,7 @@ class SmartLogger:
 
         return None
 
-    def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1, **kwargs):
+    def __log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1, **kwargs):
         if self._smart_state.retired:
             raise RuntimeError(f"Logger {self._name!r} has been retired and cannot be used.")
 
@@ -395,7 +395,7 @@ class SmartLogger:
             exc_info = sys.exc_info()
 
         # Resolve caller
-        frame = self._find_caller()
+        frame = self.__find_caller()
         pathname = frame.f_code.co_filename
         lineno = frame.f_lineno
         func_name = frame.f_code.co_name
@@ -417,23 +417,23 @@ class SmartLogger:
         record.__dict__.update(extra)
 
         # AUDIT
-        if SmartLogger._audit_enabled and SmartLogger._audit_handler:
-            SmartLogger._audit_handler.handle(record)
+        if SmartLogger.__audit_enabled and SmartLogger.__audit_handler:
+            SmartLogger.__audit_handler.handle(record)
 
         # Let Python logging handle hierarchy + filtering + propagation
         self._py_logger.handle(record)
 
-    def _wrap_builtin(self, level_value: int) -> Callable[..., None]:
+    def __wrap_builtin(self, level_value: int) -> Callable[..., None]:
         def log_method(msg=None, *args, stacklevel=2, **kwargs):
             if msg is None:
                 msg = ""
             if self._py_logger.isEnabledFor(level_value):
-                self._log(level_value, msg, args, stacklevel=stacklevel, **kwargs)
+                self.__log(level_value, msg, args, stacklevel=stacklevel, **kwargs)
 
         return log_method
 
     @staticmethod
-    def _normalize_output_mode(mode: str | OutputMode) -> OutputMode:
+    def __normalize_output_mode(mode: str | OutputMode) -> OutputMode:
         if isinstance(mode, OutputMode):
             return mode
         try:
@@ -453,7 +453,7 @@ class SmartLogger:
         if any([1 for info in self.handler_info if info["kind"] == "console"]):
             raise RuntimeError(f"Logger {self._py_logger.name!r} already has a console handler.")
 
-        mode: OutputMode = self._normalize_output_mode(output_mode)
+        mode: OutputMode = self.__normalize_output_mode(output_mode)
 
         # Ensure we have a LogRecordDetails instance
         if log_record_details is None:
@@ -519,7 +519,7 @@ class SmartLogger:
         if self._smart_state.retired:
             raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot accept handlers.")
 
-        mode = self._normalize_output_mode(output_mode)
+        mode = self.__normalize_output_mode(output_mode)
 
         # verify normalized log_dir given
         normalized = os.path.abspath(os.path.normpath(log_dir))
@@ -569,7 +569,7 @@ class SmartLogger:
         handler.do_not_sanitize_colors_from_string = do_not_sanitize_colors_from_string
 
         # --- CRITICAL SECTION (tight lock) --------------------------------
-        with SmartLogger._file_handler_lock:
+        with SmartLogger.__file_handler_lock:
 
             # 1. Check all SmartLogger instances for duplicate file handlers
             for logger in logging.Logger.manager.loggerDict.values():
@@ -640,7 +640,7 @@ class SmartLogger:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _pretty_handler_info(info: HandlerInfo) -> dict[str, Any]:
+    def __pretty_handler_info(info: HandlerInfo) -> dict[str, Any]:
         """
         Convert HandlerInfo into a clean, human‑readable dict.
         Includes the handler object itself so that removal operations
@@ -673,7 +673,7 @@ class SmartLogger:
         """
         Human-readable view of this logger's handler metadata.
         """
-        return [self._pretty_handler_info(info) for info in self._smart_state.handlers]
+        return [self.__pretty_handler_info(info) for info in self._smart_state.handlers]
 
     @property
     def handler_info_json(self) -> str:
@@ -701,13 +701,13 @@ class SmartLogger:
     def console_handler(self) -> Optional[dict[str, object]]:
         for info in self._smart_state.handlers:
             if info.kind == "console":
-                return self._pretty_handler_info(info)
+                return self.__pretty_handler_info(info)
         return None
 
     @property
     def file_handlers(self) -> list[dict[str, object]]:
         return [
-            self._pretty_handler_info(info)
+            self.__pretty_handler_info(info)
             for info in self._smart_state.handlers
             if info.kind == "file"
         ]
@@ -898,7 +898,7 @@ class SmartLogger:
 
         def dynamic_log_method(msg: str, *args, **kwargs):
             if self._py_logger.isEnabledFor(level_value):
-                self._log(level_value, msg, args, stacklevel=2, **kwargs)
+                self.__log(level_value, msg, args, stacklevel=2, **kwargs)
 
         return dynamic_log_method
 
@@ -966,9 +966,9 @@ class SmartLogger:
         root.addHandler(handler)
 
         # Store state
-        SmartLogger._audit_handler = handler
-        SmartLogger._audit_enabled = True
-        SmartLogger._audit_details = details
+        SmartLogger.__audit_handler = handler
+        SmartLogger.__audit_enabled = True
+        SmartLogger.__audit_details = details
 
         # Retroactively enable propagation on all SmartLogger instances
         for logger in logging.Logger.manager.loggerDict.values():
@@ -982,16 +982,16 @@ class SmartLogger:
         Retroactively disables propagation on all SmartLogger instances.
         Safe to call even if auditing is not active.
         """
-        if not SmartLogger._audit_enabled:
+        if not SmartLogger.__audit_enabled:
             return
 
         root = logging.getLogger()
-        if SmartLogger._audit_handler in root.handlers:
-            root.removeHandler(SmartLogger._audit_handler)
+        if SmartLogger.__audit_handler in root.handlers:
+            root.removeHandler(SmartLogger.__audit_handler)
 
-        SmartLogger._audit_handler = None
-        SmartLogger._audit_enabled = False
-        SmartLogger._audit_details = None
+        SmartLogger.__audit_handler = None
+        SmartLogger.__audit_enabled = False
+        SmartLogger.__audit_details = None
 
         # Retroactively disable propagation
         for logger in logging.Logger.manager.loggerDict.values():
@@ -1203,7 +1203,7 @@ class SmartLogger:
             rec.process_id = pid
 
         if process_name:
-            rec.process_name = SmartLogger._get_process_name()
+            rec.process_name = SmartLogger.__get_process_name()
 
         if exc_info:
             exc_type, exc_value, exc_tb = exc_val
@@ -1222,7 +1222,7 @@ class SmartLogger:
         return rec
 
     @staticmethod
-    def _get_process_name() -> str | None:
+    def __get_process_name() -> str | None:
         # Windows
         # noinspection PyBroadException
         try:
@@ -1294,29 +1294,29 @@ class SmartLoggerProtocol(Protocol):
 # ======================================================================
 #  Global stdout logger (lazy initialization)
 # ======================================================================
-_stdout_logger = None
-_stdout_lock = threading.Lock()
+__stdout_logger = None
+__stdout_lock = threading.Lock()
 
 
-def _get_stdout_logger() -> "SmartLogger":
+def __get_stdout_logger() -> "SmartLogger":
     """
     Internal helper that creates a dedicated SmartLogger instance
     for stdout redirection. It has exactly one console handler and
     does not propagate or write to files.
     """
-    global _stdout_logger
+    global __stdout_logger
 
-    if _stdout_logger is not None:
-        return _stdout_logger
+    if __stdout_logger is not None:
+        return __stdout_logger
 
-    with _stdout_lock:
-        if _stdout_logger is None:
+    with __stdout_lock:
+        if __stdout_logger is None:
             lg = SmartLogger("_stdout", level=logging.INFO)
             lg.add_console(level=logging.INFO)
             lg.propagate = False
-            _stdout_logger = lg
+            __stdout_logger = lg
 
-    return _stdout_logger
+    return __stdout_logger
 
 
 def stdout(*args, sep=" ", end="\n"):
@@ -1329,7 +1329,7 @@ def stdout(*args, sep=" ", end="\n"):
 
     Auto-flushes to guarantee ordering with log messages.
     """
-    lg = _get_stdout_logger()
+    lg = __get_stdout_logger()
 
     # Capture print() output exactly as Python formats it
     buffer = io.StringIO()
