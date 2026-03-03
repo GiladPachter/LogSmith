@@ -98,12 +98,9 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     def __init__(self, name: str, level: int) -> None:
         self._name = name
-        self._level = level
 
         self._py_logger = logging.getLogger(name)
         self._py_logger.propagate = False
-
-        logging.Logger.manager.loggerDict[name] = self._py_logger
 
         if level == logging.NOTSET:
             self._py_logger.setLevel(logging.NOTSET)
@@ -419,11 +416,10 @@ class AsyncSmartLogger:
 
     @property
     def level(self) -> int:
-        return self._level
+        return self._py_logger.level
 
     @level.setter
     def level(self, value) -> None:
-        self._level = value
         self._py_logger.setLevel(value)
 
     # ------------------------------------------------------------------
@@ -539,7 +535,7 @@ class AsyncSmartLogger:
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")
 
-        handler.setLevel(level or self._level)
+        handler.setLevel(level or self.level)
         handler.setFormatter(formatter)
 
         setattr(handler, "do_not_sanitize_colors_from_string", do_not_sanitize_colors_from_string)
@@ -550,7 +546,7 @@ class AsyncSmartLogger:
 
         self._py_logger.addHandler(handler)
 
-        level_name = logging.getLevelName(level or self._level)
+        level_name = logging.getLevelName(level or self.level)
         rotation_meta = None
         if rotation_logic:
             rotation_meta = {

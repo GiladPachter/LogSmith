@@ -87,7 +87,7 @@ class RetrievedRecord:
 # ======================================================================
 #  SMARTLOGGER IMPLEMENTATION
 # ======================================================================
-class SmartLogger():
+class SmartLogger:
     """
     SmartLogger
     ===========
@@ -213,12 +213,10 @@ class SmartLogger():
         self._smart_state = _SmartLoggerState()
 
         self._name = name
-        self._level = level
 
         self._py_logger = logging.getLogger(name)
         self._py_logger.propagate = False
         self._py_logger.setLevel(level)
-        logging.Logger.manager.loggerDict[name] = self._py_logger
 
         # Register this logger in the global logging manager so that
         # logging.getLogger(name) returns THIS instance from now on.
@@ -266,11 +264,10 @@ class SmartLogger():
 
     @property
     def level(self) -> int:
-        return self._level
+        return self._py_logger.level
 
     @level.setter
     def level(self, value) -> None:
-        self._level = value
         self._py_logger.setLevel(value)
 
     @staticmethod
@@ -564,7 +561,7 @@ class SmartLogger():
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")
 
-        handler.setLevel(level or self._level)
+        handler.setLevel(level or self.level)
         handler.setFormatter(formatter)
 
         handler.log_record_details = log_record_details
@@ -598,7 +595,7 @@ class SmartLogger():
             self._smart_state.handlers.append(
                 HandlerInfo(
                     kind="file",
-                    level=level or self._level,
+                    level=level or self.level,
                     formatter=str(mode.value),
                     path=resolved_path,
                     rotation_logic=rotation_logic,
