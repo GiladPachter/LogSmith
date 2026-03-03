@@ -124,6 +124,37 @@ class AsyncSmartLogger:
 
         self._start_worker()
 
+        # =====================================
+
+        self._profile_enabled = False
+        self._profile_stats = {
+            "count": 0,
+            "find_caller": 0.0,
+            "record": 0.0,
+            "handlers": 0.0,
+            "total": 0.0,
+        }
+
+    def enable_profiling(self, enable: bool):
+        self._profile_enabled = enable
+
+    def get_profiling_details(self) -> str:
+        if not self._profile_enabled:
+            return "Profiling not enabled."
+
+        c = self._profile_stats["count"]
+        if c == 0:
+            return "No profiling data collected."
+
+        profiling_details = (f"Total log events: {c}\n"
+                             f"Avg find_caller: {self._profile_stats['find_caller'] / c * 1e6:.2f} µs\n"
+                             f"Avg record creation: {self._profile_stats['record'] / c * 1e6:.2f} µs\n"
+                             f"Avg handler time: {self._profile_stats['handlers'] / c * 1e6:.2f} µs\n"
+                             f"Avg total per log: {self._profile_stats['total'] / c * 1e6:.2f} µs\n"
+                             )
+
+        return profiling_details
+
     # ------------------------------------------------------------------
     # WORKER
     # ------------------------------------------------------------------
@@ -166,7 +197,17 @@ class AsyncSmartLogger:
         if fields:
             extra.setdefault("fields", {}).update(fields)
 
+        if self._profile_enabled:
+            t0 = time.perf_counter()
+
+        if self._profile_enabled:
+            t1 = time.perf_counter()
+        # =========================
         frame = self._find_caller()
+        # =========================
+        if self._profile_enabled:
+            self._profile_stats["find_caller"] += time.perf_counter() - t1
+
         pathname = frame.f_code.co_filename
         lineno = frame.f_lineno
         func_name = frame.f_code.co_name
@@ -189,6 +230,9 @@ class AsyncSmartLogger:
 
         record_name = extra.pop("force_logger_name", self._name)
 
+        if self._profile_enabled:
+            t1 = time.perf_counter()
+        # =========================
         record = logging.LogRecord(
             name=record_name,
             level=level,
@@ -200,8 +244,15 @@ class AsyncSmartLogger:
             func=func_name,
             sinfo=sinfo,
         )
+        # =========================
+        if self._profile_enabled:
+            self._profile_stats["record"] += time.perf_counter() - t1
+
         record.__dict__.update(extra)
 
+        if self._profile_enabled:
+            t1 = time.perf_counter()
+        # ======================================
         for handler in self._py_logger.handlers:
             formatter = handler.formatter
 
@@ -232,6 +283,14 @@ class AsyncSmartLogger:
                         handler.emit(record)
                 else:
                     handler.emit(record)
+        # ======================================
+        if self._profile_enabled:
+            self._profile_stats["handlers"] += time.perf_counter() - t1
+
+        if self._profile_enabled:
+            self._profile_stats["total"] += time.perf_counter() - t0
+            self._profile_stats["count"] += 1
+
 
         AsyncSmartLogger.__messages_processed += 1
 

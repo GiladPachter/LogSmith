@@ -47,7 +47,6 @@ async def main():
     await a_stdout("\nCreating async logger 'stress.async'...")
 
     logger = AsyncSmartLogger("stress.async", level=levels["TRACE"])
-    # logger.add_console(level=levels["TRACE"])
 
     # --------------------------------------------------------------
     # Rotating file handler
@@ -83,7 +82,7 @@ async def main():
         log_record_details=details,
     )
 
-    await logger.a_info("Async stress-test logger ready.")
+    await a_stdout("Async stress-test logger ready.")
 
     # --------------------------------------------------------------
     # Stress test parameters
@@ -160,20 +159,28 @@ async def main():
     # --------------------------------------------------------------
     await a_stdout(f"\nStarting async stress test with {TASK_COUNT} tasks...\n")
 
+    logger.enable_profiling(True)
+
     start = time.time()
 
+    # create worker instances
     tasks = [asyncio.create_task(worker(t)) for t in range(TASK_COUNT)]
+
+    # create monitor for workers progress
     monitor_task = asyncio.create_task(monitor())
 
-    await asyncio.gather(*tasks)
-    await monitor_task
+    await asyncio.gather(*tasks)    # DO      WORKLOAD
+    await monitor_task              # Monitor WORKLOAD
 
-    # --------------------------------------------------------------
-    # Flush logger
-    # --------------------------------------------------------------
+    # force logger queue to empty
     await logger.flush()
 
     end = time.time()
+
+    profiling_details = logger.get_profiling_details()
+    await a_stdout(profiling_details)
+    logger.enable_profiling(False)
+
     await a_stdout(f"\nStress test completed in {end - start:.2f} seconds\n")
 
 
