@@ -1,313 +1,216 @@
 # Appendix A — API Reference  
-This appendix provides a complete reference for all public classes, methods, configuration objects, and constants in LogSmith. It is designed as a quick lookup for developers who already understand the concepts covered in previous chapters.
+A compact index of all LogSmith entities and the members they expose.  
+Each bullet names a public member and states its purpose in one line.
 
 ---
 
 # 🧠 SmartLogger  
-The primary synchronous logger.
+Synchronous, high‑level logger built on Python’s logging system (composition).
 
-## Constructor
-```python
-SmartLogger(name: str, level: int = NOTSET)
-```
+## Core Members
+- **name** — logger’s name.  
+- **level** — logger’s current log level (inherits via hierarchy when NOTSET).  
+- **add_console** — attach a console handler with structured or colored output.  
+- **remove_console** — remove the console handler.  
+- **add_file** — attach a file handler with optional rotation and retention.  
+- **remove_file_handler** — remove a file handler by directory + filename.  
+- **handler_info** — list of metadata dictionaries describing all handlers.  
+- **handler_info_json** — JSON representation of handler_info.  
+- **console_handler** — metadata for the console handler, if present.  
+- **file_handlers** — metadata for all file handlers.  
+- **output_targets** — list of output destinations (“console” or file paths).  
+- **raw** — write unformatted text directly to handlers.  
+- **retire** — close handlers and disable the logger.  
+- **destroy** — remove logger entirely from logging system.
 
-## Core Methods
-- `add_console()` — attach console handler
-- `remove_console(...)` — remove the console handler
-- `add_file(...)` — attach file handler  
-- `remove_file_handler(...)` — remove a file handler by file name and directory
-- `handler_info` — metadata of all logger's handlers
-- `handler_info_json` — a json string representing handler_info (handler_info is not serializable)
-- `console_handler`
-- `file_handlers`
-- `output_targets` — specified where all logger's handlers output logs
-- `retire()` — disable logger, close handlers
-- `destroy()` — remove logger entirely
+## Logging Members
+- **trace / debug / info / warning / error / critical** — structured log methods.  
+- **dynamic level methods** — automatically created for registered levels.
 
-## Logging Methods
-- `trace(msg, **fields)`  
-- `debug(msg, **fields)`  
-- `info(msg, **fields)`  
-- `warning(msg, **fields)`  
-- `error(msg, **fields)`  
-- `critical(msg, **fields)`  
-- `raw(text)` — unformatted output  
-
-## Static Methods
-- `levels()` — a dictionary specifying all log levels
-- `register_level(...)` — add dynamic logging level at runtime
-- `apply_color_theme(...)` — change color and style of the built-in log levels
-- `audit_everything()` — audit all loggers to one "root" superset log
-- `terminate_auditing()` — stop auditing
-- `get_record()` — get all log record metadata fields
-
-## Properties
-- `name` — logger's name
-- `level` — logger's log level
-
-Dynamic levels automatically add new methods.
+## Static Members
+- **levels** — dictionary of all registered log levels.  
+- **register_level** — define a new log level at runtime.  
+- **apply_color_theme** — override color/style for built‑in and dynamic levels.  
+- **audit_everything** — enable global auditing of all SmartLogger output.  
+- **terminate_auditing** — disable global auditing.  
+- **get_record** — extract a strongly‑typed `RetrievedRecord` from a LogRecord.
 
 ---
 
-# AsyncSmartLogger  
-Async version of SmartLogger.
+# ⚡ AsyncSmartLogger  
+Fully asynchronous logger with queue, worker task, and async‑safe rotation.
 
-The differences are as follows:
+## Core Members
+- **name** — logger’s name.  
+- **level** — logger’s current log level.  
+- **queue_size** — number of pending log entries in the async queue.  
+- **messages_enqueued** — number of log entries submitted to the queue.  
+- **messages_processed (class)** — total processed entries across all instances.  
+- **add_console** — attach async‑safe console handler.  
+- **remove_console** — remove console handler.  
+- **add_file** — attach async‑safe file handler with async rotation.  
+- **remove_file_handler** — remove file handler by directory + filename.  
+- **handler_info** — metadata for all handlers.  
+- **handler_info_json** — JSON representation of handler_info.  
+- **output_targets** — list of output destinations.  
+- **enable_profiling** — enable/disable internal performance profiling.  
+- **get_profiling_details** — return profiling statistics.  
+- **flush** — wait until queue is empty.  
+- **shutdown** — stop worker and flush queue.  
+- **raw / a_raw** — unformatted output (sync/async).
 
-## Async Logging Methods
-- `await a_trace(msg, **fields)`  
-- `await a_debug(msg, **fields)`  
-- `await a_info(msg, **fields)`  
-- `await a_warning(msg, **fields)`  
-- `await a_error(msg, **fields)`  
-- `await a_critical(msg, **fields)`  
-- `await a_exception(msg, **fields)`  
-- `await a_stdout(text)` — synchronized printing  
+## Async Logging Members
+- **a_trace / a_debug / a_info / a_warning / a_error / a_critical** — async structured logging.  
+- **dynamic async level methods** — created automatically for registered levels.
 
-## Methods
-- `queue_size` — current size of entries pending in the queue for logging
-- `enable_profiling(...)` — track performance bottlenecks  
-- `get_profiling_details(...)` — get profiling details  
-- `await flush()` — flush queue  
-
-## Static methods
-- `messages_processed()` — total async log entries processed  
-- `queue_size` — current size of entries pending in the queue for logging
-
----
-
-# Handlers
-
-## Console Handler
-Created via:
-```python
-logger.add_console(
-    level=None,
-    output_mode=OutputMode.COLOR,
-    log_record_details=None,
-)
-```
-
-## File Handler
-Created via:
-```python
-logger.add_file(
-    log_dir: str,
-    logfile_name: str,
-    level=None,
-    output_mode=OutputMode.PLAIN,
-    rotation_logic=None,
-    log_record_details=None,
-    do_not_sanitize_colors_from_string=False,
-)
-```
-
-Properties:
-- `path`  
-- `rotation_logic`  
-- `retention`  
-- `output_mode`  
-- `formatter`  
+## Static Members
+- **levels** — dictionary of all registered log levels.  
+- **register_level** — define a new async log level.  
+- **apply_color_theme** — override color/style for async log levels.  
+- **audit_everything** — enable async global auditing.  
+- **stop_auditing** — disable async auditing.
 
 ---
 
-# LogRecordDetails  
-Controls structured formatting.
+# 🧾 LogRecordDetails  
+Controls structured formatting for console/file output.
 
-```python
-LogRecordDetails(
-    datefmt="%Y-%m-%d %H:%M:%S",
-    separator="•",
-    optional_record_fields=OptionalRecordFields(...),
-    message_parts_order=[...],
-    color_all_log_record_fields=False,
-)
-```
+## Members
+- **datefmt** — timestamp format (supports %1f–%6f fractional seconds).  
+- **separator** — single‑character separator between fields.  
+- **optional_record_fields** — which metadata fields to include.  
+- **message_parts_order** — ordering of inline metadata fields.  
+- **color_all_log_record_fields** — colorize all fields, not just level/message.
 
 ---
 
-# OptionalRecordFields  
-Enable/disable metadata fields.
+# 🧩 OptionalRecordFields  
+Enable/disable individual metadata fields.
 
-```python
-OptionalRecordFields(
-    logger_name=False,
-    file_name=False,
-    lineno=False,
-    func_name=False,
-    thread_id=False,
-    process_id=False,
-    module_name=False,
-    pathname=False,
-)
-```
-
----
-
-# RotationLogic  
-Controls rotation behavior.
-
-```python
-RotationLogic(
-    maxBytes=None,
-    when=None,
-    interval=1,
-    timestamp=None,
-    backupCount=0,
-    expiration_rule=None,
-)
-```
+## Members
+- **relative_created** — include relative timestamp.  
+- **logger_name** — include logger name.  
+- **file_path** — include full file path.  
+- **file_name** — include filename only.  
+- **lineno** — include line number.  
+- **func_name** — include function name.  
+- **thread_id / thread_name** — include thread metadata.  
+- **task_name** — include asyncio task name.  
+- **process_id / process_name** — include process metadata.  
+- **exc_info** — include exception traceback.  
+- **stack_info** — include stack trace.
 
 ---
 
-# RotationTimestamp  
-Defines daily/weekly rotation anchors.
+# 🎨 OutputMode  
+Enum controlling formatter type.
 
-```python
-RotationTimestamp(hour=0, minute=0, second=0)
-```
-
----
-
-# ExpirationRule  
-Defines retention policy.
-
-```python
-ExpirationRule(
-    scale=ExpirationScale.Days,
-    interval=7,
-)
-```
+## Members
+- **PLAIN** — plain structured text.  
+- **COLOR** — colored structured text.  
+- **JSON** — pretty‑printed JSON.  
+- **NDJSON** — newline‑delimited JSON.
 
 ---
 
-# OutputMode  
-Enum for output formatting.
-
-- `COLOR`  
-- `PLAIN`  
-- `JSON`  
-- `NDJSON`  
-
----
-
-# LevelStyle  
+# 🎨 LevelStyle  
 Defines color/style for a log level.
 
-```python
-LevelStyle(
-    fg=None,
-    bg=None,
-    bold=False,
-    dim=False,
-    underline=False,
-    italic=False,
-    strike=False,
-)
-```
+## Members
+- **fg** — foreground color code.  
+- **bg** — background color code.  
+- **intensity** — bold/dim/normal.  
+- **styles** — tuple of additional ANSI styles.
 
 ---
 
-# CPrint  
-ANSI color engine.
+# 🌈 CPrint  
+ANSI color and gradient engine.
 
-## Methods
-- `colorize(text, fg=None, bg=None, bold=False, ...)`  
-- `gradient(text, fg_codes, bg_codes=None)`  
-
-## Color Constants
-- `CPrint.FG.*`  
-- `CPrint.BG.*`  
-
----
-
-# GradientPalette  
-Predefined palettes.
-
-- `RAINBOW`  
-- `FIRE`  
-- `OCEAN`  
-- `FOREST`  
-- `SUNSET`  
-- `PASTEL`  
-
-Custom palette:
-
-```python
-GradientPalette([196, 202, 208])
-```
+## Members
+- **colorize** — apply solid color and style.  
+- **gradient** — apply 256‑color gradient (fg/bg).  
+- **reverse** — swap foreground/background.  
+- **strip_ansi** — remove ANSI codes.  
+- **escape_ansi_for_display** — escape only color/style codes.  
+- **escape_control_chars** — escape all control sequences.  
+- **FG / BG / Intensity / Style** — color/style constant groups.
 
 ---
 
-# Auditing  
-Global capture of all logs.
+# 🌈 GradientPalette  
+Predefined 256‑color palettes for gradients.
 
-## Enable
-```python
-SmartLogger.audit_everything(
-    log_dir="audit",
-    logfile_name="audit.log",
-    output_mode=OutputMode.NDJSON,
-    rotation_logic=None,
-)
-```
-
-Async version:
-
-```python
-AsyncSmartLogger.audit_everything(...)
-```
-
-## Disable
-```python
-SmartLogger.stop_auditing()
-await AsyncSmartLogger.stop_auditing()
-```
+## Members
+- **RAINBOW / FIRE / OCEAN / FOREST / SUNSET / PASTEL / NEON / GREYSCALE** — ready‑made palettes.  
+- **custom palettes** — create via `GradientPalette([...])`.
 
 ---
 
-# Dynamic Levels  
-Register new levels:
+# 🔄 RotationLogic  
+Describes rotation and retention behavior.
 
-```python
-SmartLogger.register_level("NOTICE", 25)
-AsyncSmartLogger.register_level("SUCCESS", 35)
-```
-
-Automatically creates:
-
-- new level constant  
-- new logger method  
-- theme integration  
+## Members
+- **when** — time‑based rotation mode (SECOND, MINUTE, HOUR, EVERYDAY, weekday).  
+- **interval** — rotation interval for SECOND/MINUTE/HOUR.  
+- **timestamp** — daily/weekly rotation anchor.  
+- **maxBytes** — size‑based rotation threshold.  
+- **backupCount** — number of rotated files to keep.  
+- **expiration_rule** — retention policy for deleting old rotated files.  
+- **append_filename_pid** — append process ID to filename.  
+- **append_filename_timestamp** — append timestamp to filename.  
+- **create_handler** — produce a rotation‑aware file handler.
 
 ---
 
-# Global Utilities
+# 🕒 RotationTimestamp  
+Defines time‑of‑day anchors for daily/weekly rotation.
 
-## Get Logger
-```python
-SmartLogger.get_logger(name)
-AsyncSmartLogger.get_logger(name)
-```
+## Members
+- **hour / minute / second** — rotation trigger time.  
+- **to_seconds** — convert to seconds since midnight.
 
-## Shutdown
-```python
-SmartLogger.shutdown()
-await AsyncSmartLogger.shutdown()
-```
+---
+
+# 🧹 ExpirationRule  
+Defines retention policy for rotated files.
+
+## Members
+- **scale** — unit (Seconds, Minutes, Hours, Days, MonthDay).  
+- **interval** — how long to keep rotated files.
+
+---
+
+# 🧱 When  
+Enum for time‑based rotation modes.
+
+## Members
+- **SECOND / MINUTE / HOUR** — periodic rotation.  
+- **EVERYDAY** — daily rotation.  
+- **MONDAY … SUNDAY** — weekly rotation.
+
+---
+
+# 🧩 RetrievedRecord  
+Strongly‑typed representation of a log record.
+
+## Members
+- **timestamp / level** — core fields.  
+- **relative_created / logger_name / file_path / file_name / lineno / func_name** — metadata.  
+- **thread_id / thread_name / task_name / process_id / process_name** — concurrency metadata.  
+- **exc_info / stack_info** — diagnostics.
+
+---
+
+# 🧩 LevelRegistry (internal but exposed via SmartLogger/AsyncSmartLogger)
+Manages dynamic log levels.
+
+## Members
+- **register** — add a new level.  
+- **get** — retrieve level metadata.  
+- **all** — dictionary of all registered levels.
 
 ---
 
 # Summary  
-This appendix provides a complete reference for:
-
-- SmartLogger and AsyncSmartLogger  
-- handlers  
-- formatting  
-- rotation  
-- themes  
-- auditing  
-- dynamic levels  
-- global utilities  
-
-The next appendix covers **Appendix B: Glossary**, defining all terminology used throughout the documentation.
+This appendix lists all LogSmith entities and the members they expose, providing a compact map of the entire API surface: loggers, handlers, formatting, rotation, colors, themes, auditing, and dynamic levels.
