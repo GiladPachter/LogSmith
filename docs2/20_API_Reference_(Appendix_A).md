@@ -8,6 +8,7 @@ Each bullet names a public member and states its purpose in one line.
 Synchronous, high‑level logger built on Python’s logging system (composition).
 
 ## Core Members
+
 ```
 - `name`                      —  logger’s name.  
 - `level`                     —  logger’s current log level (inherits via hierarchy when NOTSET).  
@@ -26,6 +27,7 @@ Synchronous, high‑level logger built on Python’s logging system (composition
 ```
 
 ## Logging Members
+
 ```
 - `trace`
 - `debug`
@@ -38,6 +40,7 @@ Synchronous, high‑level logger built on Python’s logging system (composition
 ```
 
 ## Static Members
+
 ```
 - `levels`              —  dictionary of all registered log levels.  
 - `register_level`      —  define a new log level at runtime.  
@@ -54,6 +57,7 @@ Fully asynchronous logger with queue, worker task, and async‑safe rotation.
 
 ## Core Members
 ```
+
 - `name`                   —  logger’s name.  
 - `level`                  —  logger’s current log level.  
 - `queue_size`             —  number of pending log entries in the async queue.  
@@ -73,6 +77,7 @@ Fully asynchronous logger with queue, worker task, and async‑safe rotation.
 ```
 
 ## Async Logging Members
+
 ```
 - `a_trace`
 - `a_debug`
@@ -85,6 +90,7 @@ Fully asynchronous logger with queue, worker task, and async‑safe rotation.
 ```
 
 ## Static Members
+
 ```
 - `levels`             —  dictionary of all registered log levels.  
 - `register_level`     —  define a new async log level.  
@@ -96,142 +102,165 @@ Fully asynchronous logger with queue, worker task, and async‑safe rotation.
 ---
 
 # 🧾 LogRecordDetails  
+
 Controls structured formatting for console/file output.
 
 ## Members
-- **datefmt** — timestamp format (supports %1f–%6f fractional seconds).  
-- **separator** — single‑character separator between fields.  
-- **optional_record_fields** — which metadata fields to include.  
-- **message_parts_order** — ordering of inline metadata fields.  
-- **color_all_log_record_fields** — colorize all fields, not just level/message.
+```
+- `datefmt`                      —  timestamp format (supports %1f–%6f fractional seconds).  
+- `separator`                    —  single‑character separator between fields.  
+- `optional_record_fields`       —  which metadata fields to include.  
+- `message_parts_order`          —  ordering of inline metadata fields.  
+- `color_all_log_record_fields`  —  colorize all fields, not just level/message.
+```
 
 ---
 
 # 🧩 OptionalRecordFields  
+
 Enable/disable individual metadata fields.
 
 ## Members
-- **relative_created** — include relative timestamp.  
-- **logger_name** — include logger name.  
-- **file_path** — include full file path.  
-- **file_name** — include filename only.  
-- **lineno** — include line number.  
-- **func_name** — include function name.  
-- **thread_id / thread_name** — include thread metadata.  
-- **task_name** — include asyncio task name.  
-- **process_id / process_name** — include process metadata.  
-- **exc_info** — include exception traceback.  
-- **stack_info** — include stack trace.
+```
+- `relative_created`             —  include relative timestamp.  
+- `logger_name`                  —  include logger name.  
+- `file_path`                    —  include full file path.  
+- `file_name`                    —  include filename only.  
+- `lineno`                       —  include line number.  
+- `func_name`                    —  include function name.  
+- `thread_id` / `thread_name`    —  include thread metadata.  
+- `task_name`                    —  include asyncio task name.  
+- `process_id` / `process_name`  —  include process metadata.  
+- `exc_info`                     —  include exception traceback.  
+- `stack_info`                   —  include stack trace.
+```
 
 ---
 
 # 🎨 OutputMode  
+
 Enum controlling formatter type.
 
 ## Members
-- **PLAIN** — plain structured text.  
-- **COLOR** — colored structured text.  
-- **JSON** — pretty‑printed JSON.  
-- **NDJSON** — newline‑delimited JSON.
+```
+- `PLAIN`   —  plain structured text.  
+- `COLOR`   —  colored structured text.  
+- `JSON`    —  pretty‑printed JSON.  
+- `NDJSON`  —  newline‑delimited JSON.
+```
 
 ---
 
 # 🎨 LevelStyle  
+
 Defines color/style for a log level.
 
 ## Members
-- **fg** — foreground color code.  
-- **bg** — background color code.  
-- **intensity** — bold/dim/normal.  
-- **styles** — tuple of additional ANSI styles.
+```
+- `fg`         —  foreground color code.  
+- `bg`         —  background color code.  
+- `intensity`  —  bold/dim/normal.  
+- `styles`     —  tuple of additional ANSI styles.
+```
 
 ---
 
 # 🌈 CPrint  
+
 ANSI color and gradient engine.
 
 ## Members
-- **colorize** — apply solid color and style.  
-- **gradient** — apply 256‑color gradient (fg/bg).  
-- **reverse** — swap foreground/background.  
-- **strip_ansi** — remove ANSI codes.  
-- **escape_ansi_for_display** — escape only color/style codes.  
-- **escape_control_chars** — escape all control sequences.  
-- **FG / BG / Intensity / Style** — color/style constant groups.
+```
+- `colorize`                           —  apply solid color and style.  
+- `gradient`                           —  apply 256‑color gradient (fg/bg).  
+- `reverse`                            —  swap foreground/background.  
+- `strip_ansi`                         —  remove ANSI codes.  
+- `escape_ansi_for_display`            —  escape only color/style codes.  
+- `escape_control_chars`               —  escape all control sequences.  
+- `FG` / `BG` / `Intensity` / `Style`  —  color/style constant groups.
+```
 
 ---
 
 # 🌈 GradientPalette  
+
 Predefined 256‑color palettes for gradients.
 
 ## Members
-- **RAINBOW / FIRE / OCEAN / FOREST / SUNSET / PASTEL / NEON / GREYSCALE** — ready‑made palettes.  
+``` 
+- `RAINBOW` / `FIRE` / `OCEAN` / `FOREST` / `SUNSET` / `PASTEL` / `NEON` / `GREYSCALE`  —  ready‑made palettes.  
 - **custom palettes** — create via `GradientPalette([...])`.
+```
 
 ---
 
 # 🔄 RotationLogic  
+
 Describes rotation and retention behavior.
 
 ## Members
-- **when** — time‑based rotation mode (SECOND, MINUTE, HOUR, EVERYDAY, weekday).  
-- **interval** — rotation interval for SECOND/MINUTE/HOUR.  
-- **timestamp** — daily/weekly rotation anchor.  
-- **maxBytes** — size‑based rotation threshold.  
-- **backupCount** — number of rotated files to keep.  
-- **expiration_rule** — retention policy for deleting old rotated files.  
-- **append_filename_pid** — append process ID to filename.  
-- **append_filename_timestamp** — append timestamp to filename.  
-- **create_handler** — produce a rotation‑aware file handler.
+```
+- `when`                       —  time‑based rotation mode (SECOND, MINUTE, HOUR, EVERYDAY, weekday).  
+- `interval`                   —  rotation interval for SECOND/MINUTE/HOUR.  
+- `timestamp`                  —  daily/weekly rotation anchor.  
+- `maxBytes`                   —  size‑based rotation threshold.  
+- `backupCount`                —  number of rotated files to keep.  
+- `expiration_rule`            —  retention policy for deleting old rotated files.  
+- `append_filename_pid`        —  append process ID to filename.  
+- `append_filename_timestamp`  —  append timestamp to filename.  
+- `create_handler`             —  produce a rotation‑aware file handler.
+```
 
 ---
 
 # 🕒 RotationTimestamp  
+
 Defines time‑of‑day anchors for daily/weekly rotation.
 
 ## Members
-- **hour / minute / second** — rotation trigger time.  
-- **to_seconds** — convert to seconds since midnight.
+```
+- `hour` / `minute` / `second`  —  rotation trigger time.  
+- `to_seconds`                  —  convert to seconds since midnight.
+```
 
 ---
 
 # 🧹 ExpirationRule  
+
 Defines retention policy for rotated files.
 
 ## Members
-- **scale** — unit (Seconds, Minutes, Hours, Days, MonthDay).  
-- **interval** — how long to keep rotated files.
+```
+- `Seconds`, `Minutes`, `Hours`, `Days`, `MonthDay`  —  scale.  
+- `interval`                                         — how long to keep rotated files.
+```
 
 ---
 
 # 🧱 When  
+
 Enum for time‑based rotation modes.
 
 ## Members
-- **SECOND / MINUTE / HOUR** — periodic rotation.  
-- **EVERYDAY** — daily rotation.  
-- **MONDAY … SUNDAY** — weekly rotation.
+```
+- `SECOND` / `MINUTE` / `HOUR`  — periodic rotation.  
+- `EVERYDAY`                    — daily rotation.  
+- `MONDAY` … `SUNDAY`           — weekly rotation.
+```
 
 ---
 
 # 🧩 RetrievedRecord  
+
 Strongly‑typed representation of a log record.
 
 ## Members
-- **timestamp / level** — core fields.  
-- **relative_created / logger_name / file_path / file_name / lineno / func_name** — metadata.  
-- **thread_id / thread_name / task_name / process_id / process_name** — concurrency metadata.  
-- **exc_info / stack_info** — diagnostics.
-
----
-
-# 🧩 LevelRegistry (internal but exposed via SmartLogger/AsyncSmartLogger)
-Manages dynamic log levels.
-
-## Members
-- **register** — add a new level.  
-- **get** — retrieve level metadata.  
-- **all** — dictionary of all registered levels.
+```
+- `timestamp` / level — core fields.  
+- `relative_created` / `logger_name` / `file_path` / `file_name` / `lineno` / `func_name`  —  metadata.  
+- `thread_id` / `thread_name` / `task_name` / `process_id` / `process_name`                —  concurrency metadata.  
+- `exc_info` / `stack_info` — diagnostics.
+```
 
 ---
 
