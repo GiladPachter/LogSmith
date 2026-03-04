@@ -21,11 +21,17 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import json
 
+import LogSmith
 from LogSmith import SmartLogger, stdout, CPrint, LevelStyle
 
-# ----------------------------------------------------------------------------------------------------------
-# 1. Initialization
-# ----------------------------------------------------------------------------------------------------------
+
+print(f"LogSmith.__version__ = {LogSmith.__version__}")
+print(f"LogSmith.__path__ = {LogSmith.__path__[0]}")
+print(f"LogSmith.__file__ = {LogSmith.__file__}")
+sep = 61 * '='
+print(f"LogSmith.__doc__ = \n{sep}{LogSmith.__doc__}{sep}")
+
+
 levels = SmartLogger.levels()
 
 stdout("\nBuiltin logger levels:")

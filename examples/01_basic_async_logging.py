@@ -22,8 +22,16 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import asyncio
 import json
 
+import LogSmith
 from LogSmith import CPrint, LevelStyle
 from LogSmith import AsyncSmartLogger, a_stdout
+
+
+print(f"LogSmith.__version__ = {LogSmith.__version__}")
+print(f"LogSmith.__path__ = {LogSmith.__path__[0]}")
+print(f"LogSmith.__file__ = {LogSmith.__file__}")
+sep = 61 * '='
+print(f"LogSmith.__doc__ = \n{sep}{LogSmith.__doc__}{sep}")
 
 
 async def main():

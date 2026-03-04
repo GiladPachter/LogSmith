@@ -1,14 +1,13 @@
 """
-LogSmith
-========
-
-A high‑performance logging framework with:
-- structured formatting
-- color and gradient output
-- size/time‑based rotation
-- retention policies
-- global auditing
-- concurrency‑safe file handlers
+LogSmith:
+=========
+    A high‑performance logging framework with:
+    - structured formatting
+    - color and gradient output
+    - size/time‑based rotation
+    - retention policies
+    - global auditing
+    - concurrency‑safe file handlers
 """
 
 # Version metadata
