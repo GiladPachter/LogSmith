@@ -1,11 +1,12 @@
-# Appendix E — Credits  
-This appendix acknowledges the contributors, inspirations, and technologies that shaped LogSmith. While the framework is original, it stands on the shoulders of many open‑source ideas and community practices.
+# Appendix F — 🏅 Credits  
+This appendix acknowledges the contributors, inspirations, and technologies that shaped LogSmith.<br/>
+While the framework is original, it stands on the shoulders of many open‑source ideas and community practices.
 
 ---
 
 # Core Development  
 **Primary Author**  
-- Gilad (Lead developer, architecture, async engine, rotation system, formatting model, documentation)
+- Gilad Pachter (Lead developer, architecture, async engine, rotation system, formatting model, documentation)
 
 **Contributors**  
 - Internal testers and reviewers who provided feedback on async behavior, rotation edge cases, and structured formatting.

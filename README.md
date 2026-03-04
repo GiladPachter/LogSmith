@@ -1,21 +1,45 @@
-# LogSmith
+# 📘 LogSmith  
+*A modern, expressive logging framework for Python — with structure, color, gradients, async support, and rock‑solid rotation.*
 
-A modern, expressive, high‑performance logging library for Python.
+LogSmith takes Python’s built‑in `logging` module and gives it the features developers actually want:
 
-LogSmith provides:
-
-- Structured logging  
-- Color and gradient console output  
-- Size‑based and time‑based rotation  
-- Retention policies  
+- Structured, user-friendly log message formatting
+- Colored messages, color themes and gradient console output  
+- Size‑based and time‑based rotation - intermixed when useful
 - Thread‑safe and process‑safe file handlers  
+- Retention policies  
 - Global auditing mode  
 - Dynamic log levels  
-- Themes  
+- JSON and NDJSON modes  
+- Async logging with ordering guarantees  
 - Raw ANSI output  
 - Predictable, explicit behavior  
 
-It is designed for CLI tools, services, daemons, debugging utilities, and any application that benefits from readable, expressive logs.
+It’s designed for CLI tools, services, daemons, debugging utilities, and any application that benefits from clean, expressive logs.
+
+---
+
+## 💡 Why LogSmith?
+
+Python’s standard logging module is powerful but low‑level.  
+Rich is beautiful but not built for structured logging or rotation.  
+structlog is structured but not color‑first or rotation‑aware.
+
+LogSmith combines the strengths of all three:
+
+- Like Python logging → familiar API, handlers, levels, propagation rules  
+- Like Rich → expressive color output, gradients, themes  
+- Like structlog → structured fields, JSON / NDJSON, predictable formatting  
+- Unlike all of them →  
+  - async logging engine  
+  - concurrency‑safe rotation  
+  - raw ANSI output  
+  - gradient engine  
+  - dynamic log levels  
+  - unified formatting model
+  - perfect logging and non-logging console output synchronization
+
+If you want logs that are both beautiful and machine‑friendly, LogSmith is built for you.
 
 ---
 

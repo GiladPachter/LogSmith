@@ -1,6 +1,4 @@
-19-Best_Practices_&_Patterns.md
 
-21-API_Reference_Overview.md
 
 28-Security_Notes.md
 

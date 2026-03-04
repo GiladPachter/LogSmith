@@ -1,4 +1,4 @@
-# Appendix F — 📚 Table of Contents  
+# Appendix G — 📚 Table of Contents  
 This appendix provides a complete, publication‑ready table of contents for the entire LogSmith documentation set. It reflects the full structure of the manual, including all chapters and appendices.
 
 ---

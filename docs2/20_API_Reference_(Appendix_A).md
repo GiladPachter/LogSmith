@@ -1,4 +1,4 @@
-# Appendix A — API Reference  
+# Appendix A — 🛠️ API Reference  
 A compact index of all LogSmith entities and the members they expose.  
 Each bullet names a public member and states its purpose in one line.
 
@@ -8,32 +8,44 @@ Each bullet names a public member and states its purpose in one line.
 Synchronous, high‑level logger built on Python’s logging system (composition).
 
 ## Core Members
-- **name** — logger’s name.  
-- **level** — logger’s current log level (inherits via hierarchy when NOTSET).  
-- **add_console** — attach a console handler with structured or colored output.  
-- **remove_console** — remove the console handler.  
-- **add_file** — attach a file handler with optional rotation and retention.  
-- **remove_file_handler** — remove a file handler by directory + filename.  
-- **handler_info** — list of metadata dictionaries describing all handlers.  
-- **handler_info_json** — JSON representation of handler_info.  
-- **console_handler** — metadata for the console handler, if present.  
-- **file_handlers** — metadata for all file handlers.  
-- **output_targets** — list of output destinations (“console” or file paths).  
-- **raw** — write unformatted text directly to handlers.  
-- **retire** — close handlers and disable the logger.  
-- **destroy** — remove logger entirely from logging system.
+```
+- `name`                      —  logger’s name.  
+- `level`                     —  logger’s current log level (inherits via hierarchy when NOTSET).  
+- `add_console()`             —  attach a console handler with structured or colored output.  
+- `remove_console()`          —  remove the console handler.  
+- `add_file(...)`             —  attach a file handler with optional rotation and retention.  
+- `remove_file_handler(...)`  —  remove a file handler by directory + filename.  
+- `handler_info`              —  list of metadata dictionaries describing all handlers.  
+- `handler_info_json`         —  JSON representation of handler_info.  
+- `console_handler`           —  metadata for the console handler, if present.  
+- `file_handlers`             —  metadata for all file handlers.  
+- `output_targets`            —  list of output destinations (“console” or file paths).  
+- `raw`                       —  write unformatted text directly to handlers.  
+- `retire`                    —  close handlers and disable the logger.  
+- `destroy`                   —  remove logger entirely from logging system.
+```
 
 ## Logging Members
-- **trace / debug / info / warning / error / critical** — structured log methods.  
-- **dynamic level methods** — automatically created for registered levels.
+```
+- `trace`
+- `debug`
+- `info`
+- `warning`
+- `error`
+- `critical`
+- `raw`                    —  pure-text message-only log entry (no log-record metadata fields)
+- <dynamic level methods>  —  programmatically added log levels.
+```
 
 ## Static Members
-- **levels** — dictionary of all registered log levels.  
-- **register_level** — define a new log level at runtime.  
-- **apply_color_theme** — override color/style for built‑in and dynamic levels.  
-- **audit_everything** — enable global auditing of all SmartLogger output.  
-- **terminate_auditing** — disable global auditing.  
-- **get_record** — extract a strongly‑typed `RetrievedRecord` from a LogRecord.
+```
+- `levels`              —  dictionary of all registered log levels.  
+- `register_level`      —  define a new log level at runtime.  
+- `apply_color_theme`   —  override color/style for built‑in and dynamic levels.  
+- `audit_everything`    —  enable global auditing of all SmartLogger output.  
+- `terminate_auditing`  —  disable global auditing.  
+- `get_record`          —  extract a strongly‑typed `RetrievedRecord` from a LogRecord.
+```
 
 ---
 
@@ -41,34 +53,45 @@ Synchronous, high‑level logger built on Python’s logging system (composition
 Fully asynchronous logger with queue, worker task, and async‑safe rotation.
 
 ## Core Members
-- **name** — logger’s name.  
-- **level** — logger’s current log level.  
-- **queue_size** — number of pending log entries in the async queue.  
-- **messages_enqueued** — number of log entries submitted to the queue.  
-- **messages_processed (class)** — total processed entries across all instances.  
-- **add_console** — attach async‑safe console handler.  
-- **remove_console** — remove console handler.  
-- **add_file** — attach async‑safe file handler with async rotation.  
-- **remove_file_handler** — remove file handler by directory + filename.  
-- **handler_info** — metadata for all handlers.  
-- **handler_info_json** — JSON representation of handler_info.  
-- **output_targets** — list of output destinations.  
-- **enable_profiling** — enable/disable internal performance profiling.  
-- **get_profiling_details** — return profiling statistics.  
-- **flush** — wait until queue is empty.  
-- **shutdown** — stop worker and flush queue.  
-- **raw / a_raw** — unformatted output (sync/async).
+```
+- `name`                   —  logger’s name.  
+- `level`                  —  logger’s current log level.  
+- `queue_size`             —  number of pending log entries in the async queue.  
+- `messages_enqueued`      —  number of log entries submitted to the queue.  
+- `messages_processed`     —  total processed entries across all instances.  
+- `add_console`            —  attach async‑safe console handler.  
+- `remove_console`         —  remove console handler.  
+- `add_file`               —  attach async‑safe file handler with async rotation.  
+- `remove_file_handler`    —  remove file handler by directory + filename.  
+- `handler_info`           —  metadata for all handlers.  
+- `handler_info_json`      —  JSON representation of handler_info.  
+- `output_targets`         —  list of output destinations.  
+- `enable_profiling`       —  enable/disable internal performance profiling.  
+- `get_profiling_details`  —  return profiling statistics.  
+- `flush`                  —  wait until queue is empty.  
+- `shutdown`               —  stop worker and flush queue.  
+```
 
 ## Async Logging Members
-- **a_trace / a_debug / a_info / a_warning / a_error / a_critical** — async structured logging.  
-- **dynamic async level methods** — created automatically for registered levels.
+```
+- `a_trace`
+- `a_debug`
+- `a_info`
+- `a_warning`
+- `a_error`
+- `a_critical`
+- `a_raw`                  —  pure-text message-only log entry (no log-record metadata fields)
+- <dynamic level methods>  —  programmatically added log levels.
+```
 
 ## Static Members
-- **levels** — dictionary of all registered log levels.  
-- **register_level** — define a new async log level.  
-- **apply_color_theme** — override color/style for async log levels.  
-- **audit_everything** — enable async global auditing.  
-- **stop_auditing** — disable async auditing.
+```
+- `levels`             —  dictionary of all registered log levels.  
+- `register_level`     —  define a new async log level.  
+- `apply_color_theme`  —  override color/style for async log levels.  
+- `audit_everything`   —  enable async global auditing.  
+- `stop_auditing`      —  disable async auditing.
+```
 
 ---
 

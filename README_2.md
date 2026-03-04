@@ -19,7 +19,7 @@ It’s designed for CLI tools, services, daemons, debugging utilities, and any a
 
 ---
 
-## Why LogSmith?
+## 💡 Why LogSmith?
 
 Python’s standard logging module is powerful but low‑level.  
 Rich is beautiful but not built for structured logging or rotation.  

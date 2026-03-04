@@ -1,4 +1,4 @@
-# Appendix D — License  
+# Appendix E — License  
 LogSmith is distributed under the MIT License, a permissive open‑source license that allows reuse, modification, distribution, and private or commercial use with minimal restrictions. This appendix provides the full license text.
 
 ---

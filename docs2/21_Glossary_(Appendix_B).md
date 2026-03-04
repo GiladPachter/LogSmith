@@ -5,227 +5,316 @@ This glossary defines all key terms used throughout the LogSmith documentation. 
 
 # A
 
-### **ANSI**
-A standard for terminal color and formatting codes used to colorize console output.
+### **ANSI**  
+Terminal escape‑code standard used for colors, styles, and gradients.
 
-### **Async Logging**
-A logging model where log events are queued and processed by a background worker, preventing blocking in asyncio applications.
+### **ANSI Sanitization**  
+Removal of ANSI codes before writing to files to prevent corruption or ingestion issues.
 
-### **Audit Log**
-A global log file that captures all log events from all loggers, used for compliance, debugging, and forensics.
+### **Append Filename PID**  
+Rotation option that appends the current process ID to the log filename.
+
+### **Append Filename Timestamp**  
+Rotation option that appends a timestamp to the log filename.
+
+### **Async Logging**  
+Logging model where events are queued and processed by a background worker.
+
+### **Async Rotation**  
+Rotation performed outside the main event loop by AsyncSmartLogger’s worker.
+
+### **Audit Log**  
+A global log capturing all log events from all loggers.
+
+### **Audit Handler**  
+A handler used to collect all log events during auditing.
 
 ---
 
 # B
 
-### **Backup Count**
-The maximum number of rotated log files to keep before older ones are deleted.
+### **Backup Count**  
+Maximum number of rotated log files retained before older ones are deleted.
+
+### **Bleaching (Color Bleaching)**  
+Process of recoloring non‑ANSI text to console default while preserving ANSI segments.
 
 ---
 
 # C
 
-### **CPrint**
-LogSmith’s ANSI color engine, responsible for colorizing text, applying styles, and generating gradients.
+### **CPrint**  
+LogSmith’s ANSI color engine for solid colors, gradients, and style effects.
 
-### **Console Handler**
-A handler that writes logs to the terminal, optionally with color and structured formatting.
+### **Caller Resolution**  
+Determining the file, line, and function where a log call originated.
 
-### **Critical Level**
-The highest built‑in log level, used for severe errors requiring immediate attention.
+### **Color Theme**  
+Mapping of log levels to LevelStyle objects.
+
+### **Console Handler**  
+Handler that outputs logs to stdout with optional color and structured formatting.
+
+### **Concurrent Rotation**  
+Rotation mechanism safe for multi‑process and multi‑threaded environments.
+
+### **Critical Level**  
+Highest built‑in severity level.
 
 ---
 
 # D
 
-### **Dynamic Level**
-A user‑defined log level created at runtime, complete with its own name, numeric value, and logger method.
+### **Date Format (datefmt)**  
+Formatting string controlling timestamp appearance.
 
-### **Date Format (datefmt)**
-A formatting string that controls how timestamps appear in log entries.
+### **Diagnostics Fields**  
+Optional fields such as `exc_info` and `stack_info`.
+
+### **Dynamic Level**  
+User‑defined log level created at runtime.
 
 ---
 
 # E
 
-### **Effective Level**
-The final log level used by a logger, determined by its explicit level or inherited from its parent.
+### **Effective Level**  
+Final log level used after applying inheritance rules.
 
-### **Expiration Rule**
-A retention policy that deletes rotated files older than a specified time interval.
+### **Emit**  
+Handler method responsible for writing a formatted log record.
+
+### **Expiration Rule**  
+Retention policy for deleting rotated files based on age.
 
 ---
 
 # F
 
-### **File Handler**
-A handler that writes logs to a file, optionally with rotation, retention, and structured formatting.
+### **File Handler**  
+Handler that writes logs to a file with optional rotation and retention.
 
-### **Flush**
-The process of ensuring all queued or buffered log events are written to disk before shutdown.
+### **Fields (Structured Fields)**  
+Named arguments passed to log methods that appear as key‑value pairs.
+
+### **Flush**  
+Ensuring all queued or buffered log events are written before shutdown.
 
 ---
 
 # G
 
-### **Gradient**
-A multi‑color ANSI effect applied to text, often used in banners or decorative output.
+### **Gradient**  
+Multi‑color ANSI effect applied across text.
 
-### **Gradient Palette**
-A predefined or custom list of ANSI color codes used to generate gradients.
+### **Gradient Palette**  
+List of ANSI color indices used to generate gradients.
 
 ---
 
 # H
 
-### **Handler**
-A component responsible for outputting log entries to a destination (console, file, audit file, etc.).
+### **Handler**  
+Component responsible for outputting log entries to a destination.
 
-### **Hybrid Rotation**
-A rotation mode where logs rotate when either a size threshold OR a time interval is reached.
+### **Handler Info**  
+Metadata describing a handler’s configuration.
+
+### **Hybrid Rotation**  
+Rotation triggered by either size or time thresholds.
 
 ---
 
 # I
 
-### **Inheritance (Level Inheritance)**
-The mechanism by which a logger without an explicit level uses its parent’s level.
+### **Inheritance (Level Inheritance)**  
+Mechanism where a logger without an explicit level inherits from its parent.
+
+### **Interval (Rotation Interval)**  
+Time between scheduled rotations for SECOND/MINUTE/HOUR modes.
 
 ---
 
 # J
 
-### **JSON Output**
-Pretty‑printed JSON log entries, ideal for debugging or human inspection.
+### **JSON Output**  
+Structured JSON representation of log entries.
 
 ---
 
 # L
 
-### **Level**
-A numeric severity value associated with a log message (e.g., INFO, ERROR, custom levels).
+### **Level**  
+Numeric severity value associated with a log message.
 
-### **LevelStyle**
-A configuration object defining the color and style of a log level in console output.
+### **Level Registry**  
+Internal registry storing all built‑in and dynamic log levels.
 
-### **LogRecordDetails**
-A configuration object that controls structured formatting of log entries.
+### **LevelStyle**  
+Color/style configuration for a log level.
+
+### **Line Number (lineno)**  
+Metadata field indicating the source line of the log call.
+
+### **LogRecordDetails**  
+Configuration object controlling structured formatting.
 
 ---
 
 # M
 
-### **Message Parts Order**
-The order in which metadata fields appear in structured log output.
+### **Message Parts Order**  
+Ordering of metadata fields in structured output.
 
-### **Metadata Fields**
-Optional fields such as logger name, file name, line number, thread ID, etc.
+### **Metadata Fields**  
+Optional fields such as logger name, file name, thread ID, etc.
+
+### **Module Name**  
+Name of the module emitting the log (optional field).
 
 ---
 
 # N
 
-### **NDJSON**
-Newline‑Delimited JSON — one JSON object per line, ideal for ingestion pipelines.
+### **NDJSON**  
+Newline‑Delimited JSON format for ingestion pipelines.
 
-### **NOTSET**
-A special level value indicating that a logger should inherit its level from its parent.
+### **NOTSET**  
+Special level indicating inheritance from parent logger.
 
 ---
 
 # O
 
-### **Output Mode**
-Determines how logs are formatted: COLOR, PLAIN, JSON, or NDJSON.
+### **Output Mode**  
+Formatting mode: COLOR, PLAIN, JSON, NDJSON.
 
-### **OptionalRecordFields**
-A configuration object enabling or disabling metadata fields in structured output.
+### **OptionalRecordFields**  
+Configuration object enabling/disabling metadata fields.
 
 ---
 
 # P
 
-### **Propagation**
-The process of forwarding log events to parent loggers. Disabled by default; enabled only during auditing.
+### **Passthrough Formatter**  
+Formatter that preserves ANSI codes and outputs raw messages.
 
-### **Pretty JSON**
-Human‑readable JSON with indentation and whitespace.
+### **Process ID / Process Name**  
+Metadata fields indicating the emitting process.
+
+### **Propagation**  
+Forwarding log events to parent loggers (enabled only during auditing).
+
+---
+
+# Q
+
+### **Queue (Async Queue)**  
+Internal queue used by AsyncSmartLogger to buffer log events.
+
+### **Queue Depth**  
+Number of pending log events in the async queue.
 
 ---
 
 # R
 
-### **Raw Output**
-Unformatted text written directly to a handler, bypassing structured formatting.
+### **Raw Output**  
+Unformatted text written directly to handlers.
 
-### **Retention**
-The policy controlling how long rotated log files are kept.
+### **Record (LogRecord)**  
+Internal Python object representing a single log event.
 
-### **Rotation**
-The process of renaming and replacing log files when size or time thresholds are reached.
+### **Relative Created**  
+Time in milliseconds since the logging system was initialized.
 
-### **Rotation Logic**
-A configuration object defining rotation rules (size, time, interval, retention).
+### **Retention**  
+Policy controlling how long rotated files are kept.
 
-### **Rotation Timestamp**
-A time anchor used for daily or weekly rotation schedules.
+### **Rotation**  
+Process of renaming and replacing log files when thresholds are reached.
+
+### **Rotation Logic**  
+Configuration object defining rotation rules.
+
+### **Rotation Timestamp**  
+Time‑of‑day anchor for daily/weekly rotation.
 
 ---
 
 # S
 
-### **Sanitization**
-The removal of ANSI codes from file output to prevent corruption or ingestion issues.
+### **Sanitization**  
+Removal of ANSI codes from file output.
 
-### **Separator**
-The character or string used to separate metadata fields in structured output.
+### **Separator**  
+Character used to separate metadata fields in structured output.
 
-### **SmartLogger**
-The primary synchronous logger class in LogSmith.
+### **Should Rotate**  
+Decision logic determining whether rotation should occur.
 
-### **Structured Fields**
-Named arguments passed to log methods that appear as key‑value pairs in structured output.
+### **SmartLogger**  
+Primary synchronous logger class.
 
-### **Structured Formatting**
-A formatting model that uses explicit configuration instead of format strings.
+### **Stack Info**  
+Optional metadata containing a captured stack trace.
+
+### **Structured Formatting**  
+Formatting model using explicit configuration instead of format strings.
+
+### **Structured JSON Formatter**  
+Formatter producing JSON output.
+
+### **Structured NDJSON Formatter**  
+Formatter producing newline‑delimited JSON.
+
+### **Structured Plain Formatter**  
+Formatter producing plain structured text.
 
 ---
 
 # T
 
-### **Theme**
-A mapping of log levels to LevelStyle objects, controlling console color schemes.
+### **Task Name**  
+Asyncio task name included in async log records.
 
-### **Thread ID**
-A metadata field indicating which thread emitted the log.
+### **Theme**  
+Mapping of log levels to LevelStyle objects.
 
-### **Timestamp Anchor**
-A specific time of day used for scheduled rotation.
+### **Thread ID / Thread Name**  
+Metadata fields indicating the emitting thread.
+
+### **Timestamp Anchor**  
+Specific time used for scheduled rotation.
+
+### **Trace Level**  
+Lowest built‑in severity level (TRACE = 5).
 
 ---
 
 # U
 
-### **User Fields**
-Custom structured fields provided via named arguments in log calls.
+### **User Fields**  
+Custom structured fields provided via named arguments.
 
 ---
 
 # V
 
-### **Verbose Level**
-A common dynamic level used for highly detailed logs.
+### **Verbose Level**  
+Common dynamic level used for detailed logs.
 
 ---
 
 # W
 
-### **When**
-An enum defining time‑based rotation intervals (SECOND, MINUTE, HOUR, EVERYDAY, MONDAY, etc.).
+### **When**  
+Enum defining time‑based rotation intervals.
+
+### **Worker Task**  
+Background task in AsyncSmartLogger that processes queued log events.
 
 ---
 
 # Summary  
-This glossary defines all terminology used throughout LogSmith, covering logging concepts, configuration objects, rotation mechanics, async behavior, themes, structured formatting, and more. It serves as a quick reference for developers working with the framework.
-
-The next appendix covers **Appendix C: Changelog**, documenting version history and major changes across releases.
+This glossary is a complete reference to all terminology used throughout LogSmith, covering synchronous and asynchronous logging, formatting, rotation, retention, colors, themes, auditing, and internal mechanics. It ensures that every concept appearing in the documentation has a clear and accessible definition.
