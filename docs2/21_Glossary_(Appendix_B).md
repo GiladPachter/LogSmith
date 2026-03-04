@@ -5,22 +5,22 @@ This glossary defines all key terms used throughout the LogSmith documentation. 
 
 # A
 ```
-ANSI                       —  Terminal escape‑code standard used for colors, styles, and gradients.<br/>
-ANSI Sanitization          —  Removal of ANSI codes before writing to files to prevent corruption or ingestion issues.<br/>
-Append Filename PID        —  Rotation option that appends the current process ID to the log filename.<br/>
-Append Filename Timestamp  —  Rotation option that appends a timestamp to the log filename.<br/>
-Async Logging              —  Logging model where events are queued and processed by a background worker.<br/>
-Async Rotation             —  Rotation performed outside the main event loop by AsyncSmartLogger’s worker.<br/>
-Audit Log                  —  A global log capturing all log events from all loggers.<br/>
-Audit Handler              —  A handler used to collect all log events during auditing.<br/>
+ANSI                       —  Terminal escape‑code standard used for colors, styles, and gradients.
+ANSI Sanitization          —  Removal of ANSI codes before writing to files to prevent corruption or ingestion issues.
+Append Filename PID        —  Rotation option that appends the current process ID to the log filename.
+Append Filename Timestamp  —  Rotation option that appends a timestamp to the log filename.
+Async Logging              —  Logging model where events are queued and processed by a background worker.
+Async Rotation             —  Rotation performed outside the main event loop by AsyncSmartLogger’s worker.
+Audit Log                  —  A global log capturing all log events from all loggers.
+Audit Handler              —  A handler used to collect all log events during auditing.
 
 ```
 ---
 
 # B
 ```
-Backup Count                 —  Maximum number of rotated log files retained before older ones are deleted.<br/>
-Bleaching (Color Bleaching)  —  Process of recoloring non‑ANSI text to console default while preserving ANSI segments.<br/>
+Backup Count                 —  Maximum number of rotated log files retained before older ones are deleted.
+Bleaching (Color Bleaching)  —  Process of recoloring non‑ANSI text to console default while preserving ANSI segments.
 ```
 
 ---
@@ -211,5 +211,5 @@ Worker Task  —  Background task in AsyncSmartLogger that processes queued log 
 ---
 
 # Summary  
-This glossary is a complete reference to all terminology used throughout LogSmith, covering synchronous and asynchronous logging, formatting, rotation, retention, colors, themes, auditing, and internal mechanics.<br/>
+This glossary is a complete reference to all terminology used throughout LogSmith, covering synchronous and asynchronous logging, formatting, rotation, retention, colors, themes, auditing, and internal mechanics.
 It ensures that every concept appearing in the documentation has a clear and accessible definition.
