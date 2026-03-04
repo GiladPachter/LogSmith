@@ -1,0 +1,143 @@
+LogSmith - Directory Structure:
+===============================
+
+LogSmith:
+=========
+
+<DIR>  - docs\
+<DIR>  - docs2\
+<DIR>  - examples\
+<DIR>  - LogSmith\
+<DIR>  - tools\
+       - __init__.py
+       - LICENSE
+       - project_definitions.py
+       - pyproject.toml
+       - README.md
+       - README_2.md
+
+==========================================================
+
+LogSmith\docs:
+==============
+
+       - 01-Overview.md
+       - 02-Installation.md
+       - 03-Quick_Start.md
+       - 04-Project_Structure.md
+       - 05-Core_Concepts.md
+       - 06-Console_Logging.md
+       - 07-File_Logging.md
+       - 08-Rotation_Logic.md
+       - 09-Auditing.md
+       - 10-Structured_Formatting.md
+       - 11-Colors_&_Gradient_System.md
+       - 12-Custom_Log_Levels.md
+       - 13-Themes.md
+       - 14-Logger_Hierarchy.md
+       - 15-Logger_Lifecycle.md
+       - 16-Extras_&_Structured_Fields.md
+       - 17-Exceptions_&_Diagnostics.md
+       - 18-Performance_&_Efficiency.md
+       - 19-Best_Practices_&_Patterns.md
+       - 20-Full_Examples.md
+       - 21-API_Reference_Overview.md
+       - 22-Changelog.md
+       - 23-Roadmap.md
+       - 24-License.md
+       - 25-FAQ.md
+       - 26-Troubleshooting.md
+       - 27-Contributing.md
+       - 28-Security_Notes.md
+       - 29-Versioning.md
+       - 30-Examples_Gallery.md
+       - 31-SmartLogger_Philosophy.md
+       - Packaging LogSmith as a wheel.docx
+
+
+LogSmith\docs2:
+===============
+
+       - 00_Emoji_catalog.md
+       - 01__Introduction.md
+       - 02__Installation_&_Setup.md
+       - 03__Quickstart.md
+       - 04__Core_Concepts.md
+       - 05__Console_Logging.md
+       - 06__File_Logging.md
+       - 07__Structured_Formatting.md
+       - 08__JSON_&_NDJSON_Logging.md
+       - 09__AsyncSmartLogger.md
+       - 10__Rotation_&_Retention.md
+       - 11__Themes_&_Color_System.md
+       - 12__Auditing.md
+       - 13__Dynamic_Log_Levels.md
+       - 14__Logger_Hierarchy.md
+       - 15__Lifecycle_Management.md
+       - 16__Diagnostics_&_Debugging.md
+       - 17__Performance_&_Benchmarks.md
+       - 18__Best_Practices.md
+       - 19__Examples_&_Recipes.md
+       - 20__Security_Notes.md
+       - 21__API_Reference_(Appendix_A).md
+       - 22__Glossary_(Appendix_B).md
+       - 23__Changelog_(Appendix_C).md
+       - 24__Roadmap_(Appendix_D).md
+       - 25__License_(Appendix_E).md
+       - 26__Credits_(Appendix_F).md
+       - 27__Table_of_Contents_(Appendix_G).md
+
+
+LogSmith\examples:
+==================
+
+       - 00_async_check.py
+       - 00_async_check_2.py
+       - 01_basic_async_logging.py
+       - 01_basic_logging.py
+       - 02_formatting_async_demo.py
+       - 02_formatting_demo.py
+       - 03_file_output_async_demo.py
+       - 03_file_output_demo.py
+       - 04_rotation_async_demo.py
+       - 04_rotation_demo.py
+       - 05_hierarchy_async_demo.py
+       - 05_hierarchy_demo.py
+       - 06_auditing_async_demo.py
+       - 06_auditing_demo.py
+       - 07_gradient_async_demo.py
+       - 07_gradient_demo.py
+       - 08_stress_test.py
+       - 08_stress_test_async.py
+       - 09_themes_async_demo.py
+       - 09_themes_demo.py
+       - 10_removing_handlers_from_loggers.py
+       - 10_removing_handlers_from_loggers_async.py
+       - 11_misc_issues_demo.py
+       - 11_misc_issues_demo_async.py
+       - 12_async_json_logging.py
+       - 12_json_logging.py
+       - __init__.py
+
+
+LogSmith\LogSmith:
+==================
+
+       - async_rotation.py
+       - async_smartlogger.py
+       - colors.py
+       - formatter.py
+       - levels.py
+       - level_registry.py
+       - py.typed
+       - rotation.py
+       - smartlogger.py
+       - themes.py
+       - __init__.py
+
+
+LogSmith\tools:
+===============
+
+       - build_wheel.py
+       - install_build_tools.py
