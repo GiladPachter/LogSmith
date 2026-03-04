@@ -30,12 +30,13 @@ These tools influenced ideas, not code.
 # Technologies Used  
 LogSmith is built entirely in Python and relies only on the standard library:
 
+- `logging` — the core Python logging infrastructure  
+- `os`, `sys`, `pathlib`, `shutil` — file system operations  
+- `time` / `datetime` — timestamping and rotation scheduling  
 - `asyncio` — async queue and worker engine  
 - `threading` — rotation offloading  
 - `json` — JSON / NDJSON serialization  
-- `os`, `pathlib`, `shutil` — file operations and rotation  
 - `fcntl` / `msvcrt` — cross‑platform file locking  
-- `datetime` — timestamping and rotation scheduling  
 
 No external dependencies are required.
 

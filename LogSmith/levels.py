@@ -6,6 +6,7 @@ from typing import Tuple
 
 from .colors import Code
 
+
 TRACE = 5
 logging.addLevelName(TRACE, "TRACE")
 

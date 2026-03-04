@@ -27,7 +27,7 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
     • perform_rotation() is executed by AsyncSmartLogger's worker thread
     """
 
-    rotation_callback: Optional[Callable[[ "Async_TimedSizedRotatingFileHandler" ], None]] = None
+    rotation_callback: Optional[Callable[[Async_TimedSizedRotatingFileHandler], None]] = None
 
     def __init__(
         self,

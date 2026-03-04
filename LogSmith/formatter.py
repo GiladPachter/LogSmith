@@ -1,4 +1,5 @@
 # LogSmith/formatter.py
+
 import json
 import logging
 import traceback
