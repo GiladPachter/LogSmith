@@ -7,7 +7,7 @@ Demonstrates SmartLogger rotation logic:
 - Combined rotation (size + time)
 - Comments explaining daily/weekly behavior
 """
-
+import json
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ stdout("Combined rotation complete.")
 # 5. Show handler_info (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
 stdout("\nHandler info:\n-------------")
-stdout(logger.handler_info_json)
+stdout(json.dumps(logger.handler_info, indent=4))
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. SmartLogger rotation safeguards

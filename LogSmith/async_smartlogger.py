@@ -30,7 +30,7 @@ from .level_registry import LEVELS
 from .colors import CPrint
 from .rotation import RotationLogic
 from .async_rotation import Async_TimedSizedRotatingFileHandler
-from .smartlogger import RetrievedRecord
+from .smartlogger import RetrievedRecord, HandlerMetadata
 
 """
 console printing utility
@@ -54,13 +54,13 @@ class _QueueItem:
     payload: dict[str, Any]
 
 
-@dataclass
-class AsyncHandlerInfo:
-    kind: str                      # "console" | "file"
-    level: str
-    path: Optional[str] = None
-    rotation: Optional[dict] = None
-    do_not_sanitize_colors_from_string: Optional[bool] = None
+# @dataclass
+# class AsyncHandlerInfo:
+#     kind: str                      # "console" | "file"
+#     level: str
+#     path: Optional[str] = None
+#     rotation: Optional[dict] = None
+#     do_not_sanitize_colors_from_string: Optional[bool] = None
 
 
 class AsyncSmartLogger:
@@ -112,7 +112,7 @@ class AsyncSmartLogger:
         self._worker_task: Optional[asyncio.Task[None]] = None
         self._stopped = False
 
-        self._handlers: list[AsyncHandlerInfo] = []
+        self._handlers: list[HandlerMetadata] = []
         self._real_handlers: list[logging.Handler] = []
 
         self._messages_enqueued = 0
@@ -469,7 +469,13 @@ class AsyncSmartLogger:
         self._py_logger.addHandler(handler)
 
         level_name = logging.getLevelName(level)
-        self._handlers.append(AsyncHandlerInfo(kind="console", level=level_name))
+        self._handlers.append(
+            HandlerMetadata(
+                kind="console",
+                level=logging.getLevelName(level),
+                formatter=str(mode.value)
+            )
+        )
         self._real_handlers.append(handler)
 
     def remove_console(self) -> None:
@@ -556,16 +562,26 @@ class AsyncSmartLogger:
                 "backupCount": rotation_logic.backupCount,
             }
 
+        rotation_meta = (
+            {
+                "maxBytes": rotation_logic.maxBytes,
+                "when": rotation_logic.when.name if rotation_logic.when else None,
+                "interval": rotation_logic.interval,
+                "backupCount": rotation_logic.backupCount,
+            }
+            if rotation_logic else None
+        )
+
         self._handlers.append(
-            AsyncHandlerInfo(
+            HandlerMetadata(
                 kind="file",
-                level=level_name,
+                level=logging.getLevelName(level or self._py_logger.level),
+                formatter=str(mode.value),
                 path=resolved_path,
                 rotation=rotation_meta,
                 do_not_sanitize_colors_from_string=do_not_sanitize_colors_from_string,
             )
         )
-        self._real_handlers.append(handler)
 
     def remove_file_handler(self, logfile_name: str, log_dir: str) -> None:
         target_path = Path(log_dir) / logfile_name
@@ -582,23 +598,54 @@ class AsyncSmartLogger:
 
     @property
     def handler_info(self) -> list[dict[str, Any]]:
-        info: list[dict[str, Any]] = []
-        for h in self._handlers:
-            d = asdict(h)
-            if d["kind"] == "console":
-                d.pop("path", None)
-                d.pop("rotation", None)
-                d.pop("do_not_sanitize_colors_from_string", None)
-            info.append(d)
-        return info
+        return [asdict(h) for h in self._handlers]
 
     @property
-    def handler_info_json(self) -> str:
-        return json.dumps(self.handler_info, indent=4)
+    def output_targets(self) -> list[str]:
+        return [
+            "console" if h.kind == "console" else h.path
+            for h in self._handlers
+        ]
 
-    @property
-    def output_targets(self) -> list[dict[str, Any]]:
-        return self.handler_info
+    @classmethod
+    def audit_handler_info(cls) -> Optional[dict[str, object]]:
+        """
+        Returns metadata for the active audit handler, if auditing is enabled.
+        """
+        h = cls.__audit_handler
+        if h is None:
+            return None
+
+        # Determine formatter mode
+        fmt = h.formatter
+        if isinstance(fmt, StructuredJSONFormatter):
+            formatter = "json"
+        elif isinstance(fmt, StructuredNDJSONFormatter):
+            formatter = "ndjson"
+        elif isinstance(fmt, StructuredColorFormatter):
+            formatter = "color"
+        else:
+            formatter = "plain"
+
+        rotation_meta = None
+        rotation_logic = getattr(h, "rotation_logic", None)
+        if rotation_logic:
+            rotation_meta = {
+                "maxBytes": rotation_logic.maxBytes,
+                "when": rotation_logic.when.name if rotation_logic.when else None,
+                "interval": rotation_logic.interval,
+                "backupCount": rotation_logic.backupCount,
+            }
+
+        return {
+            "kind": "file" if hasattr(h, "baseFilename") else "console",
+            "level": logging.getLevelName(h.level),
+            "formatter": formatter,
+            "path": getattr(h, "baseFilename", None),
+            "rotation": rotation_meta,
+            "do_not_sanitize_colors_from_string": getattr(h, "do_not_sanitize_colors_from_string", False),
+        }
+
 
     # ------------------------------------------------------------------
     # INTERNAL: QUEUE ENQUEUE HELPERS

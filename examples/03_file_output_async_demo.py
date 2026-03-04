@@ -9,7 +9,7 @@ Demonstrates AsyncSmartLogger file output:
 - handler_info (JSON-safe)
 - AsyncSmartLogger path validation safeguards
 """
-
+import json
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ async def main():
     )
 
     # Show handler info (JSON-safe)
-    await a_stdout(logger.handler_info_json)
+    await a_stdout(json.dumps(logger.handler_info, indent=4))
 
     await logger.a_info("Rotation handler attached.")
 
@@ -174,7 +174,7 @@ async def main():
     # 8. Show handler_info (JSON-safe)
     # ------------------------------------------------------------------------------------------------------
     await a_stdout("\nHandlers details:\n-----------------")
-    await a_stdout(logger.handler_info_json)
+    await a_stdout(json.dumps(logger.handler_info, indent=4))
 
     # ------------------------------------------------------------------------------------------------------
     # 9. AsyncSmartLogger safeguards (contextually relevant here)

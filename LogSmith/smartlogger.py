@@ -9,10 +9,10 @@ import sys
 import time
 import threading
 import traceback
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Protocol, Literal, Callable, List
+from typing import Any, Optional, Protocol, Literal, Callable, List, Dict, ClassVar
 
 from .formatter import (
     StructuredPlainFormatter,
@@ -34,26 +34,13 @@ import io
 import contextlib
 
 
-# ======================================================================
-#  INTERNAL STATE HOLDER & HANDLER METADATA
-# ======================================================================
-@dataclass(frozen=True)
-class HandlerInfo:
-    kind: Literal["console", "file"]
-    level: int
-    formatter: str
-    path: str | None = None
-    rotation_logic: RotationLogic | None = None
-    do_not_sanitize_colors_from_string: bool = False
-
-
 class _SmartLoggerState:
     """
     Internal state holder for SmartLogger-specific data.
     """
 
     def __init__(self) -> None:
-        self.handlers: list[HandlerInfo] = []
+        self.handlers: list[HandlerMetadata] = []
         self.retired: bool = False
 
 
@@ -82,6 +69,16 @@ class RetrievedRecord:
     # diagnostics
     exc_info: dict | None = None
     stack_info: str | List[str] | None = None
+
+
+@dataclass
+class HandlerMetadata:
+    kind: str
+    level: str
+    formatter: str
+    path: Optional[str] = None
+    rotation: Optional[Dict[str, Any]] = None
+    do_not_sanitize_colors_from_string: Optional[bool] = None
 
 
 # ======================================================================
@@ -203,7 +200,7 @@ class SmartLogger:
     visually expressive logging.
     """
 
-    __audit_handler: logging.Handler | None = None
+    __audit_handler: ClassVar[Optional[logging.Handler]] = None
     __audit_enabled: bool = False
     __audit_details: LogRecordDetails | None = None
 
@@ -479,9 +476,9 @@ class SmartLogger:
         self._py_logger.addHandler(handler)
 
         self._smart_state.handlers.append(
-            HandlerInfo(
+            HandlerMetadata(
                 kind="console",
-                level=level,
+                level=logging.getLevelName(level),
                 formatter=str(mode.value),
             )
         )
@@ -592,13 +589,23 @@ class SmartLogger:
             self._py_logger.addHandler(handler)
 
             # 3. Track metadata
+            rotation_meta = (
+                {
+                    "maxBytes": rotation_logic.maxBytes,
+                    "when": rotation_logic.when.name if rotation_logic.when else None,
+                    "interval": rotation_logic.interval,
+                    "backupCount": rotation_logic.backupCount,
+                }
+                if rotation_logic else None
+            )
+
             self._smart_state.handlers.append(
-                HandlerInfo(
+                HandlerMetadata(
                     kind="file",
-                    level=level or self._py_logger.level,
+                    level=logging.getLevelName(level or self._py_logger.level),
                     formatter=str(mode.value),
                     path=resolved_path,
-                    rotation_logic=rotation_logic,
+                    rotation=rotation_meta,
                     do_not_sanitize_colors_from_string=do_not_sanitize_colors_from_string,
                 )
             )
@@ -640,7 +647,7 @@ class SmartLogger:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def __pretty_handler_info(info: HandlerInfo) -> dict[str, Any]:
+    def __pretty_handler_info(info: HandlerMetadata) -> dict[str, Any]:
         """
         Convert HandlerInfo into a clean, human‑readable dict.
         Includes the handler object itself so that removal operations
@@ -669,48 +676,19 @@ class SmartLogger:
         return base
 
     @property
-    def handler_info(self) -> list[dict[str, object]]:
-        """
-        Human-readable view of this logger's handler metadata.
-        """
-        return [self.__pretty_handler_info(info) for info in self._smart_state.handlers]
+    def handler_info(self) -> list[dict[str, Any]]:
+        return [asdict(h) for h in self._smart_state.handlers]
 
     @property
-    def handler_info_json(self) -> str:
-        """
-        Return a JSON-formatted string describing all handlers attached
-        to this SmartLogger instance. Ensures the structure is fully
-        JSON-serializable.
-        """
-        def json_safe(obj):
-            if isinstance(obj, (str, int, float, bool)) or obj is None:
-                return obj
-            if isinstance(obj, Path):
-                return str(obj)
-            if hasattr(obj, "name"):  # Enum-like objects
-                return obj.name
-            if isinstance(obj, dict):
-                return {k: json_safe(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [json_safe(v) for v in obj]
-            return str(obj)
-
-        return json.dumps(json_safe(self.handler_info), indent=4, ensure_ascii=False)
-
-    @property
-    def console_handler(self) -> Optional[dict[str, object]]:
-        for info in self._smart_state.handlers:
-            if info.kind == "console":
-                return self.__pretty_handler_info(info)
+    def console_handler(self):
+        for h in self._smart_state.handlers:
+            if h.kind == "console":
+                return asdict(h)
         return None
 
     @property
-    def file_handlers(self) -> list[dict[str, object]]:
-        return [
-            self.__pretty_handler_info(info)
-            for info in self._smart_state.handlers
-            if info.kind == "file"
-        ]
+    def file_handlers(self):
+        return [asdict(h) for h in self._smart_state.handlers if h.kind == "file"]
 
     @property
     def output_targets(self) -> list[str]:
@@ -722,6 +700,45 @@ class SmartLogger:
                 out_targets.append(info.path)
 
         return out_targets
+
+    @classmethod
+    def audit_handler_info(cls) -> Optional[dict[str, object]]:
+        """
+        Returns metadata for the active audit handler, if auditing is enabled.
+        """
+        h = cls.__audit_handler
+        if h is None:
+            return None
+
+        # Determine formatter mode
+        fmt = h.formatter
+        if isinstance(fmt, StructuredJSONFormatter):
+            formatter = "json"
+        elif isinstance(fmt, StructuredNDJSONFormatter):
+            formatter = "ndjson"
+        elif isinstance(fmt, StructuredColorFormatter):
+            formatter = "color"
+        else:
+            formatter = "plain"
+
+        rotation_meta = None
+        rotation_logic = getattr(h, "rotation_logic", None)
+        if rotation_logic:
+            rotation_meta = {
+                "maxBytes": rotation_logic.maxBytes,
+                "when": rotation_logic.when.name if rotation_logic.when else None,
+                "interval": rotation_logic.interval,
+                "backupCount": rotation_logic.backupCount,
+            }
+
+        return {
+            "kind": "file" if hasattr(h, "baseFilename") else "console",
+            "level": logging.getLevelName(h.level),
+            "formatter": formatter,
+            "path": getattr(h, "baseFilename", None),
+            "rotation": rotation_meta,
+            "do_not_sanitize_colors_from_string": getattr(h, "do_not_sanitize_colors_from_string", False),
+        }
 
     # ------------------------------------------------------------------
     #  LEVEL REGISTRY HELPERS

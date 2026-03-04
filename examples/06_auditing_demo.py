@@ -7,7 +7,7 @@ Demonstrates SmartLogger auditing:
 - Supports rotation (size, time, or both)
 - Shows how to enable and disable auditing cleanly
 """
-
+import json
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -152,23 +152,19 @@ for name, lg in loggers.items():
 # ----------------------------------------------------------------------------------------------------------
 # 7. Disable auditing
 # ----------------------------------------------------------------------------------------------------------
+stdout("\nActive audit_handler_info:")
+stdout(json.dumps(SmartLogger.audit_handler_info(), indent = 4))
+
 stdout("\nDisabling auditing...")
-
 SmartLogger.terminate_auditing()
-
 stdout("Auditing disabled.")
 
-
-# ----------------------------------------------------------------------------------------------------------
-# 8. Show audit handler info
-# ----------------------------------------------------------------------------------------------------------
-stdout("\nAudit handler info:")
-audit_logger = SmartLogger("_audit", levels["TRACE"])  # internal audit logger
-stdout(audit_logger.handler_info_json)
+stdout("\nDead audit_handler_info:")
+stdout(json.dumps(SmartLogger.audit_handler_info(), indent = 4))
 
 
 # ----------------------------------------------------------------------------------------------------------
-# 9. Notes on adapting this demo
+# 8. Notes on adapting this demo
 # ----------------------------------------------------------------------------------------------------------
 stdout("\nNotes:\n"
       "- To demonstrate size-only rotation: remove 'when' and 'interval'.\n"

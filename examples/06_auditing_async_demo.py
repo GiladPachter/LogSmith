@@ -7,7 +7,7 @@ Demonstrates AsyncSmartLogger auditing:
 - Supports rotation (size, time, or both)
 - Shows how to enable and disable auditing cleanly
 """
-
+import json
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -155,21 +155,18 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 7. Disable auditing
     # ------------------------------------------------------------------------------------------------------
+    await a_stdout("\nActive audit_handler_info:")
+    await a_stdout(json.dumps(AsyncSmartLogger.audit_handler_info(), indent=4))
+
     await a_stdout("\nDisabling auditing...")
-
     await AsyncSmartLogger.terminate_auditing()
-
     await a_stdout("Auditing disabled.")
 
-    # ------------------------------------------------------------------------------------------------------
-    # 8. Show audit handler info
-    # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nAudit handler info:")
-    audit_logger = AsyncSmartLogger("_async_audit", levels["TRACE"])
-    await a_stdout(audit_logger.handler_info_json)
+    await a_stdout("\nDead audit_handler_info:")
+    await a_stdout(json.dumps(AsyncSmartLogger.audit_handler_info(), indent=4))
 
     # ------------------------------------------------------------------------------------------------------
-    # 9. Notes
+    # 8. Notes
     # ------------------------------------------------------------------------------------------------------
     await a_stdout("\nNotes:\n"
           "- To demonstrate size-only rotation: remove 'when' and 'interval'.\n"

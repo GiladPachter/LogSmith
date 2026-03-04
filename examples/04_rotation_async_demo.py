@@ -7,7 +7,7 @@ Demonstrates AsyncSmartLogger rotation logic:
 - Combined rotation (size + time)
 - Notes explaining daily/weekly behavior
 """
-
+import json
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -162,7 +162,7 @@ async def main():
     # 5. Show handler_info (JSON-safe)
     # ------------------------------------------------------------------------------------------------------
     await a_stdout("\nHandler info:\n-------------")
-    await a_stdout(logger.handler_info_json)
+    await a_stdout(json.dumps(logger.handler_info, indent=4))
 
     # ------------------------------------------------------------------------------------------------------
     # 6. AsyncSmartLogger rotation safeguards

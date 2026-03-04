@@ -9,7 +9,7 @@ Demonstrates LogSmith file output:
 - handler_info (JSON-safe)
 - LogSmith's path validation safeguards
 """
-
+import json
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ logger.add_file(
     rotation_logic=rotation,
 )
 
-stdout(logger.handler_info_json)
+stdout(json.dumps(logger.handler_info, indent=4))
 
 logger.info("Rotation handler attached.")
 
@@ -165,7 +165,7 @@ stdout(CPrint.escape_ansi_for_display(file_content))
 # 8. Show handler_info (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
 stdout("\nHandlers details:\n-----------------")
-stdout(logger.handler_info_json)
+stdout(json.dumps(logger.handler_info, indent=4))
 
 # ----------------------------------------------------------------------------------------------------------
 # 9. SmartLogger safeguards (contextually relevant here)
