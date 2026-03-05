@@ -7,17 +7,10 @@ from importlib.metadata import distribution
 from pathlib import Path
 
 
-from importlib.metadata import metadata, version, PackageNotFoundError
-
 def get_metadata():
     try:
         meta = metadata("LogSmith")
 
-        # # Extract homepage from Project-URL entries
-        # homepage = None
-        # for entry in meta.get_all("Project-URL", []):
-        #     if entry.startswith("Homepage,"):
-        #         homepage = entry.split("Homepage,", 1)[1].strip()
         # --- Project URLs ---
         project_urls = {}
         for entry in meta.get_all("Project-URL", []):
