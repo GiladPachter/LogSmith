@@ -10,10 +10,6 @@ LogSmith:
     - concurrency‑safe file handlers
 """
 
-from pathlib import Path
-import tomllib
-
-
 # Version metadata
 # noinspection PyBroadException
 try:
@@ -94,94 +90,16 @@ __all__ = [
 ]
 
 
-def _build_tree_from_paths(paths: list[str]):
-    tree: dict[str, dict] = {}
-    for p in paths:
-        parts = Path(p).parts
-        node = tree
-        for part in parts:
-            node = node.setdefault(part, {})
-    return tree
+# ======================================================================================
 
+from .metadata import get_metadata, get_license_text, get_file_tree
 
-def _render_tree_ascii(tree: dict, prefix: str = "") -> list[str]:
-    lines = []
-    entries = list(tree.items())
-    for i, (name, subtree) in enumerate(entries):
-        is_last = (i == len(entries) - 1)
-        connector = "\\-- " if is_last else "+-- "
-        lines.append(prefix + connector + name)
-        if subtree:
-            extension = "    " if is_last else "|   "
-            lines.extend(_render_tree_ascii(subtree, prefix + extension))
-    return lines
+__metadata__ = get_metadata()
 
+__license_text__ = get_license_text()
 
-def get_logsmith_file_tree(file_list: list[str]) -> str:
-    tree = _build_tree_from_paths(file_list)
-    return "\n".join(_render_tree_ascii(tree))
+__package_content__ = get_file_tree()
 
-
-
-def _load_project_metadata():
-    root = Path(__file__).resolve().parent.parent
-    pyproject = root / "pyproject.toml"
-
-    # Load pyproject metadata
-    try:
-        data = tomllib.loads(pyproject.read_text("utf-8"))
-        project = data.get("project", {})
-    except Exception:
-        project = {}
-
-    # Extract author email
-    authors = project.get("authors", [])
-    author_name = None
-    author_email = None
-    if authors and isinstance(authors, list):
-        first = authors[0]
-        if isinstance(first, dict):
-            author_name = first.get("name")
-            author_email = first.get("email")
-
-    # Extract license
-    license_info = project.get("license")
-    if isinstance(license_info, dict):
-        license_value = license_info.get("text") or license_info.get("file")
-    else:
-        license_value = license_info
-
-    # Collect file list (source tree)
-    file_list = []
-    for path in root.rglob("*"):
-        rel_root = str(path.relative_to(root)).replace("/", "\\")
-        if "venv" in path.__str__().lower():
-            continue
-        if rel_root.startswith("venv\\") or rel_root.startswith(".venv\\"):
-            continue
-        if rel_root.startswith(".idea\\"):
-            continue
-        if rel_root.startswith(".git"):
-            continue
-        if rel_root.startswith("dist\\"):
-            continue
-        if rel_root.startswith("LogSmith.egg-info\\"):
-            continue
-        if "__pycache__" in rel_root:
-            continue
-        if path.is_file():
-            file_list.append(rel_root)
-
-    return {
-        "name": project.get("name"),
-        "version": project.get("version"),
-        "description": project.get("description"),
-        "author": author_name,
-        "author_email": author_email,
-        "urls": project.get("urls", {}),
-        "license": license_value,
-        "requires-python": project.get("requires-python"),
-        "files": get_logsmith_file_tree(file_list).splitlines(),
-    }
-
-__metadata__ = _load_project_metadata()
+__all__.append("__metadata__")
+__all__.append("__license_text__")
+__all__.append("__package_content__")
