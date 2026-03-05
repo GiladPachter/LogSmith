@@ -86,8 +86,9 @@ Although LogSmith is a standalone project, it benefits from:
 
 ---
 
-# Summary  
+# 📘 Summary  
 
-This appendix recognizes the people, tools, and ideas that contributed to LogSmith’s development. While the framework is original, it is part of a broader ecosystem of logging philosophies, async design patterns, and developer‑centric tooling.
+This appendix recognizes the people, tools, and ideas that contributed to LogSmith’s development.<br/>
+While the framework is original, it is part of a broader ecosystem of logging philosophies, async design patterns, and developer‑centric tooling.
 
 If you’d like, I can now assemble a **complete, publication-ready Table of Contents** for the entire documentation set.

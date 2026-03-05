@@ -1,4 +1,4 @@
-# Appendix D — Roadmap  
+# Appendix D — 🧭 Roadmap  
 A forward‑looking overview of LogSmith’s development priorities. This roadmap reflects the current state of the project and the natural next steps that strengthen stability, performance, ergonomics, and ecosystem completeness. It is intentionally concise and high‑signal, serving as a guide for contributors and users who want to understand where LogSmith is heading.
 
 ---

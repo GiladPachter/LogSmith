@@ -39,6 +39,6 @@ Tracebacks may contain sensitive values.
 
 ---
 
-## 🧩 Summary
+## 📘 Summary
 
 Your logging choices determine your security posture.

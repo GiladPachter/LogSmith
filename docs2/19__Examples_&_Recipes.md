@@ -1,4 +1,4 @@
-# Examples & Recipes  
+# 🔬 🧪 🧰 🪄✨🔮 Examples & Recipes  
 This chapter provides ready‑to‑use patterns for common real‑world scenarios. Each recipe is self‑contained and demonstrates how to combine LogSmith features into practical logging setups for applications of all sizes.
 
 ---
@@ -133,7 +133,11 @@ from LogSmith import SmartLogger
 
 SmartLogger.register_level("NOTICE", 25)
 . . .
-logger.notice("This is a NOTICE message")
+SmartLogger.register_level(
+    name="NOTICE",
+    value=25,
+    style=LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA, intensity=CPrint.Intensity.BOLD),
+)
 ```
 
 ---
@@ -170,13 +174,15 @@ logger.add_file(
 
 ---
 
-## Synchronized Async Printing  
-Prevent interleaving between print() and async logs.
+## Printing with Sync & Async logging
+Prevent interleaving between print() and log messages in console.
 
 ```python
+from LogSmith import stdout
 from LogSmith import a_stdout
 
-await a_stdout("This prints in sync with async logs")
+stdout("This prints in sync with SmartLogger logs")
+await a_stdout("This prints in sync with AsyncSmartLogger logs")
 ```
 
 ---
@@ -195,19 +201,21 @@ SmartLogger.audit_everything(
 
 ---
 
-## Multi‑Module Application Structure  
-A clean layout for large applications.
+## Log-Level propagation to multiple logger from ancestor logger
+Set parent level to apply to self + all descendants
 
 ```python
+levels = SmartLogger.levels()
+
 # root logger
-root = SmartLogger("myapp", level=20)
+root = SmartLogger("myapp", levels["DEBUG"])
 root.add_console()
 
 # module loggers
-api = SmartLogger("myapp.api")
+api = SmartLogger("myapp.api", levels["NOTSET"])
 api.add_file(log_dir="logs", logfile_name="api.log")
 
-users = SmartLogger("myapp.api.users")
+users = SmartLogger("myapp.api.users", levels["NOTSET"])
 users.add_file(log_dir="logs", logfile_name="users.log")
 ```
 
