@@ -197,7 +197,7 @@ This appendix provides a complete, publication‑ready table of contents for the
 
 ---
 
-# Summary  
+# 📘 Summary  
 This appendix provides a complete, hierarchical overview of the entire LogSmith documentation set. It is suitable for navigation menus, printed manuals, or online documentation portals.
 
 If you'd like, I can now generate a **single consolidated document** that merges all chapters into one continuous file for publication or internal use.

@@ -1,5 +1,5 @@
-# Appendix C — Changelog  
-This appendix documents the version history of LogSmith, including major features, improvements, fixes, and behavioral changes across releases. It provides a chronological overview of how the framework evolved.
+# Appendix C — 📜 Changelog  
+A chronological record of LogSmith’s evolution, reordered to reflect the actual progression of architectural, functional, and ecosystem‑level development up to version **1.8.3**.
 
 ---
 
@@ -18,7 +18,26 @@ This appendix documents the version history of LogSmith, including major feature
 
 ---
 
-# Version 1.1.0 — Async Logging  
+# Version 1.1.0 — Formatting Enhancements  
+- Expanded `OptionalRecordFields` with new metadata fields.  
+- Added full control over message parts ordering.  
+- Added color‑all‑fields option.  
+- Improved exception formatting in JSON / NDJSON.  
+- Added module name and pathname metadata.  
+- Improved structured formatting consistency.
+
+---
+
+# Version 1.2.0 — Rotation Improvements  
+- Added timestamp anchors (`RotationTimestamp`).  
+- Added weekly rotation (MONDAY–SUNDAY).  
+- Improved hybrid rotation logic.  
+- Added concurrency‑safe rotation on Windows and Unix.  
+- Improved retention cleanup performance.
+
+---
+
+# Version 1.3.0 — Async Logging  
 - Introduced **AsyncSmartLogger** with async logging methods.  
 - Added async queue and worker system.  
 - Implemented async rotation and async file handling.  
@@ -28,7 +47,7 @@ This appendix documents the version history of LogSmith, including major feature
 
 ---
 
-# Version 1.2.0 — Auditing System  
+# Version 1.4.0 — Auditing System  
 - Added global auditing for SmartLogger and AsyncSmartLogger.  
 - Introduced audit handlers and audit formatter.  
 - Added NDJSON audit output.  
@@ -37,30 +56,12 @@ This appendix documents the version history of LogSmith, including major feature
 
 ---
 
-# Version 1.3.0 — Dynamic Log Levels  
+# Version 1.5.0 — Dynamic Log Levels  
 - Added runtime level registration (`register_level`).  
 - Automatically generated new logger methods (sync + async).  
 - Added theme integration for dynamic levels.  
 - Updated JSON / NDJSON to include dynamic levels.  
 - Improved level inheritance logic.
-
----
-
-# Version 1.4.0 — Formatting Enhancements  
-- Expanded `OptionalRecordFields` with new metadata fields.  
-- Added full control over message parts ordering.  
-- Added color‑all‑fields option.  
-- Improved exception formatting in JSON / NDJSON.  
-- Added module name and pathname metadata.
-
----
-
-# Version 1.5.0 — Rotation Improvements  
-- Added timestamp anchors (`RotationTimestamp`).  
-- Added weekly rotation (MONDAY–SUNDAY).  
-- Improved hybrid rotation logic.  
-- Added concurrency‑safe rotation on Windows and Unix.  
-- Improved retention cleanup performance.
 
 ---
 
@@ -91,36 +92,25 @@ This appendix documents the version history of LogSmith, including major feature
 
 ---
 
-# Version 1.9.0 — Performance Improvements  
-- Optimized structured formatting to reduce allocations.  
-- Improved NDJSON serialization speed.  
-- Reduced overhead of async queue operations.  
-- Improved rotation performance under heavy load.  
-- Added micro‑optimizations for metadata extraction.
-
----
-
-# Version 2.0.0 — Major Stability Release  
-- Refactored internal architecture for clarity and maintainability.  
-- Improved cross‑platform file locking.  
-- Added safer fallback behavior for unexpected exceptions.  
-- Improved compatibility with Python 3.12+.  
-- Added comprehensive test suite for sync + async logging.  
-- Updated documentation and examples.
+# Version 1.8.3 — Stability & Metadata Refinement  
+- Improved metadata extraction performance.  
+- Added robust metadata exposure (`__metadata__`).  
+- Added license text extraction with multi‑layout support.  
+- Improved wheel packaging consistency.  
+- Minor fixes for edge‑case lifecycle behavior.
 
 ---
 
 # Summary  
-This changelog captures the evolution of LogSmith from a simple structured logger into a full‑featured logging framework with:
+LogSmith’s development path reflects a progression from a foundational structured logger into a mature, high‑performance logging framework with:
 
-- sync + async engines  
-- auditing  
-- dynamic levels  
-- advanced formatting  
-- rotation + retention  
-- themes + gradients  
-- diagnostics  
-- lifecycle management  
-- high‑performance architecture  
+- synchronous + asynchronous engines  
+- advanced formatting and color systems  
+- rotation + retention with concurrency safety  
+- auditing and dynamic log levels  
+- diagnostics and lifecycle management  
+- robust metadata and packaging  
+- strong performance characteristics  
 
-The next appendix covers **Appendix D: License**, providing the full license text for LogSmith.
+This appendix documents that evolution up to **v1.8.3**.  
+The next appendix covers **Appendix D: License**, containing the full license text.
