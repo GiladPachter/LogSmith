@@ -3,26 +3,7 @@ A forward‑looking overview of LogSmith’s development priorities. This roadma
 
 ---
 
-# Core Stability & Architecture
-
-### **Finalize Composition‑Based Logger Architecture**  
-Ensure SmartLogger’s composition model (wrapping `logging.Logger`) is fully stable, consistent, and free of inheritance artifacts.
-
-### **Unify Sync/Async Behavior**  
-Guarantee that SmartLogger and AsyncSmartLogger behave identically wherever possible, differing only in execution model.
-
-### **Strengthen Handler Lifecycle Guarantees**  
-Improve clarity and robustness around handler creation, removal, retirement, and destruction.
-
----
-
 # Async Logging Enhancements
-
-### **Backpressure Controls**  
-Refine queue‑depth heuristics, auto‑flush behavior, and cooperative yielding for extreme workloads.
-
-### **Async Rotation Improvements**  
-Enhance Async_TimedSizedRotatingFileHandler to better handle edge cases, race conditions, and high‑frequency rotation.
 
 ### **Profiling Expansion**  
 Extend async profiling to include formatter cost, rotation latency, and queue wait times.
@@ -30,9 +11,6 @@ Extend async profiling to include formatter cost, rotation latency, and queue wa
 ---
 
 # Formatting & Structured Output
-
-### **Formatter Consistency**  
-Ensure StructuredPlainFormatter, StructuredColorFormatter, StructuredJSONFormatter, and StructuredNDJSONFormatter produce perfectly aligned metadata across all modes.
 
 ### **Extended OptionalRecordFields**  
 Add missing metadata fields (e.g., module name) and ensure full compatibility with JSON/NDJSON output.
@@ -44,14 +22,8 @@ Refine extraction and rendering of structured fields, especially for nested obje
 
 # Rotation & Retention
 
-### **RotationLogic Enhancements**  
-Improve timestamp‑based rotation, weekday scheduling, and retention edge cases.
-
 ### **Cross‑Process Safety**  
 Continue strengthening concurrency guarantees for multi‑process rotation on Unix and Windows.
-
-### **ExpirationRule Extensions**  
-Add more retention strategies (e.g., size‑based retention, count‑plus‑age hybrid).
 
 ---
 
@@ -86,9 +58,6 @@ Continue refining appendices, examples, and conceptual chapters to match the evo
 ### **Third‑Party Integration Helpers**  
 Optional utilities for integrating LogSmith with frameworks (FastAPI, Flask, asyncio servers, multiprocessing pools).
 
-### **CLI Utilities**  
-Potential command‑line tools for inspecting logs, validating rotation rules, or previewing formatting themes.
-
 ### **Plugin Architecture (Exploratory)**  
 Long‑term idea: allow custom formatters, handlers, and themes to be registered externally.
 
@@ -102,9 +71,6 @@ Add async‑specific benchmarks, rotation stress tests, and structured‑field p
 ### **Memory Profiling**  
 Measure and optimize memory usage for large queues, deep structured fields, and high‑volume JSON output.
 
-### **Formatter Optimization**  
-Investigate micro‑optimizations for timestamp formatting, extras extraction, and NDJSON generation.
-
 ---
 
 # Long‑Term Vision
@@ -112,13 +78,10 @@ Investigate micro‑optimizations for timestamp formatting, extras extraction, a
 ### **Unified Logging Framework**  
 Position LogSmith as a complete, modern logging solution for Python applications of all sizes.
 
-### **Production‑Grade Async Logging**  
-Achieve extremely high throughput with predictable latency under heavy load.
-
 ### **Best‑in‑Class Structured Logging**  
 Provide the most ergonomic and powerful structured logging experience in Python.
 
 ---
 
-# Summary  
+# 📘 Summary  
 This roadmap outlines the next phases of LogSmith’s evolution: stabilizing the architecture, strengthening async capabilities, refining formatting and rotation, improving diagnostics, and expanding the ecosystem. The goal is to keep LogSmith fast, predictable, expressive, and production‑ready while maintaining a clean and intuitive API.

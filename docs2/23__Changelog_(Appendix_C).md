@@ -101,7 +101,7 @@ A chronological record of LogSmith’s evolution, reordered to reflect the actua
 
 ---
 
-# Summary  
+# 📘 Summary  
 LogSmith’s development path reflects a progression from a foundational structured logger into a mature, high‑performance logging framework with:
 
 - synchronous + asynchronous engines  

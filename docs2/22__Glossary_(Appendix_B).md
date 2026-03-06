@@ -210,6 +210,6 @@ Worker Task  —  Background task in AsyncSmartLogger that processes queued log 
 
 ---
 
-# Summary  
+# 📘 Summary  
 This glossary is a complete reference to all terminology used throughout LogSmith, covering synchronous and asynchronous logging, formatting, rotation, retention, colors, themes, auditing, and internal mechanics.
 It ensures that every concept appearing in the documentation has a clear and accessible definition.

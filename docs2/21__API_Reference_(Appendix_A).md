@@ -264,5 +264,5 @@ Strongly‑typed representation of a log record.
 
 ---
 
-# Summary  
+# 📘 Summary  
 This appendix lists all LogSmith entities and the members they expose, providing a compact map of the entire API surface: loggers, handlers, formatting, rotation, colors, themes, auditing, and dynamic levels.
