@@ -8,89 +8,89 @@ from pathlib import Path
 TEST_STRUCTURE = {
     "tests/unit": {
         "test_levels.py": [
-            "def test_builtin_levels_exist(): pass",
-            "def test_register_dynamic_level(): pass",
-            "def test_dynamic_level_method_created(): pass",
-            "def test_level_inheritance_logic(): pass",
+            "def test_builtin_levels_exist():\n    pass",
+            "def test_register_dynamic_level():\n    pass",
+            "def test_dynamic_level_method_created():\n    pass",
+            "def test_level_inheritance_logic():\n    pass",
         ],
         "test_formatting.py": [
-            "def test_basic_formatting_structure(): pass",
-            "def test_message_parts_order(): pass",
-            "def test_color_all_fields_flag(): pass",
-            "def test_exception_formatting(): pass",
+            "def test_basic_formatting_structure():\n    pass",
+            "def test_message_parts_order():\n    pass",
+            "def test_color_all_fields_flag():\n    pass",
+            "def test_exception_formatting():\n    pass",
         ],
         "test_optional_fields.py": [
-            "def test_optional_fields_toggle(): pass",
-            "def test_optional_fields_in_json(): pass",
+            "def test_optional_fields_toggle():\n    pass",
+            "def test_optional_fields_in_json():\n    pass",
         ],
         "test_cprint.py": [
-            "def test_colorize_basic(): pass",
-            "def test_gradient_output(): pass",
-            "def test_strip_ansi(): pass",
-            "def test_escape_control_chars(): pass",
+            "def test_colorize_basic():\n    pass",
+            "def test_gradient_output():\n    pass",
+            "def test_strip_ansi():\n    pass",
+            "def test_escape_control_chars():\n    pass",
         ],
         "test_rotation_logic.py": [
-            "def test_should_rotate_size(): pass",
-            "def test_should_rotate_time(): pass",
-            "def test_should_rotate_hybrid(): pass",
-            "def test_rotation_timestamp_anchor(): pass",
+            "def test_should_rotate_size():\n    pass",
+            "def test_should_rotate_time():\n    pass",
+            "def test_should_rotate_hybrid():\n    pass",
+            "def test_rotation_timestamp_anchor():\n    pass",
         ],
         "test_themes.py": [
-            "def test_apply_theme(): pass",
-            "def test_theme_overrides_levelstyle(): pass",
+            "def test_apply_theme():\n    pass",
+            "def test_theme_overrides_levelstyle():\n    pass",
         ],
         "test_hierarchy_logic.py": [
-            "def test_hierarchy_inheritance(): pass",
-            "def test_handler_non_propagation(): pass",
+            "def test_hierarchy_inheritance():\n    pass",
+            "def test_handler_non_propagation():\n    pass",
         ],
         "test_lifecycle_logic.py": [
-            "def test_retire_logger(): pass",
-            "def test_destroy_logger(): pass",
-            "def test_recreate_logger_after_destroy(): pass",
+            "def test_retire_logger():\n    pass",
+            "def test_destroy_logger():\n    pass",
+            "def test_recreate_logger_after_destroy():\n    pass",
         ],
     },
 
     "tests/filesystem": {
         "test_file_creation.py": [
-            "def test_file_handler_creates_directory(tmp_path): pass",
-            "def test_file_handler_creates_file(tmp_path): pass",
+            "def test_file_handler_creates_directory(tmp_path):\n    pass",
+            "def test_file_handler_creates_file(tmp_path):\n    pass",
         ],
         "test_rotation_size.py": [
-            "def test_rotation_triggers_on_size(tmp_path): pass",
+            "def test_rotation_triggers_on_size(tmp_path):\n    pass",
         ],
         "test_rotation_time.py": [
-            "def test_rotation_triggers_on_time(tmp_path): pass",
+            "def test_rotation_triggers_on_time(tmp_path):\n    pass",
         ],
         "test_rotation_hybrid.py": [
-            "def test_rotation_triggers_on_either_condition(tmp_path): pass",
+            "def test_rotation_triggers_on_either_condition(tmp_path):\n    pass",
         ],
         "test_retention.py": [
-            "def test_retention_deletes_old_files(tmp_path): pass",
+            "def test_retention_deletes_old_files(tmp_path):\n    pass",
         ],
         "test_sanitization.py": [
-            "def test_ansi_sanitization_enabled(tmp_path): pass",
-            "def test_ansi_sanitization_disabled(tmp_path): pass",
+            "def test_ansi_sanitization_enabled(tmp_path):\n    pass",
+            "def test_ansi_sanitization_disabled(tmp_path):\n    pass",
         ],
         "test_ndjson_validity.py": [
-            "def test_ndjson_one_object_per_line(tmp_path): pass",
+            "def test_ndjson_one_object_per_line(tmp_path):\n    pass",
         ],
         "test_file_handler_metadata.py": [
-            "def test_file_handler_metadata_exposed(tmp_path): pass",
+            "def test_file_handler_metadata_exposed(tmp_path):\n    pass",
         ],
     },
 
     "tests/async_tests": {
         "test_async_basic.py": [
-            "async def test_async_basic_logging(tmp_path): pass",
+            "async def test_async_basic_logging(tmp_path):\n    pass",
         ],
         "test_async_ordering.py": [
-            "async def test_async_ordering_is_fifo(tmp_path): pass",
+            "async def test_async_ordering_is_fifo(tmp_path):\n    pass",
         ],
         "test_async_queue_behavior.py": [
-            "async def test_async_queue_growth(tmp_path): pass",
+            "async def test_async_queue_growth(tmp_path):\n    pass",
         ],
         "test_async_rotation.py": [
-            "async def test_async_rotation(tmp_path): pass",
+            "async def test_async_rotation(tmp_path):\n    pass",
         ],
         "test_async_flush_shutdown.py": [
             "async def test_async_flush(tmp_path): pass",

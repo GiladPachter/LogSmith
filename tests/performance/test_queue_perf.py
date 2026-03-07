@@ -1,4 +1,5 @@
 # Auto-generated test skeleton for LogSmith
 
-def test_queue_performance(benchmark): pass
+def test_queue_performance(benchmark):
+    pass
 
