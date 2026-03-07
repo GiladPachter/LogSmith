@@ -459,13 +459,25 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
                 if os.path.exists(sfn):
                     if os.path.exists(dfn):
                         os.remove(dfn)
-                    os.replace(sfn, dfn)
+                    try:
+                        orig_mtime = os.path.getmtime(sfn)
+                        os.replace(sfn, dfn)
+                        os.utime(dfn, (orig_mtime, orig_mtime))
+                    except FileNotFoundError:
+                        pass
 
             dfn = f"{self.baseFilename}.1"
             if os.path.exists(dfn):
                 os.remove(dfn)
             if os.path.exists(self.baseFilename):
-                os.replace(self.baseFilename, dfn)
+                orig_mtime = os.path.getmtime(self.baseFilename)
+                try:
+                    os.replace(self.baseFilename, dfn)
+                    os.utime(dfn, (orig_mtime, orig_mtime))
+                except PermissionError:
+                    # Another process still has app.log open; skip rotation in this process.
+                    # We just reopen the base file below and keep logging.
+                    pass
 
         # reopen base file
         self.stream = self._open()
@@ -515,5 +527,5 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
         return [
             os.path.join(dir_name, f)
             for f in os.listdir(dir_name)
-            if f.startswith(prefix)
+            if f.startswith(prefix) and not f.endswith(".lock")
         ]

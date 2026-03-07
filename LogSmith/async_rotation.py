@@ -101,7 +101,9 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
                     if os.path.exists(sfn):
                         if os.path.exists(dfn):
                             os.remove(dfn)
+                        orig_mtime = os.path.getmtime(sfn)
                         os.replace(sfn, dfn)
+                        os.utime(dfn, (orig_mtime, orig_mtime))
 
                 dfn = f"{self.baseFilename}.1"
                 if os.path.exists(dfn):
@@ -257,4 +259,5 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
             os.path.join(dir_name, f)
             for f in os.listdir(dir_name)
             if f.startswith(prefix)
+               and not f.endswith(".lock")
         ]

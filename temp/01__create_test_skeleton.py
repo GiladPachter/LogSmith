@@ -89,7 +89,7 @@ TEST_STRUCTURE = {
         "test_async_queue_behavior.py": [
             "async def test_async_queue_growth(tmp_path):\n    pass",
         ],
-        "test_async_rotation.py": [
+        "test_async_rotation_filesystem.py": [
             "async def test_async_rotation(tmp_path):\n    pass",
         ],
         "test_async_flush_shutdown.py": [
