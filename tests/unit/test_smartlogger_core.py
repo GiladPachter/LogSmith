@@ -1,6 +1,7 @@
+import re
 from pathlib import Path
 
-from LogSmith import SmartLogger, OutputMode, LogRecordDetails, OptionalRecordFields
+from LogSmith import SmartLogger, OutputMode, LogRecordDetails, OptionalRecordFields, CPrint
 
 
 def test_basic_console_logging(capsys):
@@ -38,7 +39,7 @@ def test_file_logging_plain(tmp_path: Path):
 
     content = logfile.read_text(encoding="utf-8")
     assert "hello file" in content
-    assert "user = 'gilad'" in content
+    assert "user='gilad'" in content
 
 
 def test_raw_output_bypasses_formatting(capsys):
@@ -47,7 +48,17 @@ def test_raw_output_bypasses_formatting(capsys):
     logger.add_console()
 
     logger.raw("RAW LINE")
-    out = capsys.readouterr().out.strip()
+
+    # out = capsys.readouterr().out.strip()
+
+    ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+    captured = capsys.readouterr().out.strip()
+    clean_via_regex = ANSI_RE.sub("", captured)
+    clean_via_cprint = CPrint.strip_ansi(captured)
+    assert clean_via_regex == clean_via_cprint
+
+    out = clean_via_cprint
 
     # raw output should not include level or timestamp
     assert out == "RAW LINE"
@@ -69,13 +80,21 @@ def test_structured_fields_in_console_and_file(tmp_path, capsys):
 
     logger.info("User login", username="Gilad", action="login")
 
-    out = capsys.readouterr().out
+    ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+    captured = capsys.readouterr().out
+    clean_via_regex = ANSI_RE.sub("", captured)
+    clean_via_cprint = CPrint.strip_ansi(captured)
+    assert clean_via_regex == clean_via_cprint
+
+    out = clean_via_cprint
+
     assert "User login" in out
-    assert "username = 'Gilad'" in out
+    assert "username = 'Gilad'" in out      # content spaced out for readability
 
     content = (log_dir / "struct.log").read_text(encoding="utf-8")
     assert "User login" in content
-    assert "username = 'Gilad'" in content
+    assert "username='Gilad'" in content    # content condensed for preserving disk space
 
 
 def test_custom_logrecorddetails_for_file(tmp_path: Path):
@@ -111,4 +130,4 @@ def test_custom_logrecorddetails_for_file(tmp_path: Path):
     content = (log_dir / "details.log").read_text(encoding="utf-8")
     assert "core.details.file" in content
     assert "hello" in content
-    assert "x = 1" in content
+    assert "x=1" in content

@@ -284,7 +284,7 @@ class StructuredPlainFormatter:
             extras = _extract_extras(record)
             if extras:
                 kv = " ".join(f"{k}={v!r}" for k, v in extras.items())
-                line = f"{line} {kv}"
+                line = f"{line} {{{kv}}}"
 
             return line
 

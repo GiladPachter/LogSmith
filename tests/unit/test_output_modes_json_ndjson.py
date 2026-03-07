@@ -13,7 +13,13 @@ def test_console_json_output_structure(capsys):
             logger_name=True,
             file_name=True,
             lineno=True,
-        )
+        ),
+        message_parts_order=[
+            "level",
+            "logger_name",
+            "file_name",
+            "lineno",
+        ],
     )
 
     logger.add_console(
@@ -30,8 +36,8 @@ def test_console_json_output_structure(capsys):
     assert data["message"] == "User login"
     assert data["fields"]["username"] == "Gilad"
     assert data["fields"]["action"] == "login"
-    assert "file" in data
-    assert "line" in data
+    assert "file_name" in data
+    assert "lineno" in data
 
 
 def test_file_ndjson_output(tmp_path: Path):

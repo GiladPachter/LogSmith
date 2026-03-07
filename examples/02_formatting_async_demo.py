@@ -44,10 +44,10 @@ async def main():
             func_name=True,
         ),
         message_parts_order=[
-            "level",    # required for positioning
+            "level",        # required for positioning
             "file_name",
             "lineno",
-            "func_name",
+            "func_name",    # colored by level style
         ],
         color_all_log_record_fields=False,  # only level + message are colored
     )

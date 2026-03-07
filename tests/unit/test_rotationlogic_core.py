@@ -61,7 +61,11 @@ def test_size_based_rotation_triggers(tmp_path: Path):
     base = log_dir / "app.log"
     assert base.exists()
 
-    rotated = [p for p in log_dir.iterdir() if p.name.startswith("app.log.")]
+    rotated = [
+        p for p in log_dir.iterdir()
+        if p.name.startswith("app.log.")
+           and p.name != "app.log.lock"
+    ]
     assert len(rotated) <= 3
 
 

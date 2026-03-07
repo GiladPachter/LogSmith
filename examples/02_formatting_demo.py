@@ -43,7 +43,7 @@ partial_details = LogRecordDetails(
         func_name=True,
     ),
     message_parts_order=[
-        "level",      # colored by level style
+        "level",        # colored by level style
         "file_name",
         "lineno",
         "func_name",
@@ -80,7 +80,6 @@ full_details = LogRecordDetails(
         "file_name",
         "lineno",
         "func_name",
-        # "message",
     ],
     color_all_log_record_fields=True,   # entire entry is colored by level style
 )
