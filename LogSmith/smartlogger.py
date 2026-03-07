@@ -1271,29 +1271,29 @@ class SmartLogger:
         return None
 
 
-# ======================================================================
-#  REGISTER BUILT-IN LEVELS
-# ======================================================================
-LEVELS.register("TRACE", TRACE,
-    LevelStyle(fg = CPrint.FG.SOFT_PURPLE, intensity = CPrint.Intensity.NORMAL),
-)
-LEVELS.register("DEBUG", logging.DEBUG,
-    LevelStyle(fg = CPrint.FG.CYAN, intensity = CPrint.Intensity.NORMAL),
-)
-LEVELS.register("INFO", logging.INFO,
-    LevelStyle(fg = CPrint.FG.NEON_GREEN, intensity = CPrint.Intensity.NORMAL),
-)
-LEVELS.register("WARNING", logging.WARNING,
-    LevelStyle(fg = CPrint.FG.NEON_YELLOW, intensity = CPrint.Intensity.NORMAL),
-)
-LEVELS.register("ERROR", logging.ERROR,
-    LevelStyle(fg = CPrint.FG.NEON_RED, intensity = CPrint.Intensity.BOLD),
-)
-LEVELS.register("CRITICAL", logging.CRITICAL,
-    LevelStyle(fg = CPrint.FG.NEON_YELLOW, bg = CPrint.BG.NEON_RED, intensity = CPrint.Intensity.BOLD,
-               styles = (CPrint.Style.UNDERLINE,),
-    ),
-)
+# # ======================================================================
+# #  REGISTER BUILT-IN LEVELS
+# # ======================================================================
+# LEVELS.register("TRACE", TRACE,
+#     LevelStyle(fg = CPrint.FG.SOFT_PURPLE, intensity = CPrint.Intensity.NORMAL),
+# )
+# LEVELS.register("DEBUG", logging.DEBUG,
+#     LevelStyle(fg = CPrint.FG.CYAN, intensity = CPrint.Intensity.NORMAL),
+# )
+# LEVELS.register("INFO", logging.INFO,
+#     LevelStyle(fg = CPrint.FG.NEON_GREEN, intensity = CPrint.Intensity.NORMAL),
+# )
+# LEVELS.register("WARNING", logging.WARNING,
+#     LevelStyle(fg = CPrint.FG.NEON_YELLOW, intensity = CPrint.Intensity.NORMAL),
+# )
+# LEVELS.register("ERROR", logging.ERROR,
+#     LevelStyle(fg = CPrint.FG.NEON_RED, intensity = CPrint.Intensity.BOLD),
+# )
+# LEVELS.register("CRITICAL", logging.CRITICAL,
+#     LevelStyle(fg = CPrint.FG.NEON_YELLOW, bg = CPrint.BG.NEON_RED, intensity = CPrint.Intensity.BOLD,
+#                styles = (CPrint.Style.UNDERLINE,),
+#     ),
+# )
 
 
 # ======================================================================

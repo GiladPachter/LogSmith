@@ -1,10 +1,16 @@
 # Auto-generated pytest fixtures for LogSmith
 
 import asyncio
+import importlib
 import json
+import logging
 from pathlib import Path
 
+
 import pytest
+import LogSmith
+import LogSmith.level_registry
+import LogSmith.smartlogger
 
 
 @pytest.fixture(scope="session")
@@ -55,3 +61,10 @@ def force_rotation():
         if hasattr(handler, "doRollover"):
             handler.doRollover()
     return _force
+
+
+from LogSmith.level_registry import reset_levels_for_tests
+
+@pytest.fixture(autouse=True)
+def reset_level_registry():
+    reset_levels_for_tests()

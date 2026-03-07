@@ -24,6 +24,30 @@ import json
 from LogSmith import SmartLogger, stdout, CPrint, LevelStyle
 
 
+# ----------------------------------------------------------------------------------------------------------
+# 0. Registering levels at runtime
+# ----------------------------------------------------------------------------------------------------------
+SmartLogger.register_level(
+    name="NOTICE",
+    value=25,
+    style=LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA, intensity=CPrint.Intensity.BOLD),
+)
+
+SmartLogger.register_level(
+    name="ALERT",
+    value=45,
+    style=LevelStyle(
+        fg=CPrint.FG.BRIGHT_YELLOW,
+        bg=CPrint.BG.RED,
+        intensity=CPrint.Intensity.BOLD,
+    ),
+)
+
+
+# ----------------------------------------------------------------------------------------------------------
+# 1. Showing built-in levels
+# ----------------------------------------------------------------------------------------------------------
+
 levels = SmartLogger.levels()
 
 stdout("\nBuiltin logger levels:")
@@ -59,24 +83,25 @@ logger.warning("Suspicious activity detected", reason="multiple failed attempts"
 # ----------------------------------------------------------------------------------------------------------
 # 5. Dynamic level registration
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
+# stdout("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
+stdout("\nShowing logging levels that were added on-the-fly as startup:\n------------------------------------------------------------")
 
-SmartLogger.register_level(
-    name="NOTICE",
-    value=25,
-    style=LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA, intensity=CPrint.Intensity.BOLD),
-)
-logger.notice("This is a NOTICE-level message")
+# SmartLogger.register_level(
+#     name="NOTICE",
+#     value=25,
+#     style=LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA, intensity=CPrint.Intensity.BOLD),
+# )
+logger.notice("This is a NOTICE-level (a runtime-added level) message")
 
-SmartLogger.register_level(
-    name="ALERT",
-    value=45,
-    style=LevelStyle(
-        fg=CPrint.FG.BRIGHT_YELLOW,
-        bg=CPrint.BG.RED,
-        intensity=CPrint.Intensity.BOLD,
-    ),
-)
+# SmartLogger.register_level(
+#     name="ALERT",
+#     value=45,
+#     style=LevelStyle(
+#         fg=CPrint.FG.BRIGHT_YELLOW,
+#         bg=CPrint.BG.RED,
+#         intensity=CPrint.Intensity.BOLD,
+#     ),
+# )
 logger.alert("This is an ALERT-level message")
 
 stdout("\nExpanded logger levels:")
