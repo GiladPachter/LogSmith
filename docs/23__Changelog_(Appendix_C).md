@@ -9,7 +9,7 @@ The below "timeline" specifies how things had progressed in actuality during the
 # Version 1.0.0 — Initial Release
 - Introduced **SmartLogger**, a synchronous logging engine.
 - Added console and file handlers.
-- Time-based & Size-based Rotation control with `RotationLogic`, `When` & `RotationTimestamp` entites
+- Time-based & Size-based Rotation control with `RotationLogic`, `When` & `RotationTimestamp` entities
 - Concurrency-safe rotation.
 - Structured formatting with `LogRecordDetails` and `OptionalRecordFields`.
 - ANSI color support via `CPrint`.
