@@ -334,14 +334,28 @@ class SmartLogger:
 
         for handler in self._py_logger.handlers:
             stream = getattr(handler, "stream", None)
+
+            # FIX: FileHandler lazily opens the file; force-open if needed
+            if stream is None and hasattr(handler, "baseFilename"):
+                try:
+                    handler.acquire()
+                    # noinspection PyUnresolvedReferences,PyProtectedMember
+                    handler.stream = handler._open()
+                finally:
+                    handler.release()
+                stream = handler.stream
+
+            # Still no stream? Skip this handler
             if stream is None:
                 continue
 
             is_console = isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename")
 
             if is_console:
+                # Console: bleach non-colored text
                 text = self.__bleach_non_colored_text(message)
             else:
+                # File: sanitize unless passthrough enabled
                 do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
                 text = message if do_not_sanitize else CPrint.strip_ansi(message)
 

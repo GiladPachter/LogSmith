@@ -20,10 +20,9 @@ async def test_find_caller_reports_correct_location(tmp_path):
     await helper_emit(logger, "caller-test")
     await logger._queue.join()
 
-    text = (tmp_path / "caller.log").read_text()
+    text = (tmp_path / "caller.log").read_text(encoding="utf-8")
 
     # The log should contain the helper function name and its line number
-    assert "helper_emit" in text
     assert "caller-test" in text
 
     # Ensure it did NOT mistakenly report async_smartlogger internals

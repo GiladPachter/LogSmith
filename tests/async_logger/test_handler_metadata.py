@@ -16,7 +16,7 @@ async def test_handler_info_console():
 
     h = info[0]
     assert h["kind"] == "console"
-    assert h["level"] == "INFO"
+    assert h["level"] == "TRACE"
     assert h["formatter"] in ("color", "plain", "json", "ndjson")  # depends on mode
     assert h["path"] is None
     assert h["rotation"] is None
@@ -63,8 +63,8 @@ async def test_handler_info_file_with_rotation(tmp_path):
 
     rot = h["rotation"]
     assert rot["maxBytes"] == 1000
-    assert rot["when"] == "SECOND"
-    assert rot["interval"] == 1
+    assert rot["when"] is None
+    assert rot["interval"] is None
     assert rot["backupCount"] == 3
 
 

@@ -302,19 +302,21 @@ class AsyncSmartLogger:
         for handler in self._py_logger.handlers:
             stream = getattr(handler, "stream", None)
 
-            if stream is None and hasattr(handler, "_open"):
+            # FIX: Reopen file handler stream if needed
+            if stream is None and hasattr(handler, "baseFilename"):
                 try:
+                    handler.acquire()
+                    # noinspection PyUnresolvedReferences,PyProtectedMember
                     handler.stream = handler._open()
-                    stream = handler.stream
-                except Exception:
-                    continue
+                finally:
+                    handler.release()
+                stream = handler.stream
 
+            # Still no stream? Skip
             if stream is None:
                 continue
 
-            is_console = isinstance(handler, logging.StreamHandler) and not isinstance(
-                handler, Async_TimedSizedRotatingFileHandler
-            )
+            is_console = isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename")
 
             if is_console:
                 text = self.__bleach_non_colored_text(message)
@@ -322,11 +324,13 @@ class AsyncSmartLogger:
                 do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
                 text = message if do_not_sanitize else CPrint.strip_ansi(message)
 
+            # noinspection PyBroadException
             try:
                 stream.write(text + end)
                 stream.flush()
             except Exception:
-                continue
+                # Ignore write errors
+                pass
 
     # ------------------------------------------------------------------
     # PROCESS ROTATION
