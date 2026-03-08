@@ -13,7 +13,6 @@ from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, ClassVar, Optional
-import json
 import os
 import threading
 import time
