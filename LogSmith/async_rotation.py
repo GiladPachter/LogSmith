@@ -67,13 +67,24 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
     def emit(self, record: logging.LogRecord) -> None:
         super().emit(record)
 
+        # ----------------------------------------------------------
+        # SIZE-BASED ROTATION: ALWAYS CHECK (no throttle)
+        # ----------------------------------------------------------
+        if self.rotation_logic.maxBytes and self.rotation_logic.maxBytes > 0:
+            if self.should_rotate(record):
+                if self.rotation_callback:
+                    self.rotation_callback(self)
+            return
+
+        # ----------------------------------------------------------
+        # TIME-BASED ROTATION: THROTTLED CHECK
+        # ----------------------------------------------------------
         now = time.time()
-        if now - self._last_rotation_check < 0.25:
+        if now - self._last_rotation_check < 0.01:
             return
 
         self._last_rotation_check = now
 
-        # FIX: correct RotationLogic API
         if self.should_rotate(record):
             if self.rotation_callback:
                 self.rotation_callback(self)
