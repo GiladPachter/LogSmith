@@ -20,7 +20,7 @@ def test_async_emit_non_blocking(tmp_path: Path):
 
         start = time.time()
         for _ in range(200):
-            logger.a_info("X" * 50)
+            await logger.a_info("X" * 50)
         end = time.time()
 
         await logger.flush()
