@@ -1,16 +1,16 @@
 # Auto-generated pytest fixtures for LogSmith
 
-import asyncio
-import importlib
-import json
-import logging
+import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+import asyncio
+import json
+from pathlib import Path
 
 import pytest
-import LogSmith
-import LogSmith.level_registry
-import LogSmith.smartlogger
 
 
 @pytest.fixture(scope="session")

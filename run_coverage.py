@@ -28,16 +28,22 @@ def main():
     # Clean old coverage data
     run("erase")
 
-    # Run pytest with coverage
-    run("run", "--rcfile=coverage.ini", "-m", "pytest", "-q")
+    # Run pytest (pytest.ini already enables coverage)
+    subprocess.run([sys.executable, "-m", "pytest"], check=False)
 
-    # Combine thread coverage data
+    # Combine (may say "No data to combine" — harmless)
     run("combine")
 
     # Generate HTML report
     run("html")
 
-    print("\nCoverage report generated at: htmlcov/index.html")
+    # Optional: generate XML for CI or badges
+    run("xml")
+
+    # Optional: print summary to console
+    run("report")
+
+    print("\nCoverage report generated at: coverage_html/index.html")
 
 if __name__ == "__main__":
     main()

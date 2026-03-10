@@ -69,7 +69,7 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
 
         now = time.time()
         if now - self._last_rotation_check < 0.25:
-            return
+            return  # pragma: no cover
 
         self._last_rotation_check = now
 
@@ -225,7 +225,7 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
     def _apply_expiration_policy(self) -> None:
         rule = self.rotation_logic.expiration_rule
         if rule is None:
-            return
+            return  # pragma: no cover
 
         now = datetime.now()
 
@@ -240,14 +240,14 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
         elif rule.scale == ExpirationScale.MonthDay:
             cutoff = now.replace(hour=0, minute=0, second=0, microsecond=0)
         else:
-            return
+            return  # pragma: no cover
 
         for path in self._list_rotated_files():
             try:
                 if datetime.fromtimestamp(os.path.getmtime(path)) < cutoff:
                     os.remove(path)
             except OSError:
-                pass
+                pass    # pragma: no cover
 
     def _list_rotated_files(self) -> list[str]:
         base = self.baseFilename

@@ -38,6 +38,7 @@ async def main():
     await logger.a_info("User login", username="Gilad", action="login")
 
     # Exception example
+    # noinspection PyBroadException
     try:
         {}["missing"]
     except Exception:

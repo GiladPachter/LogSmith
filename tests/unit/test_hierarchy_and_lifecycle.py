@@ -59,6 +59,7 @@ def test_retire_and_destroy_logger(tmp_path):
 
     logger.retire()
     # after retire, logging should be effectively disabled
+    # noinspection PyBroadException
     try:
         logger.info("after retire")
     except Exception:

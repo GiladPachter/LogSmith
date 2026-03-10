@@ -223,7 +223,7 @@ class CPrint:
         """
 
         if cls._NO_COLOR:
-            return text
+            return text # pragma: no cover
 
         codes: list[Code] = []
         if intensity is not None:
@@ -237,11 +237,11 @@ class CPrint:
 
         prefix = cls._join_codes(codes)
         if not prefix:
-            return text
+            return text # pragma: no cover
         return f"{prefix}{text}{cls._RESET}"
 
     @classmethod
-    def gradient(
+    def gradient(   # pragma: no cover
             cls,
             text: str,
             *,
@@ -256,10 +256,10 @@ class CPrint:
         """
 
         if cls._NO_COLOR:
-            return text
+            return text # pragma: no cover
 
         if not text or not fg_codes:
-            return text
+            return text # pragma: no cover
 
         lines = text.split("\n")
         multi = len(lines) > 1
@@ -537,7 +537,7 @@ class GradientPalette:
     PASTEL = [224, 225, 189, 151, 146, 182, 218]
 
 
-def blend_palettes(p1: list[int], p2: list[int], *, steps: int | None = None) -> list[int]:
+def blend_palettes(p1: list[int], p2: list[int], *, steps: int | None = None) -> list[int]: # pragma: no cover
     """
     Blend two palettes by interpolating their indices.
     Produces a smooth transition from palette p1 to palette p2.

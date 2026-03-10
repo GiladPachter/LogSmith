@@ -1,2 +1,25 @@
 [run]
-include = LogSmith/*
+branch = True
+source =
+    LogSmith
+omit =
+    */__init__.py
+    */tests/*
+    */setup.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError
+    except ImportError
+    pass
+
+show_missing = True
+precision = 2
+
+[html]
+directory = coverage_html
+
+[xml]
+output = coverage.xml

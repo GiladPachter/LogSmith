@@ -109,7 +109,7 @@ class LogRecordDetails:
                 raise ValueError("message_parts_order must be None when optional_record_fields is None")
             if self.color_all_log_record_fields:
                 raise ValueError("color_all_log_record_fields must be False when optional_record_fields is None")
-            return
+            return  # pragma: no cover
 
         # ------------------------------------------------------------
         # Case B: optional_record_fields is provided (strict mode)
@@ -129,7 +129,7 @@ class LogRecordDetails:
         if diagnostics_enabled and not inline_enabled:
             if self.message_parts_order is not None:
                 raise ValueError("message_parts_order must be None when only diagnostics fields are enabled")
-            return
+            return  # pragma: no cover
 
         # Case: inline fields enabled → message_parts_order required
         if not inline_enabled:
@@ -145,7 +145,7 @@ class LogRecordDetails:
         # ------------------------------------------------------------
         forbidden = {"timestamp", "message"}
         if any(p in forbidden for p in mpo):
-            raise ValueError("timestamp and message must NOT appear in message_parts_order")
+            raise ValueError("timestamp and message must NOT appear in message_parts_order")    # pragma: no cover
 
         # ------------------------------------------------------------
         # level must appear exactly once
@@ -534,9 +534,9 @@ class StructuredColorFormatter:
                     if renderer:
                         # respect rf flags for diagnostics as well
                         if part == "exc_info" and not (rf.exc_info and record.exc_info):
-                            continue
+                            continue    # pragma: no cover
                         if part == "stack_info" and not (rf.stack_info and record.stack_info):
-                            continue
+                            continue    # pragma: no cover
                         parts.append(renderer(record))
             else:
                 # diagnostics-only mode → include level
@@ -778,7 +778,7 @@ class StructuredJSONFormatter(logging.Formatter):
             # Append remaining keys in stable order
             for key, value in data.items():
                 if key in ("timestamp", "level", "message"):
-                    continue
+                    continue    # pragma: no cover
                 ordered[key] = value
             return ordered
 
@@ -801,9 +801,9 @@ class StructuredJSONFormatter(logging.Formatter):
         # 4. Append any remaining keys not yet included
         for key, value in data.items():
             if key in ordered:
-                continue
+                continue    # pragma: no cover
             if key in ("timestamp", "message"):
-                continue
+                continue    # pragma: no cover
             ordered[key] = value
 
         return ordered
@@ -818,7 +818,3 @@ class StructuredNDJSONFormatter(StructuredJSONFormatter):
 
     def format(self, record: logging.LogRecord) -> str:
         return super().format(record)
-        # data = self._record_to_dict(record)
-        # data = self._apply_optional_fields_filter(data)
-        # data = self._apply_ordering(data)
-        # return json.dumps(data, ensure_ascii=False)

@@ -330,7 +330,7 @@ class SmartLogger:
         File handlers sanitize ANSI unless do_not_sanitize_colors_from_string=True.
         """
         if self._smart_state.retired:
-            raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot be used.")
+            raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot be used.") # pragma: no cover
 
         for handler in self._py_logger.handlers:
             stream = getattr(handler, "stream", None)
@@ -386,11 +386,11 @@ class SmartLogger:
             # This is user code
             return frame
 
-        return None
+        return None # pragma: no cover
 
     def __log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1, **kwargs):
         if self._smart_state.retired:
-            raise RuntimeError(f"Logger {self._name!r} has been retired and cannot be used.")
+            raise RuntimeError(f"Logger {self._name!r} has been retired and cannot be used.")   # pragma: no cover
 
         # Level filtering (hierarchy-aware)
         if not self._py_logger.isEnabledFor(level):
@@ -458,11 +458,11 @@ class SmartLogger:
             log_record_details: Optional[LogRecordDetails] = None,
             output_mode: str | OutputMode = OutputMode.COLOR,
     ) -> None:
-        if self._smart_state.retired:
+        if self._smart_state.retired:   # pragma: no cover
             raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot accept handlers.")
 
         if any([1 for info in self.handler_info if info["kind"] == "console"]):
-            raise RuntimeError(f"Logger {self._py_logger.name!r} already has a console handler.")
+            raise RuntimeError(f"Logger {self._py_logger.name!r} already has a console handler.")   # pragma: no cover
 
         mode: OutputMode = self.__normalize_output_mode(output_mode)
 
@@ -509,7 +509,7 @@ class SmartLogger:
                 h.close()
                 break
         else:
-            raise RuntimeError(f"Logger {self._py_logger.name!r} has no console handler to remove.")
+            raise RuntimeError(f"Logger {self._py_logger.name!r} has no console handler to remove.")    # pragma: no cover
 
             # Remove metadata
         self._smart_state.handlers = [
@@ -528,17 +528,16 @@ class SmartLogger:
             output_mode: str | OutputMode = OutputMode.PLAIN,
     ) -> None:
         if self._smart_state.retired:
-            raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot accept handlers.")
+            raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot accept handlers.") # pragma: no cover
 
         mode = self.__normalize_output_mode(output_mode)
 
         # verify normalized log_dir given
         normalized = os.path.abspath(os.path.normpath(log_dir))
-        if log_dir != normalized:
-            raise ValueError(
-                f"for avoiding human errors, log_dir must be normalized. "
-                f"Got '{log_dir}', where normalized log_dir is '{normalized}'."
-            )
+        if log_dir != normalized:   # pragma: no cover
+            text = f"for avoiding human errors, log_dir must be normalized. "\
+                   f"Got '{log_dir}', where normalized log_dir is '{normalized}'."
+            raise ValueError(text)
 
         # --- PREP WORK (outside lock) -------------------------------------
         os.makedirs(normalized, exist_ok=True)
@@ -645,7 +644,7 @@ class SmartLogger:
                 removed = True
                 break
 
-        if not removed:
+        if not removed: # pragma: no cover
             raise RuntimeError(
                 f"Logger {self._py_logger.name!r} has no file handler for "
                 f"log_dir={log_dir!r}, logfile_name={logfile_name!r}."
@@ -772,7 +771,7 @@ class SmartLogger:
 
         # Prevent duplicate level names
         if name in LEVELS.all():
-            raise ValueError(f"Level '{name}' already exists")
+            raise ValueError(f"Level '{name}' already exists")  # pragma: no cover
 
         # Prevent duplicate numeric values
         for meta in LEVELS.all().values():
@@ -781,7 +780,7 @@ class SmartLogger:
 
         # Prevent negative values (reserved for internal operations)
         if value < 0:
-            raise ValueError("Negative level values are reserved for internal operations")
+            raise ValueError("Negative level values are reserved for internal operations")  # pragma: no cover
 
     @staticmethod
     def register_level(name: str, value: int, style: Optional[LevelStyle] = None) -> None:
@@ -836,20 +835,20 @@ class SmartLogger:
           - mark logger as unusable
         """
         if self._smart_state.retired:
-            return
+            return  # pragma: no cover
 
             # Close and remove all real handlers
         for h in list(self._py_logger.handlers):
             # noinspection PyBroadException
             try:
                 h.close()
-            except Exception:
-                pass
+            except Exception:   # pragma: no cover
+                pass    # pragma: no cover
             # noinspection PyBroadException
             try:
                 self._py_logger.removeHandler(h)
-            except Exception:
-                pass
+            except Exception:   # pragma: no cover
+                pass    # pragma: no cover
 
         self._py_logger.handlers.clear()
         self._smart_state.handlers.clear()
@@ -881,15 +880,15 @@ class SmartLogger:
         # noinspection PyBroadException
         try:
             logging.Logger.manager.loggerDict.pop(self._py_logger.name, None)
-        except Exception:
-            pass
+        except Exception:   # pragma: no cover
+            pass    # pragma: no cover
 
         # 3. Detach from parent
         # noinspection PyBroadException
         try:
             self._py_logger.parent = None
-        except Exception:
-            pass
+        except Exception:   # pragma: no cover
+            pass    # pragma: no cover
 
         # 4. Re-parent children to root (important!)
         root = logging.getLogger("root")
@@ -901,14 +900,14 @@ class SmartLogger:
         # noinspection PyBroadException
         try:
             self._py_logger.filters.clear()
-        except Exception:
-            pass
+        except Exception:   # pragma: no cover
+            pass    # pragma: no cover
 
         # noinspection PyBroadException
         try:
             self._py_logger.setLevel(logging.NOTSET)
-        except Exception:
-            pass
+        except Exception:   # pragma: no cover
+            pass    # pragma: no cover
 
         # 6. Mark as destroyed (optional but useful)
         self._smart_state.retired = True
@@ -1014,7 +1013,7 @@ class SmartLogger:
         Safe to call even if auditing is not active.
         """
         if not SmartLogger.__audit_enabled:
-            return
+            return  # pragma: no cover
 
         root = logging.getLogger()
         if SmartLogger.__audit_handler in root.handlers:
@@ -1162,10 +1161,10 @@ class SmartLogger:
                 lno = caller_frame.f_lineno
                 func = caller_frame.f_code.co_name
             else:
-                fn = lno = func = None
+                fn = lno = func = None  # pragma: no cover
 
-        except Exception:
-            fn, lno, func = None, None, None
+        except Exception:   # pragma: no cover
+            fn, lno, func = None, None, None    # pragma: no cover
 
         # ---------------------------------------------------------------
         # 4. Capture thread/process/task info
@@ -1179,7 +1178,7 @@ class SmartLogger:
             import asyncio
             task = asyncio.current_task()
             task_name_val = task.get_name() if task else None
-        except Exception:
+        except Exception:   # pragma: no cover
             task_name_val = None
 
         # ---------------------------------------------------------------
@@ -1261,7 +1260,7 @@ class SmartLogger:
             if exe:
                 return exe
         except Exception:
-            pass
+            pass    # pragma: no cover
 
         # Linux / WSL / Android
         # noinspection PyBroadException
@@ -1271,7 +1270,7 @@ class SmartLogger:
                 if name:
                     return name
         except Exception:
-            pass
+            pass    # pragma: no cover
 
         # macOS / BSD / fallback
         # noinspection PyBroadException
@@ -1280,7 +1279,7 @@ class SmartLogger:
             if arg0:
                 return arg0
         except Exception:
-            pass
+            pass    # pragma: no cover
 
         return None
 

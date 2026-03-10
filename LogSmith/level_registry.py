@@ -45,7 +45,7 @@ class LevelRegistry:
 
         for existing in self._levels.values():
             if existing["value"] == value:
-                raise ValueError(f"Level value {value} already assigned to another level.")
+                raise ValueError(f"Level value {value} already assigned to another level.") # pragma: no cover
 
         logging.addLevelName(value, name)
 

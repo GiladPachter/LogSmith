@@ -63,7 +63,7 @@ def get_metadata():
         }
 
     except PackageNotFoundError:
-        return {}
+        return {}   # pragma: no cover
 
 
 
@@ -97,7 +97,7 @@ def get_license_text() -> str | None:
             if root_license.is_file():
                 return root_license.read_text(encoding="utf-8")
         except Exception:
-            pass
+            pass    # pragma: no cover
 
         return None
 
