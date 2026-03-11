@@ -367,26 +367,24 @@ class SmartLogger:
     # ------------------------------------------------------------------
     @staticmethod
     def __find_caller():
-        frame = inspect.currentframe()
-        # Skip frames until we reach user code
+        frame = inspect.currentframe().f_back  # caller of __find_caller
+
         while frame:
-            code = frame.f_code
-            filename = code.co_filename.replace("\\", "/")
+            filename = frame.f_code.co_filename.replace("\\", "/")
+            base = os.path.basename(filename)
 
-            # Skip SmartLogger internals
-            if "smartlogger.py" in filename:
-                frame = frame.f_back
-                continue
+            # Skip ONLY the actual SmartLogger implementation file
+            if base != "smartlogger.py" and not (
+                    os.path.basename(filename) == "logging/__init__.py"
+                    or "pytest" in filename
+                    or "pluggy" in filename
+                    or "unittest" in filename
+            ):
+                return frame
 
-            # Skip Python logging internals
-            if "/logging/" in filename or filename.endswith("logging/__init__.py"):
-                frame = frame.f_back
-                continue
+            frame = frame.f_back
 
-            # This is user code
-            return frame
-
-        return None # pragma: no cover
+        return frame
 
     def __log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1, **kwargs):
         if self._smart_state.retired:
@@ -1328,7 +1326,7 @@ __stdout_logger = None
 __stdout_lock = threading.Lock()
 
 
-def __get_stdout_logger() -> "SmartLogger":
+def __get_stdout_logger() -> SmartLogger:
     """
     Internal helper that creates a dedicated SmartLogger instance
     for stdout redirection. It has exactly one console handler and

@@ -53,13 +53,8 @@ class _QueueItem:
     payload: dict[str, Any]
 
 
-# @dataclass
-# class AsyncHandlerInfo:
-#     kind: str                      # "console" | "file"
-#     level: str
-#     path: Optional[str] = None
-#     rotation: Optional[dict] = None
-#     do_not_sanitize_colors_from_string: Optional[bool] = None
+import sys
+import inspect
 
 
 class AsyncSmartLogger:
@@ -346,14 +341,23 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     @staticmethod
     def __find_caller():
-        frame = inspect.currentframe()
-        # Skip internal frames
+        frame = inspect.currentframe().f_back  # caller of __find_caller
+
         while frame:
-            code = frame.f_code
-            filename = code.co_filename
-            if "async_smartlogger" not in filename and "logging" not in filename:
+            filename = frame.f_code.co_filename.replace("\\", "/")
+            base = os.path.basename(filename)
+
+            # Skip ONLY the actual SmartLogger implementation file
+            if base != "async_smartlogger.py" and not (
+                    os.path.basename(filename) == "logging/__init__.py"
+                    or "pytest" in filename
+                    or "pluggy" in filename
+                    or "unittest" in filename
+            ):
                 return frame
+
             frame = frame.f_back
+
         return frame
 
     # ------------------------------------------------------------------
@@ -599,6 +603,12 @@ class AsyncSmartLogger:
             h.close()
             self._py_logger.removeHandler(h)
 
+        # Also remove metadata
+        self._handlers = [
+            h for h in self._handlers
+            if not (h.kind == "file" and h.path == str(target_path))
+        ]
+
     @property
     def handler_info(self) -> list[dict[str, Any]]:
         return [asdict(h) for h in self._handlers]
@@ -717,10 +727,20 @@ class AsyncSmartLogger:
     def __enqueue_rotation(self, handler):
         if self._stopped or self._retired:
             return  # pragma: no cover
-        self._loop.call_soon_threadsafe(
-            self._queue.put_nowait,
-            _QueueItem(op=AsyncOp.ROTATE, payload={"handler": handler}),
-        )
+
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        item = _QueueItem(op=AsyncOp.ROTATE, payload={"handler": handler})
+
+        if loop is self._loop:
+            # Already on the logger's loop (worker context) → enqueue synchronously
+            self._queue.put_nowait(item)
+        else:
+            # Called from another thread / loop → schedule thread-safe
+            self._loop.call_soon_threadsafe(self._queue.put_nowait, item)
 
     # ------------------------------------------------------------------
     # PUBLIC: ASYNC LOGGING API
@@ -857,25 +877,47 @@ class AsyncSmartLogger:
     # FLUSH & SHUTDOWN
     # ------------------------------------------------------------------
     async def flush(self) -> None:
-        if self._stopped:
-            raise RuntimeError("AsyncSmartLogger has been shut down.")
+        """
+        Wait until all queued work (LOG, RAW, ROTATE) is done,
+        then flush all underlying handlers.
+        """
+        # 1. Drain the async pipeline completely
         await self._queue.join()
 
-    async def shutdown(self) -> None:
+        # 2. Flush all handlers' streams
+        for handler in self._py_logger.handlers:
+            flush = getattr(handler, "flush", None)
+            if callable(flush):
+                flush()
+
+    async def shutdown(self):
         if self._stopped:
-            return  # pragma: no cover
+            return
+
         self._stopped = True
 
+        # 1. Drain queue
         await self._queue.join()
-        sentinel = _QueueItem(op=AsyncOp.SENTINEL, payload={})
-        try:
-            self._queue.put_nowait(sentinel)
-        except asyncio.QueueFull:
-            await asyncio.sleep(0)
-            await self._queue.put(sentinel)
 
-        if self._worker_task is not None:
-                await self._worker_task
+        # 2. Stop workers
+        for task in self._worker_tasks:
+            self._queue.put_nowait(_QueueItem(op=AsyncOp.SENTINEL, payload={}))
+        await asyncio.gather(*self._worker_tasks, return_exceptions=True)
+
+        # 3. Flush + close handlers
+        for handler in self._py_logger.handlers:
+            # noinspection PyBroadException
+            try:
+                handler.flush()
+            except Exception:   # pragma: no cover
+                pass
+            # noinspection PyBroadException
+            try:
+                handler.close()
+            except Exception:   # pragma: no cover
+                pass
+
+        self._py_logger.handlers.clear()
 
     # ------------------------------------------------------------------
     # AUDITING (class-level)

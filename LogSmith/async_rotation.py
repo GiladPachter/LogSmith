@@ -55,6 +55,8 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
         self.interval = rotation_logic.interval or 1
         self.timestamp = rotation_logic.timestamp
 
+        self._rotation_scheduled = False
+
         self.write_lock = threading.Lock()
 
         self._rollover_at = None
@@ -64,18 +66,31 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
     # ------------------------------------------------------------------
     #  EMIT (detect rotation, schedule async rotation)
     # ------------------------------------------------------------------
-    def emit(self, record: logging.LogRecord) -> None:
+    def emit(self, record):
+        now = time.time()
+
+        # 1. Check size-based rotation BEFORE writing
+        if self.rotation_logic.maxBytes:
+            if self.should_rotate(record):
+                if self.rotation_callback:
+                    if self._rotation_scheduled:
+                        return
+                    self._rotation_scheduled = True
+                    self.rotation_callback(self)
+
+        # 2. Write the record
         super().emit(record)
 
-        now = time.time()
-        if now - self._last_rotation_check < 0.25:
-            return  # pragma: no cover
-
-        self._last_rotation_check = now
-
-        if self.should_rotate(record):
-            if self.rotation_callback:
-                self.rotation_callback(self)
+        # 3. Time-based rotation (throttled)
+        if self.when is not None:
+            if now - self._last_rotation_check >= 0.25:
+                self._last_rotation_check = now
+                if self.should_rotate(record):
+                    if self.rotation_callback:
+                        if self._rotation_scheduled:
+                            return
+                        self._rotation_scheduled = True
+                        self.rotation_callback(self)
 
     # ------------------------------------------------------------------
     #  PERFORM ROTATION (executed by AsyncSmartLogger worker)
@@ -125,6 +140,7 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
 
         finally:
             self.release()
+            self._rotation_scheduled = False
 
     def should_rotate(self, record: logging.LogRecord) -> bool:
         """

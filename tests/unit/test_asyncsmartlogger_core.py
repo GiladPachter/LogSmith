@@ -17,6 +17,8 @@ async def test_async_console_logging(capsys):
     await logger.a_info("info message")
     await logger.flush()
 
+    await logger.flush()
+
     out = capsys.readouterr().out
     assert "trace message" in out
     assert "debug message" in out

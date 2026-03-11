@@ -10,8 +10,10 @@ from project_definitions import ROOT_DIR
 
 
 def main():
+    levels = SmartLogger.levels()
+
     # Create logger
-    logger = SmartLogger("json_demo", level=logging.DEBUG)
+    logger = SmartLogger("json_demo", level=levels["DEBUG"])
 
     # JSON console handler (pretty-printed)
     logger.add_console(

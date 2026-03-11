@@ -20,6 +20,8 @@ async def test_console_raw_bleaching(capsys):
     await logger.a_raw(msg)
     await logger._queue.join()
 
+    await logger.flush()
+
     out = capsys.readouterr().out
 
     # Colored segment preserved

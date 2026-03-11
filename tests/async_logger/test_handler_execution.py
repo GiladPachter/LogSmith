@@ -85,6 +85,8 @@ async def test_color_formatting_console(capsys):
     await logger.a_info("colored")
     await logger._queue.join()
 
+    await logger.flush()
+
     captured = capsys.readouterr().out
     assert "colored" in captured
     assert "\x1b[" in captured  # ANSI escape sequence

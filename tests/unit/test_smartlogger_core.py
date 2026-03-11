@@ -49,8 +49,6 @@ def test_raw_output_bypasses_formatting(capsys):
 
     logger.raw("RAW LINE")
 
-    # out = capsys.readouterr().out.strip()
-
     ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
     captured = capsys.readouterr().out.strip()

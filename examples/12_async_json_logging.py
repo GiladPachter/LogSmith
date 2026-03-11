@@ -13,7 +13,9 @@ from project_definitions import ROOT_DIR
 async def main():
     await a_stdout("\nAsync JSON / NDJSON logging demo\n")
 
-    logger = AsyncSmartLogger("async_json_demo", level=logging.DEBUG)
+    levels = AsyncSmartLogger.levels()
+
+    logger = AsyncSmartLogger("async_json_demo", level=levels["DEBUG"])
 
     # JSON console (pretty)
     logger.add_console(
