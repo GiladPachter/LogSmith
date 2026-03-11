@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-import inspect
 import logging
 import multiprocessing
-import sys
 import traceback
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -200,9 +198,9 @@ class AsyncSmartLogger:
             # noinspection PyUnboundLocalVariable
             self._profile_stats["find_caller"] += time.perf_counter() - t1
 
-        pathname = frame.f_code.co_filename
-        lineno = frame.f_lineno
-        func_name = frame.f_code.co_name
+        pathname = payload["pathname"]
+        lineno = payload["lineno"]
+        func_name = payload["func_name"]
 
         sinfo = "".join(traceback.format_stack()) if stack_info_flag else None
 
@@ -217,7 +215,16 @@ class AsyncSmartLogger:
             audit_extra["force_logger_name"] = self._name
 
             await AsyncSmartLogger.__audit_logger._enqueue_log(
-                level, msg, args, audit_extra, {}, exc_info=None, stack_info_flag=False
+                level,
+                msg,
+                args,
+                audit_extra,
+                {},  # no additional fields
+                exc_info=None,
+                stack_info_flag=False,
+                pathname=pathname,  # 🔹 forward original caller info
+                lineno=lineno,
+                func_name=func_name,
             )
 
         record_name = extra.pop("force_logger_name", self._name)
@@ -672,6 +679,9 @@ class AsyncSmartLogger:
         fields: dict[str, Any],
         exc_info: tuple | None,
         stack_info_flag: bool,
+        pathname: str,
+        lineno: int,
+        func_name: str,
     ) -> None:
         if self._stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
@@ -688,6 +698,9 @@ class AsyncSmartLogger:
                 "fields": fields,
                 "exc_info": exc_info,
                 "stack_info_flag": stack_info_flag,
+                "pathname": pathname,
+                "lineno": lineno,
+                "func_name": func_name,
             },
         )
 
@@ -760,6 +773,24 @@ class AsyncSmartLogger:
         extra = kwargs.pop("extra", {}) or {}
         fields = kwargs
 
+        # 🔹 capture caller BEFORE any await
+        frame = inspect.currentframe().f_back  # caller of a_log (a_info / a_warning / etc.)
+        while frame:
+            filename = frame.f_code.co_filename.replace("\\", "/")
+            if "async_smartlogger.py" not in filename:
+                break
+            frame = frame.f_back
+
+        if frame is not None:
+            pathname = frame.f_code.co_filename
+            lineno = frame.f_lineno
+            func_name = frame.f_code.co_name
+        else:
+            # very defensive fallback
+            pathname = "<unknown>"
+            lineno = 0
+            func_name = "<unknown>"
+
         await self._enqueue_log(
             level,
             msg,
@@ -768,6 +799,9 @@ class AsyncSmartLogger:
             fields,
             exc_info=captured_exc,
             stack_info_flag=stack_info_flag,
+            pathname=pathname,
+            lineno=lineno,
+            func_name=func_name,
         )
 
     async def a_trace(self, msg: str, *args: Any, **kwargs: Any) -> None:

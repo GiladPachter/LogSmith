@@ -28,6 +28,10 @@ async def test_audit_logger_receives_mirrored_logs(tmp_path):
     await main_logger._queue.join()
     await audit_logger._queue.join()
 
+    # ensure file handler flushes
+    for h in audit_logger._py_logger.handlers:
+        h.flush()
+
     # Audit logger should have received the mirrored message
     audit_text = (tmp_path / "audit.log").read_text()
     assert "hello audit" in audit_text
