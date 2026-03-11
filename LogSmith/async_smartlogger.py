@@ -259,9 +259,16 @@ class AsyncSmartLogger:
             if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
                 formatted = await asyncio.to_thread(formatter.format, record)
                 stream = getattr(handler, "stream", None)
-                if stream is None and hasattr(handler, "_open"):
-                    handler.stream = handler._open()
+                # Reopen if missing OR closed
+                if (stream is None or getattr(stream, "closed", False)) and hasattr(handler, "_open"):
+                    try:
+                        handler.acquire()
+                        # noinspection PyProtectedMember
+                        handler.stream = handler._open()
+                    finally:
+                        handler.release()
                     stream = handler.stream
+
                 if stream is None:
                     continue
 
@@ -619,6 +626,20 @@ class AsyncSmartLogger:
     @property
     def handler_info(self) -> list[dict[str, Any]]:
         return [asdict(h) for h in self._handlers]
+
+    @property
+    def console_handler(self):
+        for h in self._py_logger.handlers:
+            if isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename"):
+                return h
+        return None
+
+    @property
+    def file_handlers(self):
+        return [
+            h for h in self._py_logger.handlers
+            if hasattr(h, "baseFilename")
+        ]
 
     @property
     def output_targets(self) -> list[str]:
