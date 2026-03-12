@@ -791,7 +791,7 @@ class AsyncSmartLogger:
 
         captured_exc = sys.exc_info() if exc_info_flag else None
 
-        extra = kwargs.pop("extra", {}) or {}
+        extra = {}
         fields = kwargs
 
         # 🔹 capture caller BEFORE any await
