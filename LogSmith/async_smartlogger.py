@@ -88,7 +88,7 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # INIT
     # ------------------------------------------------------------------
-    def __init__(self, name: str, level: int) -> None:
+    def __init__(self, name: str, level: int = TRACE) -> None:
         self._name = name
 
         self._py_logger = logging.getLogger(name)

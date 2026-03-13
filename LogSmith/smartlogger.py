@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 import inspect
-import json
 import logging
 import os
 import sys
@@ -12,7 +11,7 @@ import traceback
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Protocol, Literal, Callable, List, Dict, ClassVar
+from typing import Any, Optional, Protocol, Callable, List, Dict, ClassVar
 
 from .formatter import (
     StructuredPlainFormatter,
@@ -206,7 +205,7 @@ class SmartLogger:
 
     __file_handler_lock = threading.RLock()
 
-    def __init__(self, name: str, level: int = logging.NOTSET) -> None:
+    def __init__(self, name: str, level: int = TRACE) -> None:
         self._smart_state = _SmartLoggerState()
 
         self._name = name
