@@ -61,7 +61,7 @@ def test_large_entry_rotate_first(tmp_path):
 
     logger.info("X" * 20)
 
-    rotated = sorted(p for p in log_dir.iterdir() if p.name.startswith("app.log."))
+    rotated = sorted(p for p in log_dir.iterdir() if p.name.startswith("app.log.") and p.suffix != ".lock")
     assert len(rotated) == 1
 
     # Rotated file should be empty (because we rotated before writing)
@@ -86,7 +86,7 @@ def test_large_entry_dump_silently(tmp_path):
 
     # No rotation, no write
     assert (log_dir / "app.log").read_text() == ""
-    rotated = [p for p in log_dir.iterdir() if p.name.startswith("app.log.")]
+    rotated = [p for p in log_dir.iterdir() if p.name.startswith("app.log.") and p.suffix != ".lock"]
     assert rotated == []
 
 
@@ -121,7 +121,7 @@ def test_backup_count(tmp_path):
 
     rotated = [
         p for p in log_dir.iterdir()
-        if p.name.startswith("app.log.") and not p.name.endswith(".lock")
+        if p.name.startswith("app.log.") and p.suffix != ".lock"
     ]
 
     assert len(rotated) <= 2
