@@ -628,7 +628,7 @@ class StructuredJSONFormatter(logging.Formatter):
         data = self._record_to_dict(record)
         data = self._apply_optional_fields_filter(data)
         data = self._apply_ordering(data)
-        return json.dumps(data, ensure_ascii=False, indent=self.indent)
+        return json.dumps(data, ensure_ascii=False, indent=self.indent) + "\n"
 
     # ------------------------------------------------------------------ #
     # Core normalization

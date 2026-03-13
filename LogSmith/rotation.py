@@ -199,28 +199,6 @@ class RotationLogic:
         base, ext = os.path.splitext(file_path)
         return f"{base}.{pid}{ext}"
 
-    def create_handler(self, file_path: str) -> logging.Handler:
-        # Apply timestamp/pid if requested
-        file_path = self._apply_pid_suffix(file_path)
-        file_path = self._apply_timestamp_suffix(file_path)
-
-        # If any rotation is requested → use our custom handler
-        if self.maxBytes is not None or self.when is not None:
-            return ConcurrentTimedSizedRotatingFileHandler(
-                filename=file_path,
-                when=self.when,
-                interval=self.interval or 1,
-                timestamp=self.timestamp,
-                max_bytes=self.maxBytes or 0,
-                backup_count=self.backupCount,
-                expiration_rule=self.expiration_rule,
-                encoding="utf-8",
-                large_entry_behavior=self.large_entry_behavior
-            )
-
-        # No rotation → plain file handler
-        return logging.FileHandler(file_path, encoding="utf-8")
-
 
 class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
     """

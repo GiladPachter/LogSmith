@@ -300,11 +300,11 @@ class AsyncSmartLogger:
                 if isinstance(handler, Async_TimedSizedRotatingFileHandler):
                     # Protect file rotation + writes
                     with handler.write_lock:
-                        stream.write(formatted + "\n")
+                        stream.write(formatted)
                         stream.flush()
                 else:
                     # Console / plain file handlers
-                    stream.write(formatted + "\n")
+                    stream.write(formatted)
                     stream.flush()
 
             else:
@@ -315,7 +315,7 @@ class AsyncSmartLogger:
                             # prefix the formatted output
                             formatted = handler.format(record)
                             formatted = self._audit_prefix(formatted, record.name)
-                            handler.stream.write(formatted + "\n")
+                            handler.stream.write(formatted)
                             handler.stream.flush()
                         else:
                             handler.emit(record)
@@ -323,7 +323,7 @@ class AsyncSmartLogger:
                     if self is AsyncSmartLogger.__audit_logger:
                         formatted = handler.format(record)
                         formatted = self._audit_prefix(formatted, record.name)
-                        handler.stream.write(formatted + "\n")
+                        handler.stream.write(formatted)
                         handler.stream.flush()
                     else:
                         handler.emit(record)

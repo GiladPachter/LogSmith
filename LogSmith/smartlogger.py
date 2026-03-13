@@ -514,6 +514,22 @@ class SmartLogger:
             if info.kind != "console"
         ]
 
+    @staticmethod
+    def _create_sync_handler(rotation_logic: RotationLogic, file_path: str):
+        from .rotation import ConcurrentTimedSizedRotatingFileHandler
+
+        return ConcurrentTimedSizedRotatingFileHandler(
+            filename=file_path,
+            when=rotation_logic.when,
+            interval=rotation_logic.interval or 1,
+            timestamp=rotation_logic.timestamp,
+            max_bytes=rotation_logic.maxBytes or 0,
+            backup_count=rotation_logic.backupCount,
+            expiration_rule=rotation_logic.expiration_rule,
+            encoding="utf-8",
+            large_entry_behavior=rotation_logic.large_entry_behavior,
+        )
+
     def add_file(
             self,
             log_dir: str,
@@ -563,10 +579,10 @@ class SmartLogger:
                 formatter = StructuredPlainFormatter(log_record_details)
 
         # Create the handler
-        if rotation_logic:
-            handler = rotation_logic.create_handler(str(file_path))
-        else:
-            handler = logging.FileHandler(str(file_path), encoding="utf-8")
+        if rotation_logic is None:
+            rotation_logic = RotationLogic()
+
+        handler = self._create_sync_handler(rotation_logic, str(file_path))
 
         handler.setLevel(level or self._py_logger.level)
         handler.setFormatter(formatter)
