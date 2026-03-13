@@ -5,7 +5,7 @@ import os
 import time
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 from logging.handlers import BaseRotatingHandler
 from datetime import datetime, timedelta
 from typing import Optional, IO, List
@@ -62,6 +62,13 @@ class ExpirationScale(Enum):
     Hours = "H"
     Days = "D"
     MonthDay = "MD"
+
+
+class LargeLogEntryBehavior(Enum):
+    ExceedMaxBytesIfFileIsEmpty = auto()   # default
+    RotateFirst                 = auto()   # might lead to an empty log file
+    DumpSilently                = auto()   # log entry is lost (unpredictable loss)
+    Crash                       = auto()   # force user to adjust maxBytes (but timing is unpredictable)
 
 
 @dataclass
@@ -132,14 +139,17 @@ class RotationLogic:
 
     def __init__(
             self,
-            when:                      When | None              = None,
-            interval:                  int | None               = None,
-            timestamp:                 RotationTimestamp | None = None,
-            maxBytes:                  int | None               = None,
-            backupCount:               int                      = 5,
-            expiration_rule:           ExpirationRule | None    = None,
-            append_filename_pid:       bool                     = False,
-            append_filename_timestamp: bool                     = False,
+            when:                                    When | None                  = None,
+            interval:                                int | None                   = None,
+            timestamp:                               RotationTimestamp | None     = None,
+            maxBytes:                                int | None                   = None,
+            backupCount:                             int                          = 5,
+            expiration_rule:                         ExpirationRule | None        = None,
+            # =====================================
+            log_entry_larger_than_maxBytes_behavior: LargeLogEntryBehavior | None = None,
+            # =====================================
+            append_filename_pid:                     bool                         = False,
+            append_filename_timestamp:               bool                         = False,
     ):
         if interval is not None and interval < 0:
             raise ValueError("Negative interval is illegal")
@@ -156,6 +166,11 @@ class RotationLogic:
         self.maxBytes                  = maxBytes
         self.backupCount               = backupCount
         self.expiration_rule           = expiration_rule
+
+        self.large_entry_behavior      = (log_entry_larger_than_maxBytes_behavior
+                                          or LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty
+                                          )
+
         self.append_filename_pid       = append_filename_pid
         self.append_filename_timestamp = append_filename_timestamp
 
@@ -200,6 +215,7 @@ class RotationLogic:
                 backup_count=self.backupCount,
                 expiration_rule=self.expiration_rule,
                 encoding="utf-8",
+                large_entry_behavior=self.large_entry_behavior
             )
 
         # No rotation → plain file handler
@@ -236,6 +252,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
         backup_count:    int = 7,
         expiration_rule: ExpirationRule | None = None,
         encoding: Optional[str] = "utf-8",
+        large_entry_behavior: LargeLogEntryBehavior | None = None,
     ):
         os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
 
@@ -251,6 +268,10 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
         self.max_bytes       = max_bytes
         self.backupCount     = backup_count
         self.expiration_rule = expiration_rule
+
+        self.large_entry_behavior = (
+                large_entry_behavior or LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty
+        )
 
         # lock file for cross-process safety
         self._lock_file = None
@@ -271,7 +292,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
                     if file_modify_time < (self._rollover_at - self._rollover_interval_seconds()):
                         # Force rollover on first emit
                         self._rollover_at = 0
-            except Exception:
+            except Exception:   # pragma: no cover
                 pass    # pragma: no cover
 
     def _rollover_interval_seconds(self) -> float:
@@ -416,6 +437,60 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
     # EMIT WITH CONCURRENCY
     # ------------------------------------------------------------------
 
+    def _handle_large_entry(self, formatted: str) -> bool:
+        """
+        Apply LargeLogEntryBehavior.
+        Returns True if the entry was handled and emit() should return early.
+        """
+        behavior = self.large_entry_behavior
+        max_bytes = self.max_bytes
+        if not max_bytes:
+            return False  # size limit disabled
+
+        entry_size = len(formatted)
+        if entry_size <= max_bytes:
+            return False  # normal path
+
+        # Determine if file is empty
+        # noinspection PyBroadException
+        try:
+            file_empty = (self.stream is None or self.stream.tell() == 0)
+        except Exception:   # pragma: no cover
+            file_empty = False  # pragma: no cover
+
+        if behavior is LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty:
+            if file_empty:
+                # write first, then rotate
+                self.stream.write(formatted)
+                self.stream.flush()
+                self._doRollover()
+                self._apply_expiration_policy()
+                return True
+            else:
+                # rotate first, then write
+                self._doRollover()
+                self._apply_expiration_policy()
+                self.stream.write(formatted)
+                self.stream.flush()
+                return True
+
+        if behavior is LargeLogEntryBehavior.RotateFirst:
+            self._doRollover()
+            self._apply_expiration_policy()
+            self.stream.write(formatted)
+            self.stream.flush()
+            return True
+
+        if behavior is LargeLogEntryBehavior.DumpSilently:
+            return True  # drop entry
+
+        if behavior is LargeLogEntryBehavior.Crash:
+            raise ValueError(
+                f"Log entry of size {entry_size} exceeds maxBytes={max_bytes}"
+            )
+
+        return False
+
     def emit(self, record: logging.LogRecord) -> None:
         """
         Emit a record with concurrency-safe rollover.
@@ -423,15 +498,24 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseRotatingHandler):
         try:
             self._acquire_lock()
 
-            # emit only records that are to be actually logged
             if not self.filter(record):
                 return  # pragma: no cover
 
+            formatted = self.format(record)
+
+            # Handle oversized entries according to LargeLogEntryBehavior
+            if self._handle_large_entry(formatted):
+                return
+
+            # Normal rollover path
             if self.shouldRollover(record):
                 self._doRollover()
                 self._apply_expiration_policy()
-            # BaseRotatingHandler inherits FileHandler; use its emit
-            logging.FileHandler.emit(self, record)
+
+            # Write normally
+            self.stream.write(formatted)
+            self.stream.flush()
+
         finally:
             self._release_lock()
 
