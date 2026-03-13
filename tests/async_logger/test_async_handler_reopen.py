@@ -10,7 +10,11 @@ async def test_async_handler_reopen(tmp_path):
     logger = AsyncSmartLogger("areopen", logging.INFO)
     logger.add_file(str(tmp_path), "x.log", rotation_logic=logic)
 
-    handler = logger.file_handlers[0]
+    handler = next(
+        h for h in logger._py_logger.handlers
+        if hasattr(h, "baseFilename")
+    )
+
     assert hasattr(handler, "_open")  # ensure it's async rotating handler
 
     # simulate real OS-level stream failure

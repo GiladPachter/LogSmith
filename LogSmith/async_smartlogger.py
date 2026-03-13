@@ -210,24 +210,27 @@ class AsyncSmartLogger:
             and AsyncSmartLogger.__audit_logger is not None
             and AsyncSmartLogger.__audit_logger is not self
         ):
-            audit_extra = extra.copy()
-            audit_extra.setdefault("fields", {}).update(fields)
-            audit_extra["force_logger_name"] = self._name
+            # AUDIT (forward unmodified record)
+            if (
+                    AsyncSmartLogger.__audit_enabled
+                    and AsyncSmartLogger.__audit_logger is not None
+                    and AsyncSmartLogger.__audit_logger is not self
+            ):
+                # Forward the log entry exactly as-is
+                await AsyncSmartLogger.__audit_logger._enqueue_log(
+                    level,
+                    msg,
+                    args,
+                    {"__audited_logger_name__": self._name},  # pass original logger name
+                    fields,
+                    exc_info,
+                    stack_info_flag,
+                    pathname,
+                    lineno,
+                    func_name,
+                )
 
-            await AsyncSmartLogger.__audit_logger._enqueue_log(
-                level,
-                msg,
-                args,
-                audit_extra,
-                {},  # no additional fields
-                exc_info=None,
-                stack_info_flag=False,
-                pathname=pathname,  # 🔹 forward original caller info
-                lineno=lineno,
-                func_name=func_name,
-            )
-
-        record_name = extra.pop("force_logger_name", self._name)
+        record_name = extra.pop("__audited_logger_name__", self._name)
 
         if self._profile_enabled:
             t1 = time.perf_counter()
@@ -257,9 +260,16 @@ class AsyncSmartLogger:
 
             # JSON / NDJSON: offload formatting, then write
             if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
+
+                # formatted = await asyncio.to_thread(formatter.format, record)
                 formatted = await asyncio.to_thread(formatter.format, record)
+
+                # If this is the audit logger, prefix with the audited logger name
+                if self is AsyncSmartLogger.__audit_logger:
+                    formatted = self._audit_prefix(formatted, record.name)
+
+                # Ensure stream is open BEFORE writing
                 stream = getattr(handler, "stream", None)
-                # Reopen if missing OR closed
                 if (stream is None or getattr(stream, "closed", False)) and hasattr(handler, "_open"):
                     try:
                         handler.acquire()
@@ -269,6 +279,7 @@ class AsyncSmartLogger:
                         handler.release()
                     stream = handler.stream
 
+                # Still no stream? Skip this handler
                 if stream is None:
                     continue
 
@@ -283,12 +294,25 @@ class AsyncSmartLogger:
                     stream.flush()
 
             else:
-                # Non-JSON handlers: only lock rotating file handlers
+                # Non-JSON handlers
                 if isinstance(handler, Async_TimedSizedRotatingFileHandler):
                     with handler.write_lock:
-                        handler.emit(record)
+                        if self is AsyncSmartLogger.__audit_logger:
+                            # prefix the formatted output
+                            formatted = handler.format(record)
+                            formatted = self._audit_prefix(formatted, record.name)
+                            handler.stream.write(formatted + "\n")
+                            handler.stream.flush()
+                        else:
+                            handler.emit(record)
                 else:
-                    handler.emit(record)
+                    if self is AsyncSmartLogger.__audit_logger:
+                        formatted = handler.format(record)
+                        formatted = self._audit_prefix(formatted, record.name)
+                        handler.stream.write(formatted + "\n")
+                        handler.stream.flush()
+                    else:
+                        handler.emit(record)
         # ======================================
         if self._profile_enabled:
             self._profile_stats["handlers"] += time.perf_counter() - t1
@@ -629,16 +653,16 @@ class AsyncSmartLogger:
 
     @property
     def console_handler(self):
-        for h in self._py_logger.handlers:
-            if isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename"):
-                return h
+        for info in self.handler_info:
+            if info["kind"] == "console":
+                return info
         return None
 
     @property
     def file_handlers(self):
         return [
-            h for h in self._py_logger.handlers
-            if hasattr(h, "baseFilename")
+            info for info in self.handler_info
+            if info["kind"] == "file"
         ]
 
     @property
@@ -687,6 +711,9 @@ class AsyncSmartLogger:
             "do_not_sanitize_colors_from_string": getattr(h, "do_not_sanitize_colors_from_string", False),
         }
 
+    @staticmethod
+    def _audit_prefix(formatted: str, original_logger_name: str) -> str:
+        return f"{original_logger_name} : {formatted}"
 
     # ------------------------------------------------------------------
     # INTERNAL: QUEUE ENQUEUE HELPERS

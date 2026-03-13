@@ -18,7 +18,11 @@ async def test_async_stream_reopen_rotating_when_stream_none(tmp_path):
     logger = AsyncSmartLogger("reopen_rot", logging.INFO)
     logger.add_file(str(tmp_path), "r.log", rotation_logic=logic)
 
-    handler = logger.file_handlers[0]
+    handler = next(
+        h for h in logger._py_logger.handlers
+        if hasattr(h, "baseFilename")
+    )
+
     assert hasattr(handler, "_open")
 
     # simulate lost stream
@@ -51,7 +55,11 @@ async def test_async_stream_reopen_json_when_stream_none(tmp_path):
         output_mode="json",  # uses StructuredJSONFormatter
     )
 
-    handler = logger.file_handlers[0]
+    handler = next(
+        h for h in logger._py_logger.handlers
+        if hasattr(h, "baseFilename")
+    )
+
     assert hasattr(handler, "_open")
 
     # simulate lost stream

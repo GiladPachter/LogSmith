@@ -67,6 +67,16 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
     #  EMIT (detect rotation, schedule async rotation)
     # ------------------------------------------------------------------
     def emit(self, record):
+        # --- Ensure stream is open before writing ---
+        if self.stream is None or getattr(self.stream, "closed", False):
+            if hasattr(self, "_open"):
+                # noinspection PyBroadException
+                try:
+                    self.stream = self._open()
+                except Exception:  # pragma: no cover
+                    # If reopen fails, we cannot proceed
+                    return  # pragma: no cover
+
         now = time.time()
 
         # 1. Check size-based rotation BEFORE writing
