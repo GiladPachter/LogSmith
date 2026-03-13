@@ -159,15 +159,25 @@ class AsyncSmartLogger:
         while True:
             item = await self._queue.get()
             try:
-                if item.op is AsyncOp.SENTINEL:
-                    return  # pragma: no cover
+                # noinspection PyBroadException
+                try:
+                    if item.op is AsyncOp.SENTINEL:
+                        return
 
-                if item.op is AsyncOp.LOG:
-                    await self.__process_log(item.payload)
-                elif item.op is AsyncOp.RAW:
-                    await self.__process_raw(item.payload)
-                elif item.op is AsyncOp.ROTATE:
-                    await self.__process_rotate(item.payload)
+                    if item.op is AsyncOp.LOG:
+                        await self.__process_log(item.payload)
+
+                    elif item.op is AsyncOp.RAW:
+                        await self.__process_raw(item.payload)
+
+                    elif item.op is AsyncOp.ROTATE:
+                        await self.__process_rotate(item.payload)
+
+                except Exception:   # pragma: no cover
+                    # swallow ANY error inside the worker
+                    # this prevents the worker from dying
+                    pass    # pragma: no cover
+
             finally:
                 self._queue.task_done()
 
@@ -260,9 +270,13 @@ class AsyncSmartLogger:
 
             # JSON / NDJSON: offload formatting, then write
             if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
-
-                # formatted = await asyncio.to_thread(formatter.format, record)
-                formatted = await asyncio.to_thread(formatter.format, record)
+                # noinspection PyBroadException
+                try:
+                    formatted = await asyncio.to_thread(formatter.format, record)
+                except Exception:   # pragma: no cover
+                    # Formatter failed — do NOT crash the worker
+                    print("LogSmith: formatter error", file=sys.stderr)
+                    continue    # pragma: no cover
 
                 # If this is the audit logger, prefix with the audited logger name
                 if self is AsyncSmartLogger.__audit_logger:

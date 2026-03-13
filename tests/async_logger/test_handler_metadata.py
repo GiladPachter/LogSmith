@@ -2,6 +2,7 @@ import logging
 import pytest
 from pathlib import Path
 
+from LogSmith import OutputMode
 from LogSmith.async_smartlogger import AsyncSmartLogger
 from LogSmith.rotation import RotationLogic, When
 
@@ -89,3 +90,28 @@ async def test_output_targets_file(tmp_path):
     targets = logger.output_targets
     assert len(targets) == 1
     assert targets[0].endswith("out.log")
+
+
+@pytest.mark.asyncio
+async def test_handler_metadata_matches_file_handler(tmp_path):
+    logger = AsyncSmartLogger("meta_test", logging.INFO)
+    logger.add_file(
+        str(tmp_path),
+        "m.log",
+        output_mode=OutputMode.JSON,
+        rotation_logic=RotationLogic(maxBytes=1024, backupCount=2),
+    )
+
+    info_list = logger.file_handlers
+    assert len(info_list) == 1
+    info = info_list[0]
+
+    assert info["kind"] == "file"
+    assert info["formatter"] == "json"
+    assert "rotation" in info
+    assert info["rotation"]["maxBytes"] == 1024
+    assert info["rotation"]["backupCount"] == 2
+
+    # path should match actual handler baseFilename
+    handler = next(h for h in logger._py_logger.handlers if hasattr(h, "baseFilename"))
+    assert Path(info["path"]) == Path(handler.baseFilename)

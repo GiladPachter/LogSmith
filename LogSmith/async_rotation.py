@@ -72,10 +72,13 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
             if hasattr(self, "_open"):
                 # noinspection PyBroadException
                 try:
+                    self.acquire()
                     self.stream = self._open()
                 except Exception:  # pragma: no cover
                     # If reopen fails, we cannot proceed
                     return  # pragma: no cover
+                finally:
+                    self.release()
 
         now = time.time()
 

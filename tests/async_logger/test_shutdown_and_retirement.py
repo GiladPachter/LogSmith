@@ -1,8 +1,8 @@
-import asyncio
 import logging
 import pytest
 
 from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.formatter import OutputMode
 
 
 @pytest.mark.asyncio
@@ -56,3 +56,18 @@ async def test_worker_drains_queue_before_exit(tmp_path):
     text = (tmp_path / "drain.log").read_text()
     for i in range(20):
         assert f"msg {i}" in text
+
+
+@pytest.mark.asyncio
+async def test_retired_logger_rejects_new_logs(tmp_path):
+    logger = AsyncSmartLogger("retire_test", logging.INFO)
+    logger.add_file(str(tmp_path), "r.log", output_mode=OutputMode.PLAIN)
+
+    # retire
+    logger._retired = True
+
+    with pytest.raises(RuntimeError):
+        await logger.a_info("should-fail")
+
+    # but existing queue processing still works (no deadlock)
+    await logger._queue.join()
