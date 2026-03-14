@@ -2,7 +2,7 @@
 import asyncio
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 from .harness_async import async_task_flooder
 from .harness_rotation import inspect_rotation
 

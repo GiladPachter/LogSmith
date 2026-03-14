@@ -2,7 +2,7 @@ import asyncio
 import threading
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 
 
 def test_async_thread_safety(tmp_path: Path):

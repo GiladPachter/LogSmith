@@ -4,7 +4,7 @@ from pathlib import Path
 
 from LogSmith import OutputMode
 from LogSmith.async_smartlogger import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic, When
+from LogSmith.rotation_base import RotationLogic, When
 
 
 @pytest.mark.asyncio

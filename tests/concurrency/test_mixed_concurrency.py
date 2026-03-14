@@ -2,7 +2,7 @@
 import asyncio
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 from .harness_mixed import mixed_flooder
 
 def test_mixed_concurrency(tmp_path: Path):

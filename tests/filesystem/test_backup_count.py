@@ -1,6 +1,6 @@
 from pathlib import Path
 from LogSmith import SmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 
 def test_backup_count(tmp_path: Path):
     log_dir = tmp_path / "logs"

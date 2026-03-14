@@ -1,7 +1,7 @@
 import time
 from pathlib import Path
 from LogSmith import SmartLogger
-from LogSmith.rotation import RotationLogic, When, RotationTimestamp
+from LogSmith.rotation_base import RotationLogic, When, RotationTimestamp
 
 def test_time_rotation(tmp_path: Path, monkeypatch):
     log_dir = tmp_path / "logs"

@@ -35,7 +35,7 @@ from .smartlogger import SmartLogger, stdout
 from .formatter import LogRecordDetails, OptionalRecordFields, OutputMode
 
 # Rotation & retention
-from .rotation import (
+from .rotation_base import (
     RotationLogic,
     When,
     RotationTimestamp,

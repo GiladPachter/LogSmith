@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from LogSmith.async_smartlogger import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic, When
+from LogSmith.rotation_base import RotationLogic, When
 from LogSmith.formatter import LogRecordDetails, OutputMode, StructuredJSONFormatter
 
 

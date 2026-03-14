@@ -22,7 +22,7 @@ from .formatter import (
 from .levels import LevelStyle, TRACE
 from .level_registry import LEVELS
 from .colors import CPrint
-from .rotation import RotationLogic
+from .rotation_base import RotationLogic
 
 """
 console printing utility
@@ -985,11 +985,11 @@ class SmartLogger:
         os.makedirs(log_dir, exist_ok=True)
         file_path = os.path.join(log_dir, logfile_name)
 
-        # Create handler
-        if rotation_logic:
-            handler = rotation_logic.create_handler(file_path)
-        else:
-            handler = logging.FileHandler(file_path, encoding="utf-8")
+        # Create the handler
+        if rotation_logic is None:
+            rotation_logic = RotationLogic()
+
+        handler = SmartLogger._create_sync_handler(rotation_logic, str(file_path))
 
         handler.setLevel(logging.NOTSET)
 

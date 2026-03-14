@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 
 
 def test_async_rotation_happens(tmp_path: Path):

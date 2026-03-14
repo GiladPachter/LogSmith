@@ -25,7 +25,7 @@ from .formatter import (
 from .levels import TRACE, LevelStyle
 from .level_registry import LEVELS
 from .colors import CPrint
-from .rotation import RotationLogic
+from .rotation_base import RotationLogic
 from .async_rotation import Async_TimedSizedRotatingFileHandler
 from .smartlogger import RetrievedRecord, HandlerMetadata
 

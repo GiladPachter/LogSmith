@@ -7,7 +7,7 @@ from pathlib import Path
 
 from LogSmith.async_smartlogger import AsyncSmartLogger
 from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
-from LogSmith.rotation import RotationLogic, When
+from LogSmith.rotation_base import RotationLogic, When
 
 
 def _get_async_rotating_handler(logger: AsyncSmartLogger) -> Async_TimedSizedRotatingFileHandler:

@@ -2,7 +2,7 @@ import asyncio
 import time
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 
 
 def test_async_emit_non_blocking(tmp_path: Path):

@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from LogSmith.async_smartlogger import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 from LogSmith.formatter import OutputMode
 
 

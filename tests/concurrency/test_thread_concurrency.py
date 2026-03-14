@@ -2,7 +2,7 @@
 import asyncio
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 from .harness_threads import thread_flooder
 
 def test_thread_concurrency(tmp_path: Path):

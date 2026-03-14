@@ -2,7 +2,7 @@ import os
 import time
 
 from LogSmith import SmartLogger
-from LogSmith.rotation import RotationLogic, ExpirationRule, ExpirationScale
+from LogSmith.rotation_base import RotationLogic, ExpirationRule, ExpirationScale
 
 
 def test_expiration(tmp_path):

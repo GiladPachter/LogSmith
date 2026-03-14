@@ -1,7 +1,7 @@
 from pathlib import Path
 from LogSmith import SmartLogger
 from LogSmith.formatter import LogRecordDetails
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 
 def test_json_output(tmp_path: Path):
     log_dir = tmp_path / "logs"

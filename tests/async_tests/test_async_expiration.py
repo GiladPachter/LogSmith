@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
-from LogSmith.rotation import RotationLogic, ExpirationRule, ExpirationScale
+from LogSmith.rotation_base import RotationLogic, ExpirationRule, ExpirationScale
 
 
 def test_async_expiration(tmp_path: Path):

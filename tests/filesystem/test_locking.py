@@ -1,7 +1,7 @@
 import multiprocessing
 from pathlib import Path
 from LogSmith import SmartLogger
-from LogSmith.rotation import RotationLogic
+from LogSmith.rotation_base import RotationLogic
 
 def worker(log_dir):
     logger = SmartLogger("fs.lock", level=SmartLogger.levels()["INFO"])
