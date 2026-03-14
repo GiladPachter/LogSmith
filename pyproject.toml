@@ -1,6 +1,6 @@
 [project]
 name = "LogSmith"
-version = "1.9.0"
+version = "1.9.1"
 description = "A high-performance, structured, color-aware logging framework for Python"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
