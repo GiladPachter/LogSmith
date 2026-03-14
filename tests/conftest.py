@@ -1,9 +1,10 @@
 # Auto-generated pytest fixtures for LogSmith
 
-import sys
-import time
 import asyncio
 import json
+import logging
+import sys
+import time
 import uuid
 
 import pytest
@@ -112,3 +113,69 @@ async def async_logger():
         yield logger
     finally:
         await logger.shutdown()
+
+
+import pytest
+import logging
+import uuid
+import asyncio
+from LogSmith.async_smartlogger import AsyncSmartLogger
+
+@pytest.fixture
+async def clean_async_logger():
+    """
+    Provides a fully isolated AsyncSmartLogger instance.
+
+    - Runs inside pytest-asyncio's event loop
+    - Ensures unique logger name per test
+    - Clears class-level global state
+    - Removes handlers from the underlying logging.Logger
+    - Shuts down worker tasks cleanly after the test
+    """
+
+    # 1. Reset class-level global state
+    AsyncSmartLogger._AsyncSmartLogger__audit_enabled = False
+    AsyncSmartLogger._AsyncSmartLogger__audit_logger = None
+    AsyncSmartLogger._AsyncSmartLogger__audit_handler = None
+    AsyncSmartLogger._AsyncSmartLogger__messages_processed = 0
+
+    # 2. Unique logger name (prevents handler reuse)
+    unique_name = f"test_logger_{uuid.uuid4().hex}"
+    py_logger = logging.getLogger(unique_name)
+
+    # 3. Remove any pre-existing handlers
+    for h in list(py_logger.handlers):
+        py_logger.removeHandler(h)
+        try:
+            h.close()
+        except Exception:
+            pass
+
+    # 4. Create the AsyncSmartLogger inside the running event loop
+    logger = AsyncSmartLogger(unique_name)
+
+    yield logger
+
+    # 5. Clean shutdown of worker tasks
+    logger._stopped = True
+
+    # Send sentinel to each worker
+    for _ in getattr(logger, "_worker_tasks", []):
+        await logger._queue.put(
+            logger._QueueItem(op=logger.AsyncOp.SENTINEL, payload={})
+        )
+
+    # Wait for workers to exit
+    for task in getattr(logger, "_worker_tasks", []):
+        try:
+            await task
+        except Exception:
+            pass
+
+    # 6. Remove handlers from underlying logging.Logger
+    for h in list(py_logger.handlers):
+        py_logger.removeHandler(h)
+        try:
+            h.close()
+        except Exception:
+            pass

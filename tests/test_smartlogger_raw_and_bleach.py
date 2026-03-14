@@ -1,5 +1,8 @@
 import logging
-from LogSmith import SmartLogger, CPrint
+
+import pytest
+
+from LogSmith import SmartLogger, CPrint, AsyncSmartLogger
 from LogSmith.formatter import PassthroughFormatter
 
 
@@ -23,3 +26,21 @@ def test_passthrough_formatter(tmp_path):
 
     text = (tmp_path / "p.log").read_text()
     assert "\x1b" in text  # ANSI preserved
+
+def test_smartlogger_raw(tmp_path):
+    log = SmartLogger("x")
+    log.add_file(str(tmp_path), "x.log")
+
+    log.raw("hello", end="")
+    assert (tmp_path / "x.log").read_text() == "hello"
+
+
+@pytest.mark.asyncio
+async def test_async_raw(tmp_path):
+    logger = AsyncSmartLogger("x")
+    logger.add_file(str(tmp_path), "x.log")
+
+    await logger.a_raw("hello", end="")
+    await logger._queue.join()
+
+    assert (tmp_path / "x.log").read_text() == "hello"
