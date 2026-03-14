@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, Protocol, Callable, List, Dict, ClassVar
 
+from .file_registry import FileHandlerRegistry
 from .formatter import (
     StructuredPlainFormatter,
     StructuredColorFormatter,
@@ -582,6 +583,8 @@ class SmartLogger:
         if rotation_logic is None:
             rotation_logic = RotationLogic()
 
+        FileHandlerRegistry.register(str(file_path))
+
         handler = self._create_sync_handler(rotation_logic, str(file_path))
 
         handler.setLevel(level or self._py_logger.level)
@@ -605,6 +608,7 @@ class SmartLogger:
 
                     existing_resolved = str(Path(info.path).resolve())
                     if existing_resolved == resolved_path:
+                        FileHandlerRegistry.unregister(str(file_path))
                         raise ValueError(
                             f"A file handler for '{resolved_path}' is already active "
                             f"in this process. This is usually caused by a duplicate "
@@ -655,6 +659,7 @@ class SmartLogger:
                 self._py_logger.removeHandler(h)
                 h.close()
                 removed = True
+                FileHandlerRegistry.unregister(h.baseFilename)
                 break
 
         if not removed: # pragma: no cover
@@ -671,7 +676,6 @@ class SmartLogger:
     # ------------------------------------------------------------------
     #  HANDLER INTROSPECTION (READ-ONLY)
     # ------------------------------------------------------------------
-
     @staticmethod
     def __pretty_handler_info(info: HandlerMetadata) -> dict[str, Any]:
         """

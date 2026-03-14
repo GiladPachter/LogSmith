@@ -15,6 +15,7 @@ import os
 import threading
 import time
 
+from .file_registry import FileHandlerRegistry
 from .formatter import (
     StructuredPlainFormatter,
     StructuredColorFormatter,
@@ -562,15 +563,21 @@ class AsyncSmartLogger:
 
         mode = self.__normalize_output_mode(output_mode)
 
+        # verify normalized log_dir given
         normalized = os.path.abspath(os.path.normpath(log_dir))
         if log_dir != normalized:   # pragma: no cover
             text = f"for avoiding human errors, log_dir must be normalized. "\
                    f"Got '{log_dir}', where normalized log_dir is '{normalized}'."
             raise ValueError(text)
 
+        # --- PREP WORK (outside lock) -------------------------------------
         os.makedirs(normalized, exist_ok=True)
+
         log_dir_path = Path(normalized).resolve()
         os.makedirs(log_dir_path, exist_ok=True)
+
+        if logfile_name is None:
+            logfile_name = f"{self._py_logger.name}.log"
 
         file_path = log_dir_path / logfile_name
         resolved_path = str(file_path.resolve())
@@ -604,6 +611,8 @@ class AsyncSmartLogger:
             )
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")
+
+        FileHandlerRegistry.register(str(file_path))
 
         handler.setLevel(level or self._py_logger.level)
         handler.setFormatter(formatter)
@@ -649,6 +658,7 @@ class AsyncSmartLogger:
         for h in to_remove:
             h.close()
             self._py_logger.removeHandler(h)
+            FileHandlerRegistry.unregister(h.baseFilename)
 
         # Also remove metadata
         self._handlers = [

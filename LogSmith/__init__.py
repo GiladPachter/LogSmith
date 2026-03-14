@@ -16,7 +16,7 @@ try:
     from importlib.metadata import version
     __version__ = version("LogSmith")
 except Exception:
-    __version__ = "1.9.1"
+    __version__ = "1.9.2"
 
 
 # LogSmith's calling card
