@@ -38,7 +38,8 @@ async def test_rotation_callback_from_external_thread(tmp_path):
     logger = AsyncSmartLogger("rot_ext", logging.INFO)
     logger.add_file(str(tmp_path), "e.log", rotation_logic=logic)
 
-    handler = logger.file_handlers[0]
+    # Retrieve the actual handler object (internal, but allowed for tests)
+    handler = logger._py_logger.handlers[0]
 
     # Call rotation callback from another thread
     def external_call():

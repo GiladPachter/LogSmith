@@ -213,7 +213,6 @@ class BaseTimedSizedRotatingFileHandler(BaseRotatingHandler):
         delay: bool = False,
     ) -> None:
 
-        # super().__init__(filename, mode="a", encoding=encoding, delay=delay)
         FileHandler.__init__(self, filename, mode="a", encoding=encoding, delay=delay)
 
         # Store rotation parameters

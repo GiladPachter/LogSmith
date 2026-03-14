@@ -76,12 +76,18 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         # Tell PyCharm the truth: stream can be None
         self.stream: Optional[IO[str]] = self.stream
 
-        self.when            = when
-        self.interval        = max(1, interval)
-        self.timestamp       = timestamp
-        self.max_bytes       = max_bytes
-        self.backupCount     = backup_count
-        self.expiration_rule = expiration_rule
+        super().__init__(
+            filename,
+            when=when,
+            interval=interval,
+            timestamp=timestamp,
+            max_bytes=max_bytes,
+            backup_count=backup_count,
+            expiration_rule=expiration_rule,
+            encoding=encoding,
+            large_entry_behavior=large_entry_behavior,
+            delay=False,
+        )
 
         self.large_entry_behavior = (
                 large_entry_behavior or LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty
@@ -315,7 +321,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             if not self.filter(record):
                 return  # pragma: no cover
 
-            formatted = self.format(record)
+            formatted = self.format(record) + self.terminator
 
             # Handle oversized entries according to LargeLogEntryBehavior
             if self._handle_large_entry(formatted):
@@ -351,8 +357,8 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             self.stream = None  # type: ignore[assignment]
 
         # rotate backups
-        if self.backupCount > 0:
-            for i in range(self.backupCount - 1, 0, -1):
+        if self.backup_count > 0:
+            for i in range(self.backup_count - 1, 0, -1):
                 sfn = f"{self.baseFilename}.{i}"
                 dfn = f"{self.baseFilename}.{i + 1}"
                 if os.path.exists(sfn):

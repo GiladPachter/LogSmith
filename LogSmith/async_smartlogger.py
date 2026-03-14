@@ -105,7 +105,6 @@ class AsyncSmartLogger:
         self._stopped = False
 
         self._handlers: list[HandlerMetadata] = []
-        self._real_handlers: list[logging.Handler] = []
 
         self._messages_enqueued = 0
 
@@ -272,7 +271,7 @@ class AsyncSmartLogger:
             if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
                 # noinspection PyBroadException
                 try:
-                    formatted = await asyncio.to_thread(formatter.format, record)
+                    formatted = await asyncio.to_thread(formatter.format, record) + "\n"
                 except Exception:   # pragma: no cover
                     # Formatter failed — do NOT crash the worker
                     print("LogSmith: formatter error", file=sys.stderr)
@@ -313,7 +312,7 @@ class AsyncSmartLogger:
                     with handler.write_lock:
                         if self is AsyncSmartLogger.__audit_logger:
                             # prefix the formatted output
-                            formatted = handler.format(record)
+                            formatted = handler.format(record) + "\n"
                             formatted = self._audit_prefix(formatted, record.name)
                             handler.stream.write(formatted)
                             handler.stream.flush()
@@ -321,7 +320,7 @@ class AsyncSmartLogger:
                             handler.emit(record)
                 else:
                     if self is AsyncSmartLogger.__audit_logger:
-                        formatted = handler.format(record)
+                        formatted = handler.format(record) + "\n"
                         formatted = self._audit_prefix(formatted, record.name)
                         handler.stream.write(formatted)
                         handler.stream.flush()
@@ -536,7 +535,6 @@ class AsyncSmartLogger:
                 formatter=str(mode.value)
             )
         )
-        self._real_handlers.append(handler)
 
     def remove_console(self) -> None:
         to_remove = [
@@ -594,8 +592,15 @@ class AsyncSmartLogger:
         # Handler creation
         if rotation_logic:
             handler = Async_TimedSizedRotatingFileHandler(
-                baseFilename=str(file_path),
-                rotation_logic=rotation_logic,
+                filename=str(file_path),
+                when=rotation_logic.when,
+                interval=rotation_logic.interval or 1,
+                timestamp=rotation_logic.timestamp,
+                max_bytes=rotation_logic.maxBytes or 0,
+                backup_count=rotation_logic.backupCount,
+                expiration_rule=rotation_logic.expiration_rule,
+                encoding="utf-8",
+                large_entry_behavior=rotation_logic.large_entry_behavior,
             )
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")
@@ -610,16 +615,6 @@ class AsyncSmartLogger:
             handler.resolved_path = resolved_path
 
         self._py_logger.addHandler(handler)
-
-        level_name = logging.getLevelName(level or self._py_logger.level)
-        rotation_meta = None
-        if rotation_logic:
-            rotation_meta = {
-                "maxBytes": rotation_logic.maxBytes,
-                "when": rotation_logic.when.name if rotation_logic.when else None,
-                "interval": rotation_logic.interval,
-                "backupCount": rotation_logic.backupCount,
-            }
 
         rotation_meta = (
             {
@@ -1128,7 +1123,7 @@ class AsyncSmartLogger:
         self._retired = True
 
     def destroy(self) -> None:
-        for handler in list(self._real_handlers):
+        for handler in list(self._py_logger.handlers):
             # noinspection PyBroadException
             try:
                 self._py_logger.removeHandler(handler)
@@ -1140,7 +1135,7 @@ class AsyncSmartLogger:
             except Exception:   # pragma: no cover
                 pass    # pragma: no cover
 
-        self._real_handlers.clear()
+        self._py_logger.handlers.clear()
         self._handlers.clear()
         self._retired = True
 

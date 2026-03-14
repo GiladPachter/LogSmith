@@ -10,10 +10,17 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Callable, IO
 
-from .rotation_base import RotationLogic, When, RotationTimestamp, ExpirationScale
+from .rotation_base import (
+    When,
+    RotationTimestamp,
+    ExpirationScale,
+    BaseTimedSizedRotatingFileHandler,
+    ExpirationRule,
+    LargeLogEntryBehavior
+)
 
 
-class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
+class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
     """
     Async_TimedSizedRotatingFileHandler
     ===================================
@@ -30,30 +37,41 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
     rotation_callback: Optional[Callable[[Async_TimedSizedRotatingFileHandler], None]] = None
 
     def __init__(
-        self,
-        baseFilename: str,
-        rotation_logic: RotationLogic,
-        encoding: Optional[str] = "utf-8",
-        delay: bool = False,
+            self,
+            filename: str,
+            *,
+            when: Optional[When] = None,
+            interval: int = 1,
+            timestamp: Optional[RotationTimestamp] = None,
+            max_bytes: int = 0,
+            backup_count: int = 7,
+            expiration_rule: Optional[ExpirationRule] = None,
+            encoding: Optional[str] = "utf-8",
+            large_entry_behavior: Optional[LargeLogEntryBehavior] = None,
+            delay: bool = False,
     ) -> None:
 
-        self.rotation_logic = rotation_logic
-        self.baseFilename = os.path.abspath(baseFilename)
-        self._last_rotation_check = 0.0
+        # Initialize the base class (FileHandler + parameter storage)
+        super().__init__(
+            filename,
+            when=when,
+            interval=interval,
+            timestamp=timestamp,
+            max_bytes=max_bytes,
+            backup_count=backup_count,
+            expiration_rule=expiration_rule,
+            encoding=encoding,
+            large_entry_behavior=large_entry_behavior,
+            delay=delay,
+        )
 
-        # FileHandler initialization
-        super().__init__(self.baseFilename, mode="a", encoding=encoding, delay=delay)
+        self._last_rotation_check = 0.0
 
         # Tell PyCharm the truth: stream can be None
         self.stream: Optional[IO[str]] = self.stream
 
         # For debugging / introspection
         self.resolved_path = str(Path(self.baseFilename).resolve())
-
-        # Time-based rollover scheduling
-        self.when = rotation_logic.when
-        self.interval = rotation_logic.interval or 1
-        self.timestamp = rotation_logic.timestamp
 
         self._rotation_scheduled = False
 
@@ -83,7 +101,7 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
         now = time.time()
 
         # 1. Check size-based rotation BEFORE writing
-        if self.rotation_logic.maxBytes:
+        if self.max_bytes:
             if self.should_rotate(record):
                 if self.rotation_callback:
                     if self._rotation_scheduled:
@@ -92,7 +110,7 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
                     self.rotation_callback(self)
 
         # 2. Write the record
-        super().emit(record)
+        logging.FileHandler.emit(self, record)
 
         # 3. Time-based rotation (throttled)
         if self.when is not None:
@@ -121,8 +139,8 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
                 self.stream = None  # type: ignore[assignment]
 
             # Rotate backups
-            if self.rotation_logic.backupCount > 0:
-                for i in range(self.rotation_logic.backupCount - 1, 0, -1):
+            if self.backup_count > 0:
+                for i in range(self.backup_count - 1, 0, -1):
                     sfn = f"{self.baseFilename}.{i}"
                     dfn = f"{self.baseFilename}.{i + 1}"
                     if os.path.exists(sfn):
@@ -167,12 +185,12 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
         # ----------------------------------------------------------
         # SIZE-BASED ROTATION
         # ----------------------------------------------------------
-        if self.rotation_logic.maxBytes and self.rotation_logic.maxBytes > 0:
+        if self.max_bytes and self.max_bytes > 0:
             msg = f"{self.format(record)}\n"
             self.stream.seek(0, os.SEEK_END)
             current_size = self.stream.tell()
             projected = current_size + len(msg.encode(self.encoding or "utf-8"))
-            if projected >= self.rotation_logic.maxBytes:
+            if projected >= self.max_bytes:
                 return True
 
         # ----------------------------------------------------------
@@ -252,7 +270,7 @@ class Async_TimedSizedRotatingFileHandler(logging.FileHandler):
         return target.timestamp()
 
     def _apply_expiration_policy(self) -> None:
-        rule = self.rotation_logic.expiration_rule
+        rule = self.expiration_rule
         if rule is None:
             return  # pragma: no cover
 
