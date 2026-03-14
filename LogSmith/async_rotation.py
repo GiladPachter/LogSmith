@@ -122,6 +122,26 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         return self.AsyncLargeEntryDecision.WRITE
 
+    def _size_would_exceed(self, formatted: str) -> bool:
+        """
+        Fast size‑based rotation check.
+        Uses the already‑formatted string instead of re‑formatting the record.
+        """
+        if self.max_bytes <= 0:
+            return False
+
+        # Ensure file is open
+        if self.stream is None:
+            self.stream = self._open()
+
+        # Compute projected size
+        msg = formatted + "\n"
+        self.stream.seek(0, os.SEEK_END)
+        current_size = self.stream.tell()
+        projected = current_size + len(msg.encode(self.encoding or "utf-8"))
+
+        return projected >= self.max_bytes
+
     def emit(self, record):
         # Ensure stream open
         if self.stream is None or getattr(self.stream, "closed", False):
@@ -133,14 +153,16 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         now = time.time()
 
+        formatted = self.format(record)
+
         # 1. Size-based rotation BEFORE writing
-        if self.max_bytes and self.should_rotate(record):
+        # if self.max_bytes and self.should_rotate(record):
+        if self.max_bytes and self._size_would_exceed(formatted):
             if self.rotation_callback and not self._rotation_scheduled:
                 self._rotation_scheduled = True
                 self.rotation_callback(self)
 
         # 2. Large-entry behavior (async-safe)
-        formatted = self.format(record)
         decision = self._async_large_entry_decision(formatted)
 
         if decision is self.AsyncLargeEntryDecision.DROP:

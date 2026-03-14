@@ -15,6 +15,7 @@ import os
 import threading
 import time
 
+from .file_registry import FileHandlerRegistry
 from .formatter import (
     StructuredPlainFormatter,
     StructuredColorFormatter,
@@ -605,6 +606,8 @@ class AsyncSmartLogger:
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")
 
+        FileHandlerRegistry.register(str(file_path))
+
         handler.setLevel(level or self._py_logger.level)
         handler.setFormatter(formatter)
 
@@ -649,6 +652,7 @@ class AsyncSmartLogger:
         for h in to_remove:
             h.close()
             self._py_logger.removeHandler(h)
+            FileHandlerRegistry.unregister(h.baseFilename)
 
         # Also remove metadata
         self._handlers = [
