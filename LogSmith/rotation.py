@@ -256,7 +256,6 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ------------------------------------------------------------------
     # EMIT WITH CONCURRENCY
     # ------------------------------------------------------------------
-
     def _handle_large_entry(self, formatted: str) -> bool:
         """
         Apply LargeLogEntryBehavior.

@@ -7,6 +7,7 @@ import threading
 import time
 import logging
 from datetime import datetime, timedelta
+from enum import Enum, auto
 from pathlib import Path
 from typing import Optional, Callable, IO
 
@@ -84,42 +85,81 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
     # ------------------------------------------------------------------
     #  EMIT (detect rotation, schedule async rotation)
     # ------------------------------------------------------------------
+    class AsyncLargeEntryDecision(Enum):
+        WRITE = auto()  # write normally
+        DROP = auto()  # drop entry entirely
+        ROTATE_THEN_WRITE = auto()  # schedule rotation, then write
+
+    def _async_large_entry_decision(self, formatted: str) -> AsyncLargeEntryDecision:
+        leb = self.large_entry_behavior
+        if leb is None:
+            return self.AsyncLargeEntryDecision.WRITE
+
+        entry_size = len(formatted.encode(self.encoding or "utf-8"))
+        if self.max_bytes <= 0 or entry_size < self.max_bytes:
+            return self.AsyncLargeEntryDecision.WRITE
+
+        # DROP
+        if leb is LargeLogEntryBehavior.DumpSilently:
+            return self.AsyncLargeEntryDecision.DROP
+
+        # CRASH
+        if leb is LargeLogEntryBehavior.Crash:
+            raise ValueError(
+                f"Log entry of size {entry_size} exceeds max_bytes={self.max_bytes}"
+            )
+
+        # ROTATE FIRST
+        if leb is LargeLogEntryBehavior.RotateFirst:
+            return self.AsyncLargeEntryDecision.ROTATE_THEN_WRITE
+
+        # EXCEED_IF_EMPTY
+        if leb is LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty:
+            self.stream.seek(0, os.SEEK_END)
+            if self.stream.tell() == 0:
+                return self.AsyncLargeEntryDecision.WRITE
+            return self.AsyncLargeEntryDecision.ROTATE_THEN_WRITE
+
+        return self.AsyncLargeEntryDecision.WRITE
+
     def emit(self, record):
-        # --- Ensure stream is open before writing ---
+        # Ensure stream open
         if self.stream is None or getattr(self.stream, "closed", False):
-            if hasattr(self, "_open"):
-                # noinspection PyBroadException
-                try:
-                    self.acquire()
-                    self.stream = self._open()
-                except Exception:  # pragma: no cover
-                    # If reopen fails, we cannot proceed
-                    return  # pragma: no cover
-                finally:
-                    self.release()
+            try:
+                self.acquire()
+                self.stream = self._open()
+            finally:
+                self.release()
 
         now = time.time()
 
-        # 1. Check size-based rotation BEFORE writing
-        if self.max_bytes:
-            if self.should_rotate(record):
-                if self.rotation_callback:
-                    if self._rotation_scheduled:
-                        return
-                    self._rotation_scheduled = True
-                    self.rotation_callback(self)
+        # 1. Size-based rotation BEFORE writing
+        if self.max_bytes and self.should_rotate(record):
+            if self.rotation_callback and not self._rotation_scheduled:
+                self._rotation_scheduled = True
+                self.rotation_callback(self)
 
-        # 2. Write the record
+        # 2. Large-entry behavior (async-safe)
+        formatted = self.format(record)
+        decision = self._async_large_entry_decision(formatted)
+
+        if decision is self.AsyncLargeEntryDecision.DROP:
+            return
+
+        if decision is self.AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
+            if self.rotation_callback and not self._rotation_scheduled:
+                self._rotation_scheduled = True
+                self.rotation_callback(self)
+
+        # 3. Write normally (no synchronous rotation)
         logging.FileHandler.emit(self, record)
 
-        # 3. Time-based rotation (throttled)
+        # 4. Time-based rotation (throttled)
         if self.when is not None:
             if now - self._last_rotation_check >= 0.25:
                 self._last_rotation_check = now
                 if self.should_rotate(record):
-                    if self.rotation_callback:
-                        if self._rotation_scheduled:
-                            return
+                    if self.rotation_callback and not self._rotation_scheduled:
                         self._rotation_scheduled = True
                         self.rotation_callback(self)
 
