@@ -26,3 +26,21 @@ async def test_async_rotation(tmp_path: Path):
     assert len(rotated) <= 2
 
 
+@pytest.mark.asyncio
+async def test_async_rotation_creates_rotated_file(clean_async_logger, tmp_path):
+    logger = clean_async_logger
+
+    logger.add_file(
+        str(tmp_path),
+        "x.log",
+        rotation_logic=RotationLogic(maxBytes=5, backupCount=3)
+    )
+
+    for _ in range(10):
+        await logger.a_info("abcdef")
+
+    await logger._queue.join()
+
+    files = sorted(p.name for p in tmp_path.iterdir())
+    assert "x.log" in files
+    assert "x.log.1" in files
