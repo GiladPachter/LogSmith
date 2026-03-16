@@ -23,4 +23,4 @@ async def test_extra_is_structured_field(tmp_path):
 
     data = json.loads(target)
 
-    assert data["fields"]["extra"] == {"foo": "bar"}
+    assert data["named_args"]["extra"]["foo"] == "bar"

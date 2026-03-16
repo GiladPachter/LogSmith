@@ -657,11 +657,9 @@ class StructuredJSONFormatter(logging.Formatter):
             "process_name": record.processName,
         }
 
-        # Structured fields (if present)
-        if hasattr(record, "fields"):
-            data["fields"] = record.fields
-        else:
-            data["fields"] = {}
+        # Unified structured named arguments
+        named_args = _extract_extras(record)
+        data["named_args"] = named_args
 
         # Exception info (preserve existing behavior)
         if record.exc_info:

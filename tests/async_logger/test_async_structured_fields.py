@@ -21,5 +21,5 @@ async def test_structured_fields_json(tmp_path):
     data = json.loads(text)
 
     assert data["message"] == "hello"
-    assert data["fields"]["foo"] == 123
-    assert data["fields"]["bar"] == "xyz"
+    assert data["named_args"]["foo"] == 123
+    assert data["named_args"]["bar"] == "xyz"

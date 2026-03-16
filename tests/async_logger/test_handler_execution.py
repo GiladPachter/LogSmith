@@ -30,7 +30,7 @@ async def test_json_formatting_offloaded(tmp_path):
     data = json.loads(text)
 
     assert data["message"] == "hello"
-    assert data["fields"]["user"] == "gilad"
+    assert data["named_args"]["user"] == "gilad"
 
 
 @pytest.mark.asyncio

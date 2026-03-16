@@ -386,7 +386,7 @@ class SmartLogger:
 
         return frame
 
-    def __log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1, **kwargs):
+    def __log(self, level, msg, args, exc_info=None, stack_info=False, **kwargs):
         if self._smart_state.retired:
             raise RuntimeError(f"Logger {self._name!r} has been retired and cannot be used.")   # pragma: no cover
 
@@ -394,14 +394,25 @@ class SmartLogger:
         if not self._py_logger.isEnabledFor(level):
             return
 
-        if extra is None:
-            extra = {}
+        # if extra is None:
+        #     extra = {}
 
-        if kwargs:
-            extra["fields"] = kwargs
+        # if kwargs:
+        #     extra["fields"] = kwargs
 
         if exc_info is True:
             exc_info = sys.exc_info()
+
+        # Sanitize ANSI for file logging unless explicitly disabled
+        sanitize = True
+        for handler in self._py_logger.handlers:
+            if hasattr(handler, "baseFilename"):  # file handler
+                if getattr(handler, "do_not_sanitize_colors_from_string", False):
+                    sanitize = False
+                break
+
+        if sanitize:
+            msg = CPrint.strip_ansi(msg)
 
         # Resolve caller
         frame = self.__find_caller()
@@ -423,7 +434,9 @@ class SmartLogger:
             func=func_name,
             sinfo=sinfo,
         )
-        record.__dict__.update(extra)
+        # record.__dict__.update(extra)
+
+        record.__dict__.update(**kwargs)
 
         # AUDIT
         if SmartLogger.__audit_enabled and SmartLogger.__audit_handler:
@@ -433,11 +446,11 @@ class SmartLogger:
         self._py_logger.handle(record)
 
     def __wrap_builtin(self, level_value: int) -> Callable[..., None]:
-        def log_method(msg=None, *args, stacklevel=2, **kwargs):
+        def log_method(msg=None, *args, **kwargs):
             if msg is None:
                 msg = ""
             if self._py_logger.isEnabledFor(level_value):
-                self.__log(level_value, msg, args, stacklevel=stacklevel, **kwargs)
+                self.__log(level_value, msg, args, **kwargs)
 
         return log_method
 
@@ -945,7 +958,7 @@ class SmartLogger:
 
         def dynamic_log_method(msg: str, *args, **kwargs):
             if self._py_logger.isEnabledFor(level_value):
-                self.__log(level_value, msg, args, stacklevel=2, **kwargs)
+                self.__log(level_value, msg, args, **kwargs)
 
         return dynamic_log_method
 
@@ -1169,8 +1182,6 @@ class SmartLogger:
         # ---------------------------------------------------------------
         # noinspection PyBroadException
         try:
-            # noinspection PyNoneFunctionAssignment,PyTupleAssignmentBalance
-            # fn, lno, func = self._find_caller(stacklevel = 3)
             caller_frame = _get_caller_frame()
 
             if caller_frame:

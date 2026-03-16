@@ -34,8 +34,8 @@ def test_console_json_output_structure(capsys):
     assert data["level"] == "INFO"
     assert data["logger"] == "json.console"
     assert data["message"] == "User login"
-    assert data["fields"]["username"] == "Gilad"
-    assert data["fields"]["action"] == "login"
+    assert data["named_args"]["username"] == "Gilad"
+    assert data["named_args"]["action"] == "login"
     assert "file_name" in data
     assert "lineno" in data
 
@@ -67,7 +67,7 @@ def test_file_ndjson_output(tmp_path: Path):
 
     assert first["level"] == "INFO"
     assert first["message"] == "User login"
-    assert first["fields"]["username"] == "Gilad"
+    assert first["named_args"]["username"] == "Gilad"
 
     assert second["level"] == "WARNING"
-    assert second["fields"]["code"] == 123
+    assert second["named_args"]["code"] == 123

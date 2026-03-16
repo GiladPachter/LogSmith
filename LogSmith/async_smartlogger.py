@@ -193,21 +193,28 @@ class AsyncSmartLogger:
         exc_info = payload["exc_info"]
         stack_info_flag: bool = payload["stack_info_flag"]
 
-        if fields:
-            extra.setdefault("fields", {}).update(fields)
-
         if self._profile_enabled:
             t0 = time.perf_counter()
 
-        if self._profile_enabled:
-            t1 = time.perf_counter()
-        # =========================
-        frame = self.__find_caller()
-        # =========================
-        if self._profile_enabled:
-            # noinspection PyUnboundLocalVariable
-            self._profile_stats["find_caller"] += time.perf_counter() - t1
+        # Sanitize ANSI for file logging unless explicitly disabled
+        sanitize = True
+        for handler in self._py_logger.handlers:
+            if hasattr(handler, "baseFilename"):  # file handler
+                if getattr(handler, "do_not_sanitize_colors_from_string", False):
+                    sanitize = False
+                break
 
+        if sanitize:
+            msg = CPrint.strip_ansi(msg)
+
+        # Build unified structured args (like SmartLogger kwargs)
+        merged_kwargs: dict[str, Any] = {}
+        if extra:
+            merged_kwargs.update(extra)
+        if fields:
+            merged_kwargs.update(fields)
+
+        # Resolve caller (we can still use the payload values for now)
         pathname = payload["pathname"]
         lineno = payload["lineno"]
         func_name = payload["func_name"]
@@ -216,35 +223,25 @@ class AsyncSmartLogger:
 
         # AUDIT
         if (
-            AsyncSmartLogger.__audit_enabled
-            and AsyncSmartLogger.__audit_logger is not None
-            and AsyncSmartLogger.__audit_logger is not self
+                AsyncSmartLogger.__audit_enabled
+                and AsyncSmartLogger.__audit_logger is not None
+                and AsyncSmartLogger.__audit_logger is not self
         ):
-            # AUDIT (forward unmodified record)
-            if (
-                    AsyncSmartLogger.__audit_enabled
-                    and AsyncSmartLogger.__audit_logger is not None
-                    and AsyncSmartLogger.__audit_logger is not self
-            ):
-                # Forward the log entry exactly as-is
-                await AsyncSmartLogger.__audit_logger._enqueue_log(
-                    level,
-                    msg,
-                    args,
-                    {"__audited_logger_name__": self._name},  # pass original logger name
-                    fields,
-                    exc_info,
-                    stack_info_flag,
-                    pathname,
-                    lineno,
-                    func_name,
-                )
+            await AsyncSmartLogger.__audit_logger._enqueue_log(
+                level,
+                msg,
+                args,
+                {"__audited_logger_name__": self._name},
+                fields,
+                exc_info,
+                stack_info_flag,
+                pathname,
+                lineno,
+                func_name,
+            )
 
-        record_name = extra.pop("__audited_logger_name__", self._name)
+        record_name = merged_kwargs.pop("__audited_logger_name__", self._name)
 
-        if self._profile_enabled:
-            t1 = time.perf_counter()
-        # =========================
         record = logging.LogRecord(
             name=record_name,
             level=level,
@@ -256,26 +253,37 @@ class AsyncSmartLogger:
             func=func_name,
             sinfo=sinfo,
         )
-        # =========================
-        if self._profile_enabled:
-            self._profile_stats["record"] += time.perf_counter() - t1
 
-        record.__dict__.update(extra)
+        # Make AsyncSmartLogger behave like SmartLogger:
+        # put structured fields directly on the record
+        if merged_kwargs:
+            record.__dict__.update(merged_kwargs)
 
         if self._profile_enabled:
             t1 = time.perf_counter()
+
         # ======================================
         for handler in self._py_logger.handlers:
             formatter = handler.formatter
 
             # JSON / NDJSON: offload formatting, then write
             if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
-                # noinspection PyBroadException
-                try:
-                    formatted = await asyncio.to_thread(formatter.format, record) + "\n"
-                except Exception:   # pragma: no cover
-                    # Formatter failed — do NOT crash the worker
-                    print("LogSmith: formatter error", file=sys.stderr)
+                formatted = ""
+                failure = False
+                for i in range(5):
+                    # noinspection PyBroadException
+                    try:
+                        formatted = await asyncio.to_thread(formatter.format, record) + "\n"
+                    except Exception as ex:   # pragma: no cover
+                        # Formatter failed — do NOT crash the worker
+                        if i < 4:
+                            await asyncio.sleep(0)
+                        else:
+                            failure = True
+                            print(f"LogSmith formatter error: {ex}", file=sys.stderr)
+                    if formatted:
+                        break   # pragma: no cover
+                if failure:
                     continue    # pragma: no cover
 
                 # If this is the audit logger, prefix with the audited logger name
@@ -328,14 +336,11 @@ class AsyncSmartLogger:
                     else:
                         handler.emit(record)
         # ======================================
+
         if self._profile_enabled:
             self._profile_stats["handlers"] += time.perf_counter() - t1
-
-        if self._profile_enabled:
-            # noinspection PyUnboundLocalVariable
             self._profile_stats["total"] += time.perf_counter() - t0
             self._profile_stats["count"] += 1
-
 
         AsyncSmartLogger.__messages_processed += 1
 

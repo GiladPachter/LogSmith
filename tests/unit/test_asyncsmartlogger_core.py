@@ -54,10 +54,10 @@ async def test_async_file_logging_ndjson(tmp_path: Path):
 
     assert first["level"] == "INFO"
     assert first["message"] == "User login"
-    assert first["fields"]["username"] == "Gilad"
+    assert first["named_args"]["username"] == "Gilad"
 
     assert second["level"] == "WARNING"
-    assert second["fields"]["code"] == 123
+    assert second["named_args"]["code"] == 123
 
 
 @pytest.mark.asyncio
@@ -83,5 +83,5 @@ async def test_async_ordering_guarantee(tmp_path: Path):
     lines = logfile.read_text(encoding="utf-8").strip().splitlines()
     assert len(lines) == 50
 
-    indices = [json.loads(line)["fields"]["index"] for line in lines]
+    indices = [json.loads(line)["named_args"]["index"] for line in lines]
     assert indices == list(range(50))

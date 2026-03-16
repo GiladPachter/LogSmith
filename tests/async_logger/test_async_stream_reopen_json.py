@@ -29,6 +29,6 @@ async def test_async_stream_reopen_json(tmp_path):
     text = (tmp_path / "j.log").read_text().strip()
     data = json.loads(text)
 
-    assert data["fields"]["foo"] == 1
+    assert data["named_args"]["foo"] == 1
 
 
