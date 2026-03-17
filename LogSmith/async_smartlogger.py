@@ -122,6 +122,8 @@ class AsyncSmartLogger:
             "record": 0.0,
             "handlers": 0.0,
             "total": 0.0,
+            "rotation_time": 0.0,
+            "rotation_count": 0,
         }
 
     def enable_profiling(self, enable: bool):
@@ -141,6 +143,12 @@ class AsyncSmartLogger:
                              f"Avg handler time: {self._profile_stats['handlers'] / c * 1e6:.2f} µs\n"
                              f"Avg total per log: {self._profile_stats['total'] / c * 1e6:.2f} µs\n"
                              )
+
+        if self._profile_stats["rotation_count"] > 0:
+            profiling_details += (
+                f"Avg rotation time: "
+                f"{self._profile_stats['rotation_time'] / self._profile_stats['rotation_count'] * 1e6:.2f} µs\n"
+            )
 
         return profiling_details
 
@@ -185,6 +193,14 @@ class AsyncSmartLogger:
     # PROCESS LOG
     # ------------------------------------------------------------------
     async def __process_log(self, payload: dict[str, Any]) -> None:
+        # PROFILING: start total timer
+        t0 = 0.0
+        t_find = 0.0
+        t_record = 0.0
+        t_handlers = 0.0
+        if self._profile_enabled:
+            t0 = time.perf_counter()
+
         level: int = payload["level"]
         msg: str = payload["msg"]
         args: tuple[Any, ...] = payload["args"]
@@ -193,13 +209,10 @@ class AsyncSmartLogger:
         exc_info = payload["exc_info"]
         stack_info_flag: bool = payload["stack_info_flag"]
 
-        if self._profile_enabled:
-            t0 = time.perf_counter()
-
         # Sanitize ANSI for file logging unless explicitly disabled
         sanitize = True
         for handler in self._py_logger.handlers:
-            if hasattr(handler, "baseFilename"):  # file handler
+            if hasattr(handler, "baseFilename"):
                 if getattr(handler, "do_not_sanitize_colors_from_string", False):
                     sanitize = False
                 break
@@ -214,10 +227,17 @@ class AsyncSmartLogger:
         if fields:
             merged_kwargs.update(fields)
 
-        # Resolve caller (we can still use the payload values for now)
+        # PROFILING: measure find_caller
+        if self._profile_enabled:
+            t_find = time.perf_counter()
+
+        # Resolve caller (still using payload for now)
         pathname = payload["pathname"]
         lineno = payload["lineno"]
         func_name = payload["func_name"]
+
+        if self._profile_enabled:
+            self._profile_stats["find_caller"] += time.perf_counter() - t_find
 
         sinfo = "".join(traceback.format_stack()) if stack_info_flag else None
 
@@ -242,6 +262,10 @@ class AsyncSmartLogger:
 
         record_name = merged_kwargs.pop("__audited_logger_name__", self._name)
 
+        # PROFILING: measure record creation
+        if self._profile_enabled:
+            t_record = time.perf_counter()
+
         record = logging.LogRecord(
             name=record_name,
             level=level,
@@ -254,73 +278,54 @@ class AsyncSmartLogger:
             sinfo=sinfo,
         )
 
-        # Make AsyncSmartLogger behave like SmartLogger:
-        # put structured fields directly on the record
         if merged_kwargs:
             record.__dict__.update(merged_kwargs)
 
         if self._profile_enabled:
-            t1 = time.perf_counter()
+            self._profile_stats["record"] += time.perf_counter() - t_record
+
+        # PROFILING: start handler timing
+        if self._profile_enabled:
+            t_handlers = time.perf_counter()
 
         # ======================================
         for handler in self._py_logger.handlers:
             formatter = handler.formatter
 
-            # JSON / NDJSON: offload formatting, then write
             if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
-                formatted = ""
-                failure = False
-                for i in range(5):
-                    # noinspection PyBroadException
-                    try:
-                        formatted = await asyncio.to_thread(formatter.format, record) + "\n"
-                    except Exception as ex:   # pragma: no cover
-                        # Formatter failed — do NOT crash the worker
-                        if i < 4:
-                            await asyncio.sleep(0)
-                        else:
-                            failure = True
-                            print(f"LogSmith formatter error: {ex}", file=sys.stderr)
-                    if formatted:
-                        break   # pragma: no cover
-                if failure:
-                    continue    # pragma: no cover
+                try:
+                    formatted = await asyncio.to_thread(formatter.format, record) + "\n"
+                except Exception:
+                    print("LogSmith: formatter error", file=sys.stderr)
+                    continue
 
-                # If this is the audit logger, prefix with the audited logger name
                 if self is AsyncSmartLogger.__audit_logger:
                     formatted = self._audit_prefix(formatted, record.name)
 
-                # Ensure stream is open BEFORE writing
                 stream = getattr(handler, "stream", None)
                 if (stream is None or getattr(stream, "closed", False)) and hasattr(handler, "_open"):
                     try:
                         handler.acquire()
-                        # noinspection PyProtectedMember
                         handler.stream = handler._open()
                     finally:
                         handler.release()
                     stream = handler.stream
 
-                # Still no stream? Skip this handler
                 if stream is None:
                     continue
 
                 if isinstance(handler, Async_TimedSizedRotatingFileHandler):
-                    # Protect file rotation + writes
                     with handler.write_lock:
                         stream.write(formatted)
                         stream.flush()
                 else:
-                    # Console / plain file handlers
                     stream.write(formatted)
                     stream.flush()
 
             else:
-                # Non-JSON handlers
                 if isinstance(handler, Async_TimedSizedRotatingFileHandler):
                     with handler.write_lock:
                         if self is AsyncSmartLogger.__audit_logger:
-                            # prefix the formatted output
                             formatted = handler.format(record) + "\n"
                             formatted = self._audit_prefix(formatted, record.name)
                             handler.stream.write(formatted)
@@ -337,8 +342,9 @@ class AsyncSmartLogger:
                         handler.emit(record)
         # ======================================
 
+        # PROFILING: finalize handler + total
         if self._profile_enabled:
-            self._profile_stats["handlers"] += time.perf_counter() - t1
+            self._profile_stats["handlers"] += time.perf_counter() - t_handlers
             self._profile_stats["total"] += time.perf_counter() - t0
             self._profile_stats["count"] += 1
 
@@ -387,11 +393,19 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # PROCESS ROTATION
     # ------------------------------------------------------------------
-    @staticmethod
-    async def __process_rotate(payload: dict[str, Any]) -> None:
+    async def __process_rotate(self, payload: dict[str, Any]) -> None:
         handler: Async_TimedSizedRotatingFileHandler = payload["handler"]
+
+        t0 = 0.0
+        if self._profile_enabled:
+            t0 = time.perf_counter()
+
         with handler.write_lock:
             await asyncio.to_thread(handler.perform_rotation)
+
+        if self._profile_enabled:
+            self._profile_stats["rotation_time"] += time.perf_counter() - t0
+            self._profile_stats["rotation_count"] += 1
 
     # ------------------------------------------------------------------
     # CALLER RESOLUTION
