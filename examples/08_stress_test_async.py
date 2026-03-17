@@ -68,10 +68,10 @@ async def main():
     )
 
     rotation = RotationLogic(
-        when=When.SECOND,
-        interval=2,
-        maxBytes=50_000,
-        backupCount=200,
+        when = When.SECOND,
+        interval = 2,
+        maxBytes = 250_000,
+        backupCount = 200,
     )
 
     logger.add_file(

@@ -124,6 +124,11 @@ class AsyncSmartLogger:
             "total": 0.0,
             "rotation_time": 0.0,
             "rotation_count": 0,
+            # ==
+            "steady_count": 0,
+            "steady_total": 0.0,
+            "spike_count": 0,
+            "spike_total": 0.0,
         }
 
     def enable_profiling(self, enable: bool):
@@ -149,6 +154,22 @@ class AsyncSmartLogger:
                 f"Avg rotation time: "
                 f"{self._profile_stats['rotation_time'] / self._profile_stats['rotation_count'] * 1e6:.2f} µs\n"
             )
+
+        if self._profile_stats["steady_count"] > 0:
+            avg_steady = (
+                    self._profile_stats["steady_total"]
+                    / self._profile_stats["steady_count"]
+                    * 1e6
+            )
+            profiling_details += f"Avg steady-state time: {avg_steady:.2f} µs\n"
+
+        if self._profile_stats["spike_count"] > 0:
+            avg_spike = (
+                    self._profile_stats["spike_total"]
+                    / self._profile_stats["spike_count"]
+                    * 1e6
+            )
+            profiling_details += f"Avg spike time: {avg_spike:.2f} µs\n"
 
         return profiling_details
 
@@ -293,6 +314,7 @@ class AsyncSmartLogger:
             formatter = handler.formatter
 
             if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
+                # noinspection PyBroadException
                 try:
                     formatted = await asyncio.to_thread(formatter.format, record) + "\n"
                 except Exception:
@@ -306,6 +328,7 @@ class AsyncSmartLogger:
                 if (stream is None or getattr(stream, "closed", False)) and hasattr(handler, "_open"):
                     try:
                         handler.acquire()
+                        # noinspection PyProtectedMember
                         handler.stream = handler._open()
                     finally:
                         handler.release()
@@ -347,6 +370,19 @@ class AsyncSmartLogger:
             self._profile_stats["handlers"] += time.perf_counter() - t_handlers
             self._profile_stats["total"] += time.perf_counter() - t0
             self._profile_stats["count"] += 1
+
+        if self._profile_enabled:
+            total = time.perf_counter() - t0
+            self._profile_stats["total"] += total
+            self._profile_stats["count"] += 1
+
+            # steady vs spike
+            if total < 0.0005:  # < 500 µs → steady-state
+                self._profile_stats["steady_count"] += 1
+                self._profile_stats["steady_total"] += total
+            else:
+                self._profile_stats["spike_count"] += 1
+                self._profile_stats["spike_total"] += total
 
         AsyncSmartLogger.__messages_processed += 1
 
