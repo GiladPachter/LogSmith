@@ -80,28 +80,28 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         self.__rollover_at = None
         if self.when is not None:
-            self.__rollover_at = self._compute_initial_rollover()
+            self.__rollover_at = self.__compute_initial_rollover()
 
     # ------------------------------------------------------------------
     #  EMIT (detect rotation, schedule async rotation)
     # ------------------------------------------------------------------
-    class AsyncLargeEntryDecision(Enum):
+    class __AsyncLargeEntryDecision(Enum):
         WRITE = auto()  # write normally
         DROP = auto()  # drop entry entirely
         ROTATE_THEN_WRITE = auto()  # schedule rotation, then write
 
-    def _async_large_entry_decision(self, formatted: str) -> AsyncLargeEntryDecision:
+    def __async_large_entry_decision(self, formatted: str) -> __AsyncLargeEntryDecision:
         leb = self.large_entry_behavior
         if leb is None:
-            return self.AsyncLargeEntryDecision.WRITE
+            return self.__AsyncLargeEntryDecision.WRITE
 
         entry_size = len(formatted.encode(self.encoding or "utf-8"))
         if self.max_bytes <= 0 or entry_size < self.max_bytes:
-            return self.AsyncLargeEntryDecision.WRITE
+            return self.__AsyncLargeEntryDecision.WRITE
 
         # DROP
         if leb is LargeLogEntryBehavior.DumpSilently:
-            return self.AsyncLargeEntryDecision.DROP
+            return self.__AsyncLargeEntryDecision.DROP
 
         # CRASH
         if leb is LargeLogEntryBehavior.Crash:
@@ -111,18 +111,18 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         # ROTATE FIRST
         if leb is LargeLogEntryBehavior.RotateFirst:
-            return self.AsyncLargeEntryDecision.ROTATE_THEN_WRITE
+            return self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE
 
         # EXCEED_IF_EMPTY
         if leb is LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty:
             self.stream.seek(0, os.SEEK_END)
             if self.stream.tell() == 0:
-                return self.AsyncLargeEntryDecision.WRITE
-            return self.AsyncLargeEntryDecision.ROTATE_THEN_WRITE
+                return self.__AsyncLargeEntryDecision.WRITE
+            return self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE
 
-        return self.AsyncLargeEntryDecision.WRITE
+        return self.__AsyncLargeEntryDecision.WRITE
 
-    def _size_would_exceed(self, formatted: str) -> bool:
+    def __size_would_exceed(self, formatted: str) -> bool:
         """
         Fast size‑based rotation check.
         Uses the already‑formatted string instead of re‑formatting the record.
@@ -157,18 +157,18 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         # 1. Size-based rotation BEFORE writing
         # if self.max_bytes and self.should_rotate(record):
-        if self.max_bytes and self._size_would_exceed(formatted):
+        if self.max_bytes and self.__size_would_exceed(formatted):
             if self.rotation_callback and not self.__rotation_scheduled:
                 self.__rotation_scheduled = True
                 self.rotation_callback(self)
 
         # 2. Large-entry behavior (async-safe)
-        decision = self._async_large_entry_decision(formatted)
+        decision = self.__async_large_entry_decision(formatted)
 
-        if decision is self.AsyncLargeEntryDecision.DROP:
+        if decision is self.__AsyncLargeEntryDecision.DROP:
             return
 
-        if decision is self.AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
+        if decision is self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
             if self.rotation_callback and not self.__rotation_scheduled:
                 self.__rotation_scheduled = True
                 self.rotation_callback(self)
@@ -180,7 +180,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         if self.when is not None:
             if now - self.__last_rotation_check >= 0.25:
                 self.__last_rotation_check = now
-                if self.should_rotate(record):
+                if self.__should_rotate(record):
                     if self.rotation_callback and not self.__rotation_scheduled:
                         self.__rotation_scheduled = True
                         self.rotation_callback(self)
@@ -224,18 +224,18 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             # Compute next rollover time
             if self.when is not None:
                 now = time.time()
-                self.__rollover_at = self._compute_next_rollover(now)
+                self.__rollover_at = self.__compute_next_rollover(now)
             else:
                 self.__rollover_at = None
 
             # Apply retention
-            self._apply_expiration_policy()
+            self.__apply_expiration_policy()
 
         finally:
             self.release()
             self.__rotation_scheduled = False
 
-    def should_rotate(self, record: logging.LogRecord) -> bool:
+    def __should_rotate(self, record: logging.LogRecord) -> bool:
         """
         Async equivalent of ConcurrentTimedSizedRotatingFileHandler.shouldRollover().
         Decides if rotation should occur (size and/or time).
@@ -265,7 +265,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         return False
 
-    def _rollover_interval_seconds(self) -> float:
+    def __rollover_interval_seconds(self) -> float:
         if self.when == When.SECOND:
             return self.interval
         if self.when == When.MINUTE:
@@ -276,11 +276,11 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             return 24 * 3600
         return 7 * 24 * 3600  # weekly
 
-    def _compute_initial_rollover(self) -> float:
+    def __compute_initial_rollover(self) -> float:
         now = time.time()
-        return self._compute_next_rollover(now)
+        return self.__compute_next_rollover(now)
 
-    def _compute_next_rollover(self, current: float) -> float:
+    def __compute_next_rollover(self, current: float) -> float:
         """
         Compute the next rollover time after 'current' (epoch seconds),
         based on When + interval + Timestamp.
@@ -331,7 +331,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         target = target + timedelta(days=days_ahead)
         return target.timestamp()
 
-    def _apply_expiration_policy(self) -> None:
+    def __apply_expiration_policy(self) -> None:
         rule = self.expiration_rule
         if rule is None:
             return  # pragma: no cover
@@ -351,14 +351,14 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         else:
             return  # pragma: no cover
 
-        for path in self._list_rotated_files():
+        for path in self.__list_rotated_files():
             try:
                 if datetime.fromtimestamp(os.path.getmtime(path)) < cutoff:
                     os.remove(path)
             except OSError:
                 pass    # pragma: no cover
 
-    def _list_rotated_files(self) -> list[str]:
+    def __list_rotated_files(self) -> list[str]:
         base = self.baseFilename
         dir_name = os.path.dirname(base)
         prefix = os.path.basename(base)

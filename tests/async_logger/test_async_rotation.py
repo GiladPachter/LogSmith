@@ -134,6 +134,7 @@ def test_large_entry_exceed_if_empty(tmp_path):
     cb.assert_called_once()
 
     # Simulate worker performing rotation
+    # noinspection PyUnresolvedReferences
     handler.perform_rotation()
     assert cb.call_count == 1  # still 1, rotation callback is not called here
 
@@ -162,6 +163,7 @@ def test_time_based_rotation(tmp_path):
 
         write(handler, "hello")
 
+        # noinspection PyUnresolvedReferences
         handler.perform_rotation()
 
         write(handler, "hello again")
@@ -207,6 +209,7 @@ def test_perform_rotation_backup_renaming(tmp_path):
     handler, file = make_handler(tmp_path)
     handler.baseFilename = str(base)
 
+    # noinspection PyUnresolvedReferences
     handler.perform_rotation()
 
     assert (tmp_path / "test.log.3").exists()
@@ -224,6 +227,7 @@ def test_perform_rotation_reopens_stream(tmp_path):
     handler.stream.close()
     handler.stream = None
 
+    # noinspection PyUnresolvedReferences
     handler.perform_rotation()
 
     assert handler.stream is not None
@@ -246,6 +250,7 @@ def test_perform_rotation_updates_rollover(tmp_path):
     # before = handler.__rollover_at
     # noinspection PyUnresolvedReferences
     before = handler._Async_TimedSizedRotatingFileHandler__rollover_at
+    # noinspection PyUnresolvedReferences
     handler.perform_rotation()
     # after = handler.__rollover_at
     # noinspection PyUnresolvedReferences
@@ -276,6 +281,7 @@ def test_expiration_policy(tmp_path):
         ),
     )
 
+    # noinspection PyUnresolvedReferences
     handler.perform_rotation()
 
     # After rotation:
@@ -301,7 +307,8 @@ def test_list_rotated_files(tmp_path):
     handler, file = make_handler(tmp_path)
     handler.baseFilename = str(base)
 
-    files = handler._list_rotated_files()
+    # noinspection PyUnresolvedReferences
+    files = handler._Async_TimedSizedRotatingFileHandler__list_rotated_files()
 
     assert str(tmp_path / "test.log.1") in files
     assert str(tmp_path / "test.log.2") in files
