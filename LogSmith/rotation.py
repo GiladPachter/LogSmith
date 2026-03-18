@@ -4,13 +4,12 @@ import errno
 import os
 import time
 import logging
-from dataclasses import dataclass
-from enum import Enum, auto
 from logging.handlers import BaseRotatingHandler
 from datetime import datetime, timedelta
 from typing import Optional, IO, List
 
 from LogSmith.rotation_base import BaseTimedSizedRotatingFileHandler
+
 
 try:
     import fcntl  # type: ignore[attr-defined]
@@ -130,7 +129,6 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ------------------------------------------------------------------
     # LOCKING
     # ------------------------------------------------------------------
-
     def __open_lock_file(self) -> None:
         if self._lock_file is None:
             self._lock_file = open(self._lock_file_path, "a+b")
@@ -169,7 +167,6 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ------------------------------------------------------------------
     # TIME-BASED ROLLOVER CALCULATION
     # ------------------------------------------------------------------
-
     def __compute_initial_rollover(self) -> float:
         now = time.time()
         return self.__compute_next_rollover(now)
@@ -228,7 +225,6 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ------------------------------------------------------------------
     # ROLLOVER DECISION
     # ------------------------------------------------------------------
-
     def __shouldRollover(self, record: logging.LogRecord) -> bool:
         """
         Decide if rollover should occur (size and/or time).
@@ -342,7 +338,6 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ------------------------------------------------------------------
     # ROLLOVER IMPLEMENTATION
     # ------------------------------------------------------------------
-
     def __doRollover(self) -> None:
         """
         Perform rollover:
