@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from LogSmith import CPrint, LogRecordDetails, OptionalRecordFields, RotationLogic, a_stdout
+from LogSmith import CPrint, LogRecordDetails, OptionalRecordFields, RotationLogic
 from tests.helpers import read_file
 
 

@@ -18,11 +18,13 @@ async def test_async_rotation_occurs(tmp_path):
 
     # trigger rotation
     await logger.a_info("x" * 5000)
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
     time.sleep(1.1)
 
     await logger.a_info("y" * 5000)
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # rotation should have created at least one rotated file
     rotated = list(tmp_path.glob("a.log*"))
@@ -42,7 +44,8 @@ async def test_concurrent_writes_during_rotation(tmp_path):
 
     # concurrent writers
     await asyncio.gather(*(spam(50) for _ in range(5)))
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # collect all log files: base + rotated
     files = list(tmp_path.glob("c.log*"))

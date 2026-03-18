@@ -1,11 +1,8 @@
-import asyncio
-import time
 from pathlib import Path
 
 import pytest
 
 from LogSmith import AsyncSmartLogger
-from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
 from LogSmith.rotation_base import RotationLogic, When
 
 
@@ -20,7 +17,8 @@ async def test_async_rotation(tmp_path: Path):
     for i in range(50):
         await logger.a_info("X" * 30)
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     rotated = [p for p in log_dir.iterdir() if p.name.startswith("app.log.") and not p.name.endswith(".lock")]
     assert len(rotated) <= 2
@@ -39,7 +37,8 @@ async def test_async_rotation_creates_rotated_file(clean_async_logger, tmp_path)
     for _ in range(10):
         await logger.a_info("abcdef")
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     files = sorted(p.name for p in tmp_path.iterdir())
     assert "x.log" in files

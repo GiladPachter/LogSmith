@@ -45,7 +45,8 @@ async def test_size_based_rotation_triggers_callback(tmp_path):
     for _ in range(20):
         await logger.a_info("x" * 20)
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     assert called["count"] >= 1
 
@@ -82,7 +83,8 @@ async def test_time_based_rotation_triggers_callback(tmp_path, monkeypatch):
     handler.rotation_callback = wrapped_cb
 
     await logger.a_info("trigger time rotation")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     assert called["count"] >= 1
 
@@ -104,12 +106,14 @@ async def test_rotation_enqueued_and_executed(tmp_path):
     for _ in range(20):
         await logger.a_info("x" * 20)
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # Force rotation directly via callback to ensure ROTATE op is enqueued
     handler.rotation_callback(handler)
     await asyncio.sleep(0)
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     base = Path(handler.baseFilename)
     rotated = base.with_suffix(base.suffix + ".1")
@@ -136,7 +140,8 @@ async def test_rotation_under_load(tmp_path):
 
     tasks = [asyncio.create_task(writer(i)) for i in range(200)]
     await asyncio.gather(*tasks)
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     base = tmp_path / "load.log"
     assert base.exists()

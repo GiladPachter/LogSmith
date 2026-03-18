@@ -27,7 +27,8 @@ async def test_worker_drains_queue(tmp_path):
 
     # Wait for queue to drain
     await asyncio.sleep(0)  # yield to worker
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     assert AsyncSmartLogger.messages_processed() >= 2
 
@@ -37,7 +38,8 @@ async def test_worker_stops_on_sentinel():
     logger = AsyncSmartLogger("test_worker_sentinel", logging.INFO)
 
     # Enqueue sentinel
-    await logger._queue.put(_QueueItem(op=AsyncOp.SENTINEL, payload={}))
+    # await logger.__queue.put(_QueueItem(op=AsyncOp.SENTINEL, payload={}))
+    await logger._AsyncSmartLogger__queue.put(_QueueItem(op=AsyncOp.SENTINEL, payload={}))  # this is an abuse. do not use outside of test suite
 
     # Wait for worker to exit
     for task in logger._worker_tasks:
@@ -57,7 +59,8 @@ async def test_worker_fifo_order(tmp_path):
     await logger.a_info("second")
     await logger.a_info("third")
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     text = log_path.read_text()
     assert "first" in text
@@ -90,7 +93,8 @@ async def test_async_worker_survives_formatter_exception(tmp_path):
     before = logger.messages_processed()
 
     await logger.a_info("hello")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     after = logger.messages_processed()
 

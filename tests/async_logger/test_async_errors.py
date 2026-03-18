@@ -16,6 +16,7 @@ async def test_async_logger_stopped_raises(tmp_path):
     logger = AsyncSmartLogger("stopped", logging.INFO)
     logger.add_file(str(tmp_path), "x.log")
 
-    logger._stopped = True
+    # logger._stopped = True
+    logger._AsyncSmartLogger__stopped = True
     with pytest.raises(RuntimeError):
         await logger.a_raw("raw fail")

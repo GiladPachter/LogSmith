@@ -41,6 +41,7 @@ async def test_async_raw(tmp_path):
     logger.add_file(str(tmp_path), "x.log")
 
     await logger.a_raw("hello", end="")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     assert (tmp_path / "x.log").read_text() == "hello"

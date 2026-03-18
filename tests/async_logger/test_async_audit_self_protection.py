@@ -12,7 +12,8 @@ async def test_async_audit_does_not_mirror_itself(tmp_path):
     AsyncSmartLogger._AsyncSmartLogger__audit_logger = logger
 
     await logger.a_info("hello self")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # flush
     for h in logger._py_logger.handlers:

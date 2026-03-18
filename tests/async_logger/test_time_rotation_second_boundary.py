@@ -24,7 +24,8 @@ async def test_time_rotation_second_boundary(tmp_path):
     await logger.a_info("before")
     await asyncio.sleep(1.1)
     await logger.a_info("after")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     files = sorted(p.name for p in tmp_path.glob("t.log*"))
     # base + at least one rotated file

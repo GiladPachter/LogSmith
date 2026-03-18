@@ -18,7 +18,8 @@ async def test_find_caller_reports_correct_location(tmp_path):
 
     # Emit from helper function so the caller is not this test function
     await helper_emit(logger, "caller-test")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "caller.log").read_text(encoding="utf-8")
 

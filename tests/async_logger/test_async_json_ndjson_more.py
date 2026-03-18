@@ -8,7 +8,8 @@ async def test_async_json_formatting(tmp_path):
     logger.add_file(str(tmp_path), "j.log", output_mode=OutputMode.JSON)
 
     await logger.a_info("hello", user="gilad")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "j.log").read_text()
     assert '"message": "hello"' in text
@@ -20,7 +21,8 @@ async def test_async_ndjson_formatting(tmp_path):
     logger.add_file(str(tmp_path), "n.log", output_mode=OutputMode.NDJSON)
 
     await logger.a_info("hello")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "n.log").read_text()
     assert text.strip().startswith("{")

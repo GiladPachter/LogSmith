@@ -25,8 +25,10 @@ async def test_audit_logger_receives_mirrored_logs(tmp_path):
     AsyncSmartLogger._AsyncSmartLogger__audit_logger = audit_logger
 
     await main_logger.a_info("hello audit")
-    await main_logger._queue.join()
-    await audit_logger._queue.join()
+    # await main_logger.__queue.join()
+    # await audit_logger.__queue.join()
+    await main_logger._AsyncSmartLogger__queue.join()   # this is an abuse. do not use outside of test suite
+    await audit_logger._AsyncSmartLogger__queue.join()  # this is an abuse. do not use outside of test suite
 
     # ensure file handler flushes
     for h in audit_logger._py_logger.handlers:
@@ -55,7 +57,8 @@ async def test_audit_logger_does_not_recurse(tmp_path):
 
     # Emit from the audit logger itself
     await audit_logger.a_info("self-audit")
-    await audit_logger._queue.join()
+    # await audit_logger.__queue.join()
+    await audit_logger._AsyncSmartLogger__queue.join()  # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "audit2.log").read_text()
 

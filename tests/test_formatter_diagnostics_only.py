@@ -43,7 +43,8 @@ async def test_formatter_exception_does_not_crash(tmp_path, monkeypatch):
 
     # should not raise, even though formatter explodes
     await logger.a_info("will-not-format")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # file may be empty or partial, but process must survive
     assert (tmp_path / "fe.log").exists()

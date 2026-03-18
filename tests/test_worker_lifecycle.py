@@ -19,7 +19,8 @@ async def test_worker_survives_handler_exception(clean_async_logger, tmp_path):
 
     # This one will fail inside the handler
     await logger.a_info("hello")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     after_fail = logger.messages_processed()
     # Failed log is not counted
@@ -31,7 +32,8 @@ async def test_worker_survives_handler_exception(clean_async_logger, tmp_path):
 
     # This one should succeed
     await logger.a_info("world")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     after_success = logger.messages_processed()
     assert after_success == before + 1
@@ -60,7 +62,8 @@ async def test_worker_survives_formatter_exception(clean_async_logger, tmp_path,
     before = logger.messages_processed()
 
     await logger.a_info("hello")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     after = logger.messages_processed()
 
@@ -76,7 +79,8 @@ async def test_worker_preserves_message_order(clean_async_logger, tmp_path):
     for i in range(5):
         await logger.a_info(f"msg-{i}")
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     content = (tmp_path / "x.log").read_text(encoding="utf-8")
     lines = [line.strip() for line in content.splitlines()]
@@ -96,7 +100,8 @@ async def test_worker_drains_queue(clean_async_logger, tmp_path):
     for i in range(50):
         await logger.a_info("hello")
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     assert logger.queue_size == 0
 
@@ -108,7 +113,8 @@ async def test_worker_handles_raw_write(clean_async_logger, tmp_path):
     logger.add_file(str(tmp_path), "x.log")
 
     await logger.a_raw("raw-text")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     content = (tmp_path / "x.log").read_text()
     assert "raw-text" in content
@@ -130,7 +136,8 @@ async def test_worker_survives_raw_write_exception(clean_async_logger, tmp_path)
 
     # RAW write fails
     await logger.a_raw("hello")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     after_fail = logger.messages_processed()
 
@@ -142,7 +149,8 @@ async def test_worker_survives_raw_write_exception(clean_async_logger, tmp_path)
 
     # Now test that the worker is still alive by sending a NORMAL log
     await logger.a_info("world")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     after_success = logger.messages_processed()
 
@@ -159,7 +167,8 @@ async def test_worker_handles_large_queue(clean_async_logger, tmp_path):
     for i in range(2000):
         await logger.a_info("spam")
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     assert logger.messages_processed() >= 2000
 
@@ -171,12 +180,14 @@ async def test_worker_stays_alive(clean_async_logger, tmp_path):
     logger.add_file(str(tmp_path), "x.log")
 
     await logger.a_info("first")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     before = logger.messages_processed()
 
     await logger.a_info("second")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     after = logger.messages_processed()
 

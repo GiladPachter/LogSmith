@@ -266,7 +266,8 @@ async def test_async_worker_survives_handler_exception(tmp_path):
     before = logger.messages_processed()
 
     await logger.a_info("hello")
-    await logger._queue.join()  # worker must not die
+    # await logger.__queue.join()  # worker must not die
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     after = logger.messages_processed()
 
@@ -289,6 +290,7 @@ async def test_async_logger_raw(tmp_path):
     logger.add_file(str(tmp_path), "x.log")
 
     await logger.a_raw("hello")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     assert (tmp_path / "x.log").read_text().strip() == "hello"

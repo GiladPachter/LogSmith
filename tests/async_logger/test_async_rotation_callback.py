@@ -20,11 +20,13 @@ async def test_rotation_callback_from_worker(tmp_path):
 
     # Trigger rotation
     await logger.a_info("x" * 5000)
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
     time.sleep(1.1)
 
     await logger.a_info("y" * 5000)
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # Rotation should have occurred
     rotated = list(tmp_path.glob("w.log*"))
@@ -49,7 +51,8 @@ async def test_rotation_callback_from_external_thread(tmp_path):
     t.start()
     t.join()
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # Rotation should have happened
     rotated = list(tmp_path.glob("e.log*"))
@@ -74,7 +77,8 @@ async def test_rotation_callback_ignored_when_retired(tmp_path):
     # Attempt rotation
     handler.rotation_callback(handler)
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # No rotated files should exist
     rotated = list(tmp_path.glob("r.log*"))
@@ -94,12 +98,14 @@ async def test_rotation_callback_ignored_when_stopped(tmp_path):
     )
 
     # Stop logger
-    logger._stopped = True
+    # logger._stopped = True
+    logger._AsyncSmartLogger__stopped = True    # this is an abuse. do not use outside of test suite
 
     # Attempt rotation
     handler.rotation_callback(handler)
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # No rotated files should exist
     rotated = list(tmp_path.glob("s.log*"))

@@ -21,7 +21,8 @@ async def test_async_handler_reopen(tmp_path):
     os.close(handler.stream.fileno())
 
     await logger.a_info("hello")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     # handler should have reopened stream
     assert handler.stream and not handler.stream.closed

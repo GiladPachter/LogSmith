@@ -11,7 +11,8 @@ async def test_stopped_logger_rejects_new_logs(tmp_path):
     logger.add_file(str(tmp_path), "stopped.log")
 
     # Simulate stop
-    logger._stopped = True
+    # logger._stopped = True
+    logger._AsyncSmartLogger__stopped = True    # this is an abuse. do not use outside of test suite
 
     with pytest.raises(RuntimeError):
         await logger.a_info("should fail")
@@ -51,7 +52,8 @@ async def test_worker_drains_queue_before_exit(tmp_path):
         await logger.a_info(f"msg {i}")
 
     # Let worker process
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "drain.log").read_text()
     for i in range(20):
@@ -70,4 +72,5 @@ async def test_retired_logger_rejects_new_logs(tmp_path):
         await logger.a_info("should-fail")
 
     # but existing queue processing still works (no deadlock)
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite

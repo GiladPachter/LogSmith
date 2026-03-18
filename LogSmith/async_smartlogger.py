@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import logging
 import multiprocessing
 import traceback
@@ -84,13 +85,13 @@ class AsyncSmartLogger:
 
     @property
     def queue_size(self) -> int:
-        return self._queue.qsize()
+        return self.__queue.qsize()
 
     # ------------------------------------------------------------------
     # INIT
     # ------------------------------------------------------------------
     def __init__(self, name: str, level: int = TRACE) -> None:
-        self._name = name
+        self.__name = name
 
         self._py_logger = logging.getLogger(name)
         self._py_logger.propagate = False
@@ -100,14 +101,14 @@ class AsyncSmartLogger:
         else:
             self._py_logger.setLevel(level)
 
-        self._loop = asyncio.get_running_loop()
-        self._queue: asyncio.Queue[_QueueItem] = asyncio.Queue()
-        self._worker_task: Optional[asyncio.Task[None]] = None
-        self._stopped = False
+        self.__loop = asyncio.get_running_loop()
+        self.__queue: asyncio.Queue[_QueueItem] = asyncio.Queue(maxsize=0)
+        self.__worker_task: Optional[asyncio.Task[None]] = None
+        self.__stopped = False
 
-        self._handlers: list[HandlerMetadata] = []
+        self.__handlers: list[HandlerMetadata] = []
 
-        self._messages_enqueued = 0
+        self.__messages_enqueued = 0
 
         self._retired = False
 
@@ -115,8 +116,8 @@ class AsyncSmartLogger:
 
         # =====================================
 
-        self._profile_enabled = False
-        self._profile_stats = {
+        self.__profile_enabled = False
+        self.__profile_stats = {
             "count": 0,
             "find_caller": 0.0,
             "record": 0.0,
@@ -132,42 +133,38 @@ class AsyncSmartLogger:
         }
 
     def enable_profiling(self, enable: bool):
-        self._profile_enabled = enable
+        self.__profile_enabled = enable
 
     def get_profiling_details(self) -> str:
-        if not self._profile_enabled:
+        if not self.__profile_enabled:
             return "Profiling not enabled."
 
-        c = self._profile_stats["count"]
+        c = self.__profile_stats["count"]
         if c == 0:
             return "No profiling data collected."
 
         profiling_details = (f"Total log events: {c}\n"
-                             f"Avg find_caller: {self._profile_stats['find_caller'] / c * 1e6:.2f} µs\n"
-                             f"Avg record creation: {self._profile_stats['record'] / c * 1e6:.2f} µs\n"
-                             f"Avg handler time: {self._profile_stats['handlers'] / c * 1e6:.2f} µs\n"
-                             f"Avg total per log: {self._profile_stats['total'] / c * 1e6:.2f} µs\n"
+                             f"Avg find_caller: {self.__profile_stats['find_caller'] / c * 1e6:.2f} µs\n"
+                             f"Avg record creation: {self.__profile_stats['record'] / c * 1e6:.2f} µs\n"
+                             f"Avg handler time: {self.__profile_stats['handlers'] / c * 1e6:.2f} µs\n"
+                             f"Avg total per log: {self.__profile_stats['total'] / c * 1e6:.2f} µs\n"
                              )
 
-        if self._profile_stats["rotation_count"] > 0:
+        if self.__profile_stats["rotation_count"] > 0:
             profiling_details += (
                 f"Avg rotation time: "
-                f"{self._profile_stats['rotation_time'] / self._profile_stats['rotation_count'] * 1e6:.2f} µs\n"
+                f"{self.__profile_stats['rotation_time'] / self.__profile_stats['rotation_count'] * 1e6:.2f} µs\n"
             )
 
-        if self._profile_stats["steady_count"] > 0:
+        if self.__profile_stats["steady_count"] > 0:
             avg_steady = (
-                    self._profile_stats["steady_total"]
-                    / self._profile_stats["steady_count"]
-                    * 1e6
+                    self.__profile_stats["steady_total"] / self.__profile_stats["steady_count"] * 1e6
             )
             profiling_details += f"Avg steady-state time: {avg_steady:.2f} µs\n"
 
-        if self._profile_stats["spike_count"] > 0:
+        if self.__profile_stats["spike_count"] > 0:
             avg_spike = (
-                    self._profile_stats["spike_total"]
-                    / self._profile_stats["spike_count"]
-                    * 1e6
+                    self.__profile_stats["spike_total"] / self.__profile_stats["spike_count"] * 1e6
             )
             profiling_details += f"Avg spike time: {avg_spike:.2f} µs\n"
 
@@ -180,13 +177,13 @@ class AsyncSmartLogger:
         if hasattr(self, "_worker_tasks"):
             return  # pragma: no cover
         self._worker_tasks = [
-            self._loop.create_task(self.__worker())
+            self.__loop.create_task(self.__worker())
             for _ in range(workers)
         ]
 
     async def __worker(self) -> None:
         while True:
-            item = await self._queue.get()
+            item = await self.__queue.get()
             try:
                 # noinspection PyBroadException
                 try:
@@ -202,13 +199,16 @@ class AsyncSmartLogger:
                     elif item.op is AsyncOp.ROTATE:
                         await self.__process_rotate(item.payload)
 
-                except Exception:   # pragma: no cover
+                except Exception as e:   # pragma: no cover
+                    # import traceback, sys
+                    # print("AsyncSmartLogger worker error:", e, file=sys.stderr)
+                    # traceback.print_exc()
                     # swallow ANY error inside the worker
                     # this prevents the worker from dying
                     pass    # pragma: no cover
 
             finally:
-                self._queue.task_done()
+                self.__queue.task_done()
 
     # ------------------------------------------------------------------
     # PROCESS LOG
@@ -219,7 +219,7 @@ class AsyncSmartLogger:
         t_find = 0.0
         t_record = 0.0
         t_handlers = 0.0
-        if self._profile_enabled:
+        if self.__profile_enabled:
             t0 = time.perf_counter()
 
         level: int = payload["level"]
@@ -249,7 +249,7 @@ class AsyncSmartLogger:
             merged_kwargs.update(fields)
 
         # PROFILING: measure find_caller
-        if self._profile_enabled:
+        if self.__profile_enabled:
             t_find = time.perf_counter()
 
         # Resolve caller (still using payload for now)
@@ -257,8 +257,8 @@ class AsyncSmartLogger:
         lineno = payload["lineno"]
         func_name = payload["func_name"]
 
-        if self._profile_enabled:
-            self._profile_stats["find_caller"] += time.perf_counter() - t_find
+        if self.__profile_enabled:
+            self.__profile_stats["find_caller"] += time.perf_counter() - t_find
 
         sinfo = "".join(traceback.format_stack()) if stack_info_flag else None
 
@@ -268,11 +268,11 @@ class AsyncSmartLogger:
                 and AsyncSmartLogger.__audit_logger is not None
                 and AsyncSmartLogger.__audit_logger is not self
         ):
-            await AsyncSmartLogger.__audit_logger._enqueue_log(
+            await AsyncSmartLogger.__audit_logger.__enqueue_log(
                 level,
                 msg,
                 args,
-                {"__audited_logger_name__": self._name},
+                {"__audited_logger_name__": self.__name},
                 fields,
                 exc_info,
                 stack_info_flag,
@@ -281,10 +281,10 @@ class AsyncSmartLogger:
                 func_name,
             )
 
-        record_name = merged_kwargs.pop("__audited_logger_name__", self._name)
+        record_name = merged_kwargs.pop("__audited_logger_name__", self.__name)
 
         # PROFILING: measure record creation
-        if self._profile_enabled:
+        if self.__profile_enabled:
             t_record = time.perf_counter()
 
         record = logging.LogRecord(
@@ -302,11 +302,11 @@ class AsyncSmartLogger:
         if merged_kwargs:
             record.__dict__.update(merged_kwargs)
 
-        if self._profile_enabled:
-            self._profile_stats["record"] += time.perf_counter() - t_record
+        if self.__profile_enabled:
+            self.__profile_stats["record"] += time.perf_counter() - t_record
 
         # PROFILING: start handler timing
-        if self._profile_enabled:
+        if self.__profile_enabled:
             t_handlers = time.perf_counter()
 
         # ======================================
@@ -322,7 +322,7 @@ class AsyncSmartLogger:
                     continue
 
                 if self is AsyncSmartLogger.__audit_logger:
-                    formatted = self._audit_prefix(formatted, record.name)
+                    formatted = self.__audit_prefix(formatted, record.name)
 
                 stream = getattr(handler, "stream", None)
                 if (stream is None or getattr(stream, "closed", False)) and hasattr(handler, "_open"):
@@ -350,7 +350,7 @@ class AsyncSmartLogger:
                     with handler.write_lock:
                         if self is AsyncSmartLogger.__audit_logger:
                             formatted = handler.format(record) + "\n"
-                            formatted = self._audit_prefix(formatted, record.name)
+                            formatted = self.__audit_prefix(formatted, record.name)
                             handler.stream.write(formatted)
                             handler.stream.flush()
                         else:
@@ -358,7 +358,7 @@ class AsyncSmartLogger:
                 else:
                     if self is AsyncSmartLogger.__audit_logger:
                         formatted = handler.format(record) + "\n"
-                        formatted = self._audit_prefix(formatted, record.name)
+                        formatted = self.__audit_prefix(formatted, record.name)
                         handler.stream.write(formatted)
                         handler.stream.flush()
                     else:
@@ -366,23 +366,21 @@ class AsyncSmartLogger:
         # ======================================
 
         # PROFILING: finalize handler + total
-        if self._profile_enabled:
-            self._profile_stats["handlers"] += time.perf_counter() - t_handlers
-            self._profile_stats["total"] += time.perf_counter() - t0
-            self._profile_stats["count"] += 1
-
-        if self._profile_enabled:
+        if self.__profile_enabled:
+            handler_time = time.perf_counter() - t_handlers
             total = time.perf_counter() - t0
-            self._profile_stats["total"] += total
-            self._profile_stats["count"] += 1
+
+            self.__profile_stats["handlers"] += handler_time
+            self.__profile_stats["total"] += total
+            self.__profile_stats["count"] += 1
 
             # steady vs spike
-            if total < 0.0005:  # < 500 µs → steady-state
-                self._profile_stats["steady_count"] += 1
-                self._profile_stats["steady_total"] += total
+            if total < 0.0005:
+                self.__profile_stats["steady_count"] += 1
+                self.__profile_stats["steady_total"] += total
             else:
-                self._profile_stats["spike_count"] += 1
-                self._profile_stats["spike_total"] += total
+                self.__profile_stats["spike_count"] += 1
+                self.__profile_stats["spike_total"] += total
 
         AsyncSmartLogger.__messages_processed += 1
 
@@ -433,15 +431,15 @@ class AsyncSmartLogger:
         handler: Async_TimedSizedRotatingFileHandler = payload["handler"]
 
         t0 = 0.0
-        if self._profile_enabled:
+        if self.__profile_enabled:
             t0 = time.perf_counter()
 
         with handler.write_lock:
             await asyncio.to_thread(handler.perform_rotation)
 
-        if self._profile_enabled:
-            self._profile_stats["rotation_time"] += time.perf_counter() - t0
-            self._profile_stats["rotation_count"] += 1
+        if self.__profile_enabled:
+            self.__profile_stats["rotation_time"] += time.perf_counter() - t0
+            self.__profile_stats["rotation_count"] += 1
 
     # ------------------------------------------------------------------
     # CALLER RESOLUTION
@@ -526,7 +524,7 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     @property
     def name(self) -> str:
-        return self._name
+        return self.__name
 
     @property
     def level(self) -> int:
@@ -555,7 +553,7 @@ class AsyncSmartLogger:
             output_mode: str | OutputMode = OutputMode.COLOR,
     ) -> None:
         if self._retired:
-            raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot accept handlers.")
+            raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot accept handlers.")
 
         # 🔹 NEW: avoid adding duplicate console handlers
         for h in self._py_logger.handlers:
@@ -584,7 +582,7 @@ class AsyncSmartLogger:
         self._py_logger.addHandler(handler)
 
         level_name = logging.getLevelName(level)
-        self._handlers.append(
+        self.__handlers.append(
             HandlerMetadata(
                 kind="console",
                 level=logging.getLevelName(level),
@@ -614,7 +612,7 @@ class AsyncSmartLogger:
             output_mode: str | OutputMode = OutputMode.PLAIN,
     ) -> None:
         if self._retired:
-            raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot accept handlers.")
+            raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot accept handlers.")
 
         mode = self.__normalize_output_mode(output_mode)
 
@@ -690,7 +688,7 @@ class AsyncSmartLogger:
             if rotation_logic else None
         )
 
-        self._handlers.append(
+        self.__handlers.append(
             HandlerMetadata(
                 kind="file",
                 level=logging.getLevelName(level or self._py_logger.level),
@@ -716,14 +714,14 @@ class AsyncSmartLogger:
             FileHandlerRegistry.unregister(h.baseFilename)
 
         # Also remove metadata
-        self._handlers = [
-            h for h in self._handlers
+        self.__handlers = [
+            h for h in self.__handlers
             if not (h.kind == "file" and h.path == str(target_path))
         ]
 
     @property
     def handler_info(self) -> list[dict[str, Any]]:
-        return [asdict(h) for h in self._handlers]
+        return [asdict(h) for h in self.__handlers]
 
     @property
     def console_handler(self):
@@ -743,7 +741,7 @@ class AsyncSmartLogger:
     def output_targets(self) -> list[str]:
         return [
             "console" if h.kind == "console" else h.path
-            for h in self._handlers
+            for h in self.__handlers
         ]
 
     @classmethod
@@ -786,13 +784,13 @@ class AsyncSmartLogger:
         }
 
     @staticmethod
-    def _audit_prefix(formatted: str, original_logger_name: str) -> str:
+    def __audit_prefix(formatted: str, original_logger_name: str) -> str:
         return f"{original_logger_name} : {formatted}"
 
     # ------------------------------------------------------------------
     # INTERNAL: QUEUE ENQUEUE HELPERS
     # ------------------------------------------------------------------
-    async def _enqueue_log(
+    async def __enqueue_log(
         self,
         level: int,
         msg: str,
@@ -805,54 +803,54 @@ class AsyncSmartLogger:
         lineno: int,
         func_name: str,
     ) -> None:
-        if self._stopped:
+        if self.__stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
         if self._retired:
-            raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot be used.")
+            raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
-        queue_item = _QueueItem(
-            op=AsyncOp.LOG,
-            payload={
-                "level": level,
-                "msg": msg,
-                "args": args,
-                "extra": extra,
-                "fields": fields,
-                "exc_info": exc_info,
-                "stack_info_flag": stack_info_flag,
-                "pathname": pathname,
-                "lineno": lineno,
-                "func_name": func_name,
-            },
-        )
+        payload = {
+            "level": level,
+            "msg": msg,
+            "args": args,
+            "extra": copy.deepcopy(extra),
+            "fields": copy.deepcopy(fields),
+            "exc_info": exc_info,
+            "stack_info_flag": stack_info_flag,
+            "pathname": pathname,
+            "lineno": lineno,
+            "func_name": func_name,
+        }
+
+        queue_item = _QueueItem(op=AsyncOp.LOG, payload=payload)
 
         try:
-            self._queue.put_nowait(queue_item)
+            self.__queue.put_nowait(queue_item)
         except asyncio.QueueFull:
             # cooperative yield, then retry
             await asyncio.sleep(0)
-            await self._queue.put(queue_item)
+            await self.__queue.put(queue_item)
 
-        self._messages_enqueued += 1
+        self.__messages_enqueued += 1
 
         # Coping with Backpressure:
         # auto-flush when queue is too deep
-        if self._queue.qsize() > 10000:
+        if self.__queue.qsize() > 10000:
             # hand control back to the event loop to give worker a chance to drain
             await asyncio.sleep(0)
             # WARNING: don't use "await self._queue.join()"
             #          that's an actual blocking point that would defeat the purpose of async logging.
 
+    @property
     def messages_enqueued(self):
-        return self._messages_enqueued
+        return self.__messages_enqueued
 
     async def __enqueue_raw(self, message: str, end: str) -> None:
-        if self._stopped:
+        if self.__stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
         if self._retired:
-            raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot be used.")
+            raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
-        await self._queue.put(
+        await self.__queue.put(
             _QueueItem(
                 op=AsyncOp.RAW,
                 payload={"message": message, "end": end},
@@ -860,7 +858,22 @@ class AsyncSmartLogger:
         )
 
     def __enqueue_rotation(self, handler):
-        if self._stopped or self._retired:
+        try:
+            # If the loop is already closed, ignore late rotation events
+            if self.__loop.is_closed():
+                return
+
+            item = _QueueItem(
+                op=AsyncOp.ROTATE,
+                payload={"handler": handler},
+            )
+
+            self.__loop.call_soon_threadsafe(self.__queue.put_nowait, item)
+        except RuntimeError:
+            # Loop may have closed between is_closed() and call_soon_threadsafe
+            pass
+
+        if self.__stopped or self._retired:
             return  # pragma: no cover
 
         try:
@@ -870,19 +883,19 @@ class AsyncSmartLogger:
 
         item = _QueueItem(op=AsyncOp.ROTATE, payload={"handler": handler})
 
-        if loop is self._loop:
+        if loop is self.__loop:
             # Already on the logger's loop (worker context) → enqueue synchronously
-            self._queue.put_nowait(item)
+            self.__queue.put_nowait(item)
         else:
             # Called from another thread / loop → schedule thread-safe
-            self._loop.call_soon_threadsafe(self._queue.put_nowait, item)
+            self.__loop.call_soon_threadsafe(self.__queue.put_nowait, item)
 
     # ------------------------------------------------------------------
     # PUBLIC: ASYNC LOGGING API
     # ------------------------------------------------------------------
-    async def a_log(self, level: int, msg: str, *args, **kwargs) -> None:
+    async def __a_log(self, level: int, msg: str, *args, **kwargs) -> None:
         if self._retired:
-            raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot be used.")
+            raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
         if not self._py_logger.isEnabledFor(level):
             return  # pragma: no cover
@@ -913,7 +926,7 @@ class AsyncSmartLogger:
             lineno = 0
             func_name = "<unknown>"
 
-        await self._enqueue_log(
+        await self.__enqueue_log(
             level,
             msg,
             args,
@@ -927,26 +940,26 @@ class AsyncSmartLogger:
         )
 
     async def a_trace(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.a_log(TRACE, msg, *args, **kwargs)
+        await self.__a_log(TRACE, msg, *args, **kwargs)
 
     async def a_debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.a_log(logging.DEBUG, msg, *args, **kwargs)
+        await self.__a_log(logging.DEBUG, msg, *args, **kwargs)
 
     async def a_info(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.a_log(logging.INFO, msg, *args, **kwargs)
+        await self.__a_log(logging.INFO, msg, *args, **kwargs)
 
     async def a_warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.a_log(logging.WARNING, msg, *args, **kwargs)
+        await self.__a_log(logging.WARNING, msg, *args, **kwargs)
 
     async def a_error(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.a_log(logging.ERROR, msg, *args, **kwargs)
+        await self.__a_log(logging.ERROR, msg, *args, **kwargs)
 
     async def a_critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
-        await self.a_log(logging.CRITICAL, msg, *args, **kwargs)
+        await self.__a_log(logging.CRITICAL, msg, *args, **kwargs)
 
     async def a_raw(self, message: str, end: str = "\n") -> None:
         if self._retired:
-            raise RuntimeError(f"AsyncSmartLogger {self._name!r} has been retired and cannot be used.")
+            raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
         await self.__enqueue_raw(message, end)
 
     # ------------------------------------------------------------------
@@ -987,7 +1000,7 @@ class AsyncSmartLogger:
                 level_value = meta["value"]
 
                 async def dynamic_level_method(msg: str, *args: Any, **kwargs: Any) -> None:
-                    await self.a_log(level_value, msg, *args, **kwargs)
+                    await self.__a_log(level_value, msg, *args, **kwargs)
 
                 setattr(self, item, dynamic_level_method)
                 return dynamic_level_method
@@ -1038,7 +1051,7 @@ class AsyncSmartLogger:
         then flush all underlying handlers.
         """
         # 1. Drain the async pipeline completely
-        await self._queue.join()
+        await self.__queue.join()
 
         # 2. Flush all handlers' streams
         for handler in self._py_logger.handlers:
@@ -1047,17 +1060,17 @@ class AsyncSmartLogger:
                 flush()
 
     async def shutdown(self):
-        if self._stopped:
+        if self.__stopped:
             return
 
-        self._stopped = True
+        self.__stopped = True
 
         # 1. Drain queue
-        await self._queue.join()
+        await self.__queue.join()
 
         # 2. Stop workers
         for task in self._worker_tasks:
-            self._queue.put_nowait(_QueueItem(op=AsyncOp.SENTINEL, payload={}))
+            self.__queue.put_nowait(_QueueItem(op=AsyncOp.SENTINEL, payload={}))
         await asyncio.gather(*self._worker_tasks, return_exceptions=True)
 
         # 3. Flush + close handlers
@@ -1201,7 +1214,7 @@ class AsyncSmartLogger:
                 pass    # pragma: no cover
 
         self._py_logger.handlers.clear()
-        self._handlers.clear()
+        self.__handlers.clear()
         self._retired = True
 
 

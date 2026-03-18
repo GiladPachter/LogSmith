@@ -122,7 +122,7 @@ async def main():
             await asyncio.sleep(0.2)
 
             # Read both counters
-            produced = logger.messages_enqueued()
+            produced = logger.messages_enqueued
             processed = AsyncSmartLogger.messages_processed()
             backlog = produced - processed
 

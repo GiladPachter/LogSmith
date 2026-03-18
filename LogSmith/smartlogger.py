@@ -529,7 +529,7 @@ class SmartLogger:
         ]
 
     @staticmethod
-    def _create_sync_handler(rotation_logic: RotationLogic, file_path: str):
+    def __create_sync_handler(rotation_logic: RotationLogic, file_path: str):
         from .rotation import ConcurrentTimedSizedRotatingFileHandler
 
         return ConcurrentTimedSizedRotatingFileHandler(
@@ -598,7 +598,7 @@ class SmartLogger:
 
         FileHandlerRegistry.register(str(file_path))
 
-        handler = self._create_sync_handler(rotation_logic, str(file_path))
+        handler = self.__create_sync_handler(rotation_logic, str(file_path))
 
         handler.setLevel(level or self._py_logger.level)
         handler.setFormatter(formatter)
@@ -689,35 +689,6 @@ class SmartLogger:
     # ------------------------------------------------------------------
     #  HANDLER INTROSPECTION (READ-ONLY)
     # ------------------------------------------------------------------
-    @staticmethod
-    def __pretty_handler_info(info: HandlerMetadata) -> dict[str, Any]:
-        """
-        Convert HandlerInfo into a clean, human‑readable dict.
-        Includes the handler object itself so that removal operations
-        can be performed safely and unambiguously.
-        """
-        base: dict[str, Any] = {
-            "kind": info.kind,
-            "level": logging.getLevelName(info.level),
-            "formatter": info.formatter,
-        }
-
-        if info.kind == "file":
-            base["path"] = info.path
-            base["rotation"] = (
-                {
-                    "maxBytes": info.rotation_logic.maxBytes,
-                    "when": info.rotation_logic.when,
-                    "interval": info.rotation_logic.interval,
-                    "backupCount": info.rotation_logic.backupCount,
-                }
-                if info.rotation_logic
-                else None
-            )
-            base["do_not_sanitize_colors_from_string"] = info.do_not_sanitize_colors_from_string
-
-        return base
-
     @property
     def handler_info(self) -> list[dict[str, Any]]:
         return [asdict(h) for h in self._smart_state.handlers]
@@ -1006,7 +977,7 @@ class SmartLogger:
         if rotation_logic is None:
             rotation_logic = RotationLogic()
 
-        handler = SmartLogger._create_sync_handler(rotation_logic, str(file_path))
+        handler = SmartLogger.__create_sync_handler(rotation_logic, str(file_path))
 
         handler.setLevel(logging.NOTSET)
 

@@ -24,7 +24,8 @@ async def test_json_formatting_offloaded(tmp_path):
     )
 
     await logger.a_info("hello", user="gilad")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "json.log").read_text().strip()
     data = json.loads(text)
@@ -45,7 +46,8 @@ async def test_ndjson_formatting(tmp_path):
 
     await logger.a_info("line1")
     await logger.a_info("line2")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     lines = (tmp_path / "ndjson.log").read_text().splitlines()
     assert len(lines) == 2
@@ -68,7 +70,8 @@ async def test_plain_formatting(tmp_path):
     )
 
     await logger.a_info("plain message")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "plain.log").read_text()
     assert "plain message" in text
@@ -83,7 +86,8 @@ async def test_color_formatting_console(capsys):
     logger.add_console(output_mode="color")
 
     await logger.a_info("colored")
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     await logger.flush()
 
@@ -118,7 +122,8 @@ async def test_rotating_handler_locking(tmp_path):
     tasks = [asyncio.create_task(writer(i)) for i in range(200)]
     await asyncio.gather(*tasks)
 
-    await logger._queue.join()
+    # await logger.__queue.join()
+    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "rotating.log").read_text()
 

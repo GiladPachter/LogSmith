@@ -21,8 +21,10 @@ async def test_audit_logger_basic(tmp_path):
     AsyncSmartLogger._AsyncSmartLogger__audit_logger = audit
 
     await main.a_info("hello-audit")
-    await main._queue.join()
-    await audit._queue.join()
+    # await main.__queue.join()
+    # await audit.__queue.join()
+    await main._AsyncSmartLogger__queue.join()  # this is an abuse. do not use outside of test suite
+    await audit._AsyncSmartLogger__queue.join() # this is an abuse. do not use outside of test suite
 
     text = (tmp_path / "audit.log").read_text(encoding="utf-8").strip()
     assert "hello-audit" in text
