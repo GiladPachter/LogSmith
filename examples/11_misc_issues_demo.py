@@ -40,8 +40,8 @@ stdout("\nMiscellaneous SmartLogger Features\n================================="
 stdout("\nCreating logger 'misc'...")
 
 details = LogRecordDetails(
-    datefmt="%Y-%m-%d %H:%M:%S",
-    separator="|",
+    # datefmt="%Y-%m-%d %H:%M:%S",
+    # separator="|",
     optional_record_fields=OptionalRecordFields(
         file_name=True,
         lineno=True,

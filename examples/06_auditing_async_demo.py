@@ -111,8 +111,8 @@ async def main():
     # 5. Enable auditing
     # ------------------------------------------------------------------------------------------------------
     audit_details = LogRecordDetails(
-        datefmt="%Y-%m-%d %H:%M:%S",
-        separator="|",
+        # datefmt="%Y-%m-%d %H:%M:%S",
+        # separator="|",
         optional_record_fields=OptionalRecordFields(
             logger_name=True,   # auditing requires this
             lineno=True,

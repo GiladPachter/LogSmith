@@ -74,7 +74,7 @@ stdout("Old demo files removed.")
 stdout("\nAdding file handler (plain formatting)...")
 
 file_details = LogRecordDetails(
-    datefmt="%Y-%m-%d %H:%M:%S",
+    # datefmt="%Y-%m-%d %H:%M:%S",
     separator="|",
     optional_record_fields=OptionalRecordFields(
         process_id=True,

@@ -59,8 +59,8 @@ logger.add_console(level=levels["TRACE"])
 # 4. Common formatting for all file handlers
 # ----------------------------------------------------------------------------------------------------------
 details = LogRecordDetails(
-    datefmt="%Y-%m-%d %H:%M:%S",
-    separator="|",
+    # datefmt="%Y-%m-%d %H:%M:%S",
+    # separator="|",
     optional_record_fields=OptionalRecordFields(
         process_id=True,
         thread_id=True,

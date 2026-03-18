@@ -7,8 +7,8 @@ from LogSmith import AsyncSmartLogger, OptionalRecordFields, LogRecordDetails
 async def test_async_exc_info_and_stack_info(tmp_path):
     logger = AsyncSmartLogger("excstack", logging.INFO)
     logger.add_file(str(tmp_path), "e.log", log_record_details=LogRecordDetails(
-        datefmt="%Y-%m-%d %H:%M:%S",
-        separator="|",
+        # datefmt="%Y-%m-%d %H:%M:%S",
+        # separator="|",
         optional_record_fields=OptionalRecordFields(
             exc_info=True,
             stack_info=True,
