@@ -25,6 +25,7 @@ from .level_registry import LEVELS
 from .colors import CPrint
 from .rotation_base import RotationLogic
 
+
 """
 console printing utility
 "stdout()" function replaces print()
