@@ -66,7 +66,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             delay=delay,
         )
 
-        self._last_rotation_check = 0.0
+        self.__last_rotation_check = 0.0
 
         # Tell PyCharm the truth: stream can be None
         self.stream: Optional[IO[str]] = self.stream
@@ -74,13 +74,13 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         # For debugging / introspection
         self.resolved_path = str(Path(self.baseFilename).resolve())
 
-        self._rotation_scheduled = False
+        self.__rotation_scheduled = False
 
         self.write_lock = threading.Lock()
 
-        self._rollover_at = None
+        self.__rollover_at = None
         if self.when is not None:
-            self._rollover_at = self._compute_initial_rollover()
+            self.__rollover_at = self._compute_initial_rollover()
 
     # ------------------------------------------------------------------
     #  EMIT (detect rotation, schedule async rotation)
@@ -158,8 +158,8 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         # 1. Size-based rotation BEFORE writing
         # if self.max_bytes and self.should_rotate(record):
         if self.max_bytes and self._size_would_exceed(formatted):
-            if self.rotation_callback and not self._rotation_scheduled:
-                self._rotation_scheduled = True
+            if self.rotation_callback and not self.__rotation_scheduled:
+                self.__rotation_scheduled = True
                 self.rotation_callback(self)
 
         # 2. Large-entry behavior (async-safe)
@@ -169,8 +169,8 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             return
 
         if decision is self.AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
-            if self.rotation_callback and not self._rotation_scheduled:
-                self._rotation_scheduled = True
+            if self.rotation_callback and not self.__rotation_scheduled:
+                self.__rotation_scheduled = True
                 self.rotation_callback(self)
 
         # 3. Write normally (no synchronous rotation)
@@ -178,11 +178,11 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         # 4. Time-based rotation (throttled)
         if self.when is not None:
-            if now - self._last_rotation_check >= 0.25:
-                self._last_rotation_check = now
+            if now - self.__last_rotation_check >= 0.25:
+                self.__last_rotation_check = now
                 if self.should_rotate(record):
-                    if self.rotation_callback and not self._rotation_scheduled:
-                        self._rotation_scheduled = True
+                    if self.rotation_callback and not self.__rotation_scheduled:
+                        self.__rotation_scheduled = True
                         self.rotation_callback(self)
 
     # ------------------------------------------------------------------
@@ -224,16 +224,16 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             # Compute next rollover time
             if self.when is not None:
                 now = time.time()
-                self._rollover_at = self._compute_next_rollover(now)
+                self.__rollover_at = self._compute_next_rollover(now)
             else:
-                self._rollover_at = None
+                self.__rollover_at = None
 
             # Apply retention
             self._apply_expiration_policy()
 
         finally:
             self.release()
-            self._rotation_scheduled = False
+            self.__rotation_scheduled = False
 
     def should_rotate(self, record: logging.LogRecord) -> bool:
         """
@@ -258,9 +258,9 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         # ----------------------------------------------------------
         # TIME-BASED ROTATION
         # ----------------------------------------------------------
-        if self._rollover_at is not None:
+        if self.__rollover_at is not None:
             now = time.time()
-            if now >= self._rollover_at:
+            if now >= self.__rollover_at:
                 return True
 
         return False

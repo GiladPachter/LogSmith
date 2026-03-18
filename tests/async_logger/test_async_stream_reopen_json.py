@@ -16,7 +16,8 @@ async def test_async_stream_reopen_json(tmp_path):
     logger.add_file(str(tmp_path), "j.log", rotation_logic=logic, output_mode="json")
 
     handler = next(
-        h for h in logger._py_logger.handlers
+        # h for h in logger.__py_logger.handlers
+        h for h in logger._AsyncSmartLogger__py_logger.handlers # accessing private member. do not use outside of test suite
         if hasattr(h, "baseFilename")
     )
 

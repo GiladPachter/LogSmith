@@ -93,13 +93,13 @@ class AsyncSmartLogger:
     def __init__(self, name: str, level: int = TRACE) -> None:
         self.__name = name
 
-        self._py_logger = logging.getLogger(name)
-        self._py_logger.propagate = False
+        self.__py_logger = logging.getLogger(name)
+        self.__py_logger.propagate = False
 
         if level == logging.NOTSET:
-            self._py_logger.setLevel(logging.NOTSET)
+            self.__py_logger.setLevel(logging.NOTSET)
         else:
-            self._py_logger.setLevel(level)
+            self.__py_logger.setLevel(level)
 
         self.__loop = asyncio.get_running_loop()
         self.__queue: asyncio.Queue[_QueueItem] = asyncio.Queue(maxsize=0)
@@ -110,7 +110,7 @@ class AsyncSmartLogger:
 
         self.__messages_enqueued = 0
 
-        self._retired = False
+        self.__retired = False
 
         self.__start_worker()
 
@@ -174,7 +174,7 @@ class AsyncSmartLogger:
     # WORKER
     # ------------------------------------------------------------------
     def __start_worker(self, workers: int = 1):
-        if hasattr(self, "_worker_tasks"):
+        if hasattr(self, "__worker_tasks"):
             return  # pragma: no cover
         self._worker_tasks = [
             self.__loop.create_task(self.__worker())
@@ -232,7 +232,7 @@ class AsyncSmartLogger:
 
         # Sanitize ANSI for file logging unless explicitly disabled
         sanitize = True
-        for handler in self._py_logger.handlers:
+        for handler in self.__py_logger.handlers:
             if hasattr(handler, "baseFilename"):
                 if getattr(handler, "do_not_sanitize_colors_from_string", False):
                     sanitize = False
@@ -310,7 +310,7 @@ class AsyncSmartLogger:
             t_handlers = time.perf_counter()
 
         # ======================================
-        for handler in self._py_logger.handlers:
+        for handler in self.__py_logger.handlers:
             formatter = handler.formatter
 
             if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
@@ -391,7 +391,7 @@ class AsyncSmartLogger:
         message: str = payload["message"]
         end: str = payload["end"]
 
-        for handler in self._py_logger.handlers:
+        for handler in self.__py_logger.handlers:
             stream = getattr(handler, "stream", None)
 
             # FIX: Reopen file handler stream if needed
@@ -528,11 +528,11 @@ class AsyncSmartLogger:
 
     @property
     def level(self) -> int:
-        return self._py_logger.level
+        return self.__py_logger.level
 
     @level.setter
     def level(self, value) -> None:
-        self._py_logger.setLevel(value)
+        self.__py_logger.setLevel(value)
 
     # ------------------------------------------------------------------
     # PUBLIC: HANDLER MANAGEMENT
@@ -552,11 +552,11 @@ class AsyncSmartLogger:
             log_record_details: Optional[LogRecordDetails] = None,
             output_mode: str | OutputMode = OutputMode.COLOR,
     ) -> None:
-        if self._retired:
+        if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot accept handlers.")
 
         # 🔹 NEW: avoid adding duplicate console handlers
-        for h in self._py_logger.handlers:
+        for h in self.__py_logger.handlers:
             if isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename"):
                 # console handler already attached
                 return  # pragma: no cover
@@ -579,7 +579,7 @@ class AsyncSmartLogger:
             formatter = StructuredPlainFormatter(log_record_details)
 
         handler.setFormatter(formatter)
-        self._py_logger.addHandler(handler)
+        self.__py_logger.addHandler(handler)
 
         level_name = logging.getLevelName(level)
         self.__handlers.append(
@@ -592,13 +592,13 @@ class AsyncSmartLogger:
 
     def remove_console(self) -> None:
         to_remove = [
-            h for h in self._py_logger.handlers
+            h for h in self.__py_logger.handlers
             if isinstance(h, logging.StreamHandler)
             and not hasattr(h, "baseFilename")
         ]
 
         for h in to_remove:
-            self._py_logger.removeHandler(h)
+            self.__py_logger.removeHandler(h)
             h.close()
 
     def add_file(
@@ -611,7 +611,7 @@ class AsyncSmartLogger:
             do_not_sanitize_colors_from_string: bool = False,
             output_mode: str | OutputMode = OutputMode.PLAIN,
     ) -> None:
-        if self._retired:
+        if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot accept handlers.")
 
         mode = self.__normalize_output_mode(output_mode)
@@ -630,7 +630,7 @@ class AsyncSmartLogger:
         os.makedirs(log_dir_path, exist_ok=True)
 
         if logfile_name is None:
-            logfile_name = f"{self._py_logger.name}.log"
+            logfile_name = f"{self.__py_logger.name}.log"
 
         file_path = log_dir_path / logfile_name
         resolved_path = str(file_path.resolve())
@@ -667,7 +667,7 @@ class AsyncSmartLogger:
 
         FileHandlerRegistry.register(str(file_path))
 
-        handler.setLevel(level or self._py_logger.level)
+        handler.setLevel(level or self.__py_logger.level)
         handler.setFormatter(formatter)
 
         setattr(handler, "do_not_sanitize_colors_from_string", do_not_sanitize_colors_from_string)
@@ -676,7 +676,7 @@ class AsyncSmartLogger:
             handler.rotation_callback = self.__enqueue_rotation
             handler.resolved_path = resolved_path
 
-        self._py_logger.addHandler(handler)
+        self.__py_logger.addHandler(handler)
 
         rotation_meta = (
             {
@@ -691,7 +691,7 @@ class AsyncSmartLogger:
         self.__handlers.append(
             HandlerMetadata(
                 kind="file",
-                level=logging.getLevelName(level or self._py_logger.level),
+                level=logging.getLevelName(level or self.__py_logger.level),
                 formatter=str(mode.value),
                 path=resolved_path,
                 rotation=rotation_meta,
@@ -703,14 +703,14 @@ class AsyncSmartLogger:
         target_path = Path(log_dir) / logfile_name
 
         to_remove = [
-            h for h in self._py_logger.handlers
+            h for h in self.__py_logger.handlers
             if isinstance(h, logging.FileHandler)
             and Path(h.baseFilename) == target_path
         ]
 
         for h in to_remove:
             h.close()
-            self._py_logger.removeHandler(h)
+            self.__py_logger.removeHandler(h)
             FileHandlerRegistry.unregister(h.baseFilename)
 
         # Also remove metadata
@@ -805,7 +805,7 @@ class AsyncSmartLogger:
     ) -> None:
         if self.__stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
-        if self._retired:
+        if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
         payload = {
@@ -847,7 +847,7 @@ class AsyncSmartLogger:
     async def __enqueue_raw(self, message: str, end: str) -> None:
         if self.__stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
-        if self._retired:
+        if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
         await self.__queue.put(
@@ -873,7 +873,7 @@ class AsyncSmartLogger:
             # Loop may have closed between is_closed() and call_soon_threadsafe
             pass
 
-        if self.__stopped or self._retired:
+        if self.__stopped or self.__retired:
             return  # pragma: no cover
 
         try:
@@ -894,10 +894,10 @@ class AsyncSmartLogger:
     # PUBLIC: ASYNC LOGGING API
     # ------------------------------------------------------------------
     async def __a_log(self, level: int, msg: str, *args, **kwargs) -> None:
-        if self._retired:
+        if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
-        if not self._py_logger.isEnabledFor(level):
+        if not self.__py_logger.isEnabledFor(level):
             return  # pragma: no cover
 
         exc_info_flag = kwargs.pop("exc_info", False)
@@ -958,7 +958,7 @@ class AsyncSmartLogger:
         await self.__a_log(logging.CRITICAL, msg, *args, **kwargs)
 
     async def a_raw(self, message: str, end: str = "\n") -> None:
-        if self._retired:
+        if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
         await self.__enqueue_raw(message, end)
 
@@ -1054,7 +1054,7 @@ class AsyncSmartLogger:
         await self.__queue.join()
 
         # 2. Flush all handlers' streams
-        for handler in self._py_logger.handlers:
+        for handler in self.__py_logger.handlers:
             flush = getattr(handler, "flush", None)
             if callable(flush):
                 flush()
@@ -1074,7 +1074,7 @@ class AsyncSmartLogger:
         await asyncio.gather(*self._worker_tasks, return_exceptions=True)
 
         # 3. Flush + close handlers
-        for handler in self._py_logger.handlers:
+        for handler in self.__py_logger.handlers:
             # noinspection PyBroadException
             try:
                 handler.flush()
@@ -1086,7 +1086,7 @@ class AsyncSmartLogger:
             except Exception:   # pragma: no cover
                 pass
 
-        self._py_logger.handlers.clear()
+        self.__py_logger.handlers.clear()
 
     # ------------------------------------------------------------------
     # AUDITING (class-level)
@@ -1121,10 +1121,10 @@ class AsyncSmartLogger:
         )
 
         # Override the formatter on the actual handler
-        handler = audit_logger._py_logger.handlers[-1]
+        handler = audit_logger.__py_logger.handlers[-1]
         handler.setFormatter(formatter)
 
-        cls.__audit_handler = audit_logger._py_logger.handlers[-1]
+        cls.__audit_handler = audit_logger.__py_logger.handlers[-1]
 
     @classmethod
     async def terminate_auditing(cls) -> None:
@@ -1136,7 +1136,7 @@ class AsyncSmartLogger:
         if cls.__audit_logger and cls.__audit_handler:
             # noinspection PyBroadException
             try:
-                cls.__audit_logger._py_logger.removeHandler(cls.__audit_handler)
+                cls.__audit_logger.__py_logger.removeHandler(cls.__audit_handler)
             except Exception:   # pragma: no cover
                 pass    # pragma: no cover
 
@@ -1198,13 +1198,13 @@ class AsyncSmartLogger:
     # retire & destroy
     # ------------------------------------------------------------------
     def retire(self) -> None:
-        self._retired = True
+        self.__retired = True
 
     def destroy(self) -> None:
-        for handler in list(self._py_logger.handlers):
+        for handler in list(self.__py_logger.handlers):
             # noinspection PyBroadException
             try:
-                self._py_logger.removeHandler(handler)
+                self.__py_logger.removeHandler(handler)
             except Exception:   # pragma: no cover
                 pass    # pragma: no cover
             # noinspection PyBroadException
@@ -1213,9 +1213,9 @@ class AsyncSmartLogger:
             except Exception:   # pragma: no cover
                 pass    # pragma: no cover
 
-        self._py_logger.handlers.clear()
+        self.__py_logger.handlers.clear()
         self.__handlers.clear()
-        self._retired = True
+        self.__retired = True
 
 
 # ======================================================================
@@ -1236,7 +1236,8 @@ def __get_async_stdout_logger() -> AsyncSmartLogger:
         if __async_stdout_logger is None:
             lg = AsyncSmartLogger("_async_stdout", level=logging.INFO)
             lg.add_console(level=logging.INFO)
-            lg._py_logger.propagate = False
+            # noinspection PyProtectedMember
+            lg._AsyncSmartLogger__py_logger.propagate = False
             __async_stdout_logger = lg
 
     return __async_stdout_logger

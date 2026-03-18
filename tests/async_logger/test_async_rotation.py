@@ -241,9 +241,15 @@ def test_perform_rotation_updates_rollover(tmp_path):
         interval=1,
     )
 
-    before = handler._rollover_at
+    handler: Async_TimedSizedRotatingFileHandler
+
+    # before = handler.__rollover_at
+    # noinspection PyUnresolvedReferences
+    before = handler._Async_TimedSizedRotatingFileHandler__rollover_at
     handler.perform_rotation()
-    after = handler._rollover_at
+    # after = handler.__rollover_at
+    # noinspection PyUnresolvedReferences
+    after = handler._Async_TimedSizedRotatingFileHandler__rollover_at
 
     assert before != after
 

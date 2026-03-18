@@ -66,7 +66,6 @@ def get_metadata():
         return {}   # pragma: no cover
 
 
-
 def get_license_text() -> str | None:
     try:
         dist = distribution("LogSmith")
@@ -103,7 +102,6 @@ def get_license_text() -> str | None:
 
     except PackageNotFoundError:
         return None
-
 
 
 def get_file_list():

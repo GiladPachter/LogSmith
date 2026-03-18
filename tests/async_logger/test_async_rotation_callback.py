@@ -21,12 +21,12 @@ async def test_rotation_callback_from_worker(tmp_path):
     # Trigger rotation
     await logger.a_info("x" * 5000)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
     time.sleep(1.1)
 
     await logger.a_info("y" * 5000)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     # Rotation should have occurred
     rotated = list(tmp_path.glob("w.log*"))
@@ -41,7 +41,8 @@ async def test_rotation_callback_from_external_thread(tmp_path):
     logger.add_file(str(tmp_path), "e.log", rotation_logic=logic)
 
     # Retrieve the actual handler object (internal, but allowed for tests)
-    handler = logger._py_logger.handlers[0]
+    # handler = logger.__py_logger.handlers[0]
+    handler = logger._AsyncSmartLogger__py_logger.handlers[0]   # accessing private member. do not use outside of test suite
 
     # Call rotation callback from another thread
     def external_call():
@@ -52,7 +53,7 @@ async def test_rotation_callback_from_external_thread(tmp_path):
     t.join()
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     # Rotation should have happened
     rotated = list(tmp_path.glob("e.log*"))
@@ -67,18 +68,20 @@ async def test_rotation_callback_ignored_when_retired(tmp_path):
     logger.add_file(str(tmp_path), "r.log", rotation_logic=logic)
 
     handler = next(
-        h for h in logger._py_logger.handlers
+        # h for h in logger.__py_logger.handlers
+        h for h in logger._AsyncSmartLogger__py_logger.handlers  # accessing private member. do not use outside of test suite
         if hasattr(h, "baseFilename")
     )
 
     # Retire logger
-    logger._retired = True
+    # logger.__retired = True
+    logger._AsyncSmartLogger__retired = True    # accessing private member. do not use outside of test suite
 
     # Attempt rotation
     handler.rotation_callback(handler)
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     # No rotated files should exist
     rotated = list(tmp_path.glob("r.log*"))
@@ -93,19 +96,20 @@ async def test_rotation_callback_ignored_when_stopped(tmp_path):
     logger.add_file(str(tmp_path), "s.log", rotation_logic=logic)
 
     handler = next(
-        h for h in logger._py_logger.handlers
+        # h for h in logger.__py_logger.handlers
+        h for h in logger._AsyncSmartLogger__py_logger.handlers # accessing private member. do not use outside of test suite
         if hasattr(h, "baseFilename")
     )
 
     # Stop logger
     # logger._stopped = True
-    logger._AsyncSmartLogger__stopped = True    # this is an abuse. do not use outside of test suite
+    logger._AsyncSmartLogger__stopped = True    # accessing private member. do not use outside of test suite
 
     # Attempt rotation
     handler.rotation_callback(handler)
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     # No rotated files should exist
     rotated = list(tmp_path.glob("s.log*"))

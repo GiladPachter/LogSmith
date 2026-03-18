@@ -27,11 +27,12 @@ async def test_audit_logger_receives_mirrored_logs(tmp_path):
     await main_logger.a_info("hello audit")
     # await main_logger.__queue.join()
     # await audit_logger.__queue.join()
-    await main_logger._AsyncSmartLogger__queue.join()   # this is an abuse. do not use outside of test suite
-    await audit_logger._AsyncSmartLogger__queue.join()  # this is an abuse. do not use outside of test suite
+    await main_logger._AsyncSmartLogger__queue.join()   # accessing private member. do not use outside of test suite
+    await audit_logger._AsyncSmartLogger__queue.join()  # accessing private member. do not use outside of test suite
 
     # ensure file handler flushes
-    for h in audit_logger._py_logger.handlers:
+    # for h in audit_logger.__py_logger.handlers:
+    for h in audit_logger._AsyncSmartLogger__py_logger.handlers:    # accessing private member. do not use outside of test suite
         h.flush()
 
     # Audit logger should have received the mirrored message
@@ -58,7 +59,7 @@ async def test_audit_logger_does_not_recurse(tmp_path):
     # Emit from the audit logger itself
     await audit_logger.a_info("self-audit")
     # await audit_logger.__queue.join()
-    await audit_logger._AsyncSmartLogger__queue.join()  # this is an abuse. do not use outside of test suite
+    await audit_logger._AsyncSmartLogger__queue.join()  # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "audit2.log").read_text()
 
@@ -83,7 +84,7 @@ async def test_audit_handler_metadata(tmp_path):
     # Enable audit mode
     AsyncSmartLogger._AsyncSmartLogger__audit_enabled = True
     AsyncSmartLogger._AsyncSmartLogger__audit_logger = audit_logger
-    AsyncSmartLogger._AsyncSmartLogger__audit_handler = audit_logger._py_logger.handlers[0]
+    AsyncSmartLogger._AsyncSmartLogger__audit_handler = audit_logger._AsyncSmartLogger__py_logger.handlers[0]
 
     meta = AsyncSmartLogger.audit_handler_info()
 

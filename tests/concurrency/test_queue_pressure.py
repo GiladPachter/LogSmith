@@ -38,7 +38,7 @@ async def test_backpressure_large_queue(tmp_path):
     # push a lot of messages
     await spam(20000)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "bp.log").read_text(encoding="utf-8")
     # spot-check some messages

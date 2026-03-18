@@ -18,7 +18,7 @@ async def test_async_rotation(tmp_path: Path):
         await logger.a_info("X" * 30)
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     rotated = [p for p in log_dir.iterdir() if p.name.startswith("app.log.") and not p.name.endswith(".lock")]
     assert len(rotated) <= 2
@@ -38,7 +38,7 @@ async def test_async_rotation_creates_rotated_file(clean_async_logger, tmp_path)
         await logger.a_info("abcdef")
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     files = sorted(p.name for p in tmp_path.iterdir())
     assert "x.log" in files

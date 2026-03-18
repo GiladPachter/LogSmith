@@ -230,7 +230,8 @@ def test_base_handle_large_entry_dump(tmp_path):
         large_entry_behavior=LargeLogEntryBehavior.DumpSilently,
     )
 
-    assert h._handle_large_entry("123456") is True
+    # noinspection PyUnresolvedReferences
+    assert h._ConcurrentTimedSizedRotatingFileHandler__handle_large_entry("123456") is True
 
 
 def test_ndjson_no_blank_lines():
@@ -260,14 +261,14 @@ async def test_async_worker_survives_handler_exception(tmp_path):
         def emit(self, record):
             raise RuntimeError("boom")
 
-    logger._py_logger.addHandler(BadHandler())
+    logger._AsyncSmartLogger__py_logger.addHandler(BadHandler())
 
     # Capture baseline BEFORE logging
     before = logger.messages_processed()
 
     await logger.a_info("hello")
     # await logger.__queue.join()  # worker must not die
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     after = logger.messages_processed()
 
@@ -291,6 +292,6 @@ async def test_async_logger_raw(tmp_path):
 
     await logger.a_raw("hello")
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     assert (tmp_path / "x.log").read_text().strip() == "hello"

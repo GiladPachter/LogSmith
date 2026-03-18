@@ -15,7 +15,7 @@ from LogSmith.rotation_base import RotationLogic, When
 async def drain(logger: AsyncSmartLogger):
     """Wait until the worker has processed all queued items."""
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
     # give worker a tick to finish writes
     await asyncio.sleep(0)
 
@@ -45,11 +45,11 @@ async def test_queue_overflow(tmp_path):
     logger = AsyncSmartLogger("x")
     # artificially shrink queue
     # logger.__queue = asyncio.Queue(maxsize=1)
-    logger._AsyncSmartLogger__queue = asyncio.Queue(maxsize=1)  # this is an abuse. do not use outside of test suite
+    logger._AsyncSmartLogger__queue = asyncio.Queue(maxsize=1)  # accessing private member. do not use outside of test suite
 
     # enqueue 3 messages
     # await logger.__enqueue_log(
-    await logger._AsyncSmartLogger__enqueue_log(   # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__enqueue_log(   # accessing private member. do not use outside of test suite
         level=logging.INFO,
         msg="a",
         args=(),
@@ -62,7 +62,7 @@ async def test_queue_overflow(tmp_path):
         func_name="f",
     )
     # await logger.__enqueue_log(
-    await logger._AsyncSmartLogger__enqueue_log(    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__enqueue_log(    # accessing private member. do not use outside of test suite
         level=logging.INFO,
         msg="b",
         args=(),
@@ -75,7 +75,7 @@ async def test_queue_overflow(tmp_path):
         func_name="f",
     )
     # await logger.__enqueue_log(
-    await logger._AsyncSmartLogger__enqueue_log(    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__enqueue_log(    # accessing private member. do not use outside of test suite
         level=logging.INFO,
         msg="c",
         args=(),
@@ -162,7 +162,7 @@ async def test_shutdown_drains_queue(tmp_path):
     await logger.a_info("b")
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
     await logger.shutdown()
 
     text = logfile.read_text(encoding="utf-8")

@@ -113,5 +113,6 @@ async def test_handler_metadata_matches_file_handler(tmp_path):
     assert info["rotation"]["backupCount"] == 2
 
     # path should match actual handler baseFilename
-    handler = next(h for h in logger._py_logger.handlers if hasattr(h, "baseFilename"))
+    # handler = next(h for h in logger.__py_logger.handlers if hasattr(h, "baseFilename"))
+    handler = next(h for h in logger._AsyncSmartLogger__py_logger.handlers if hasattr(h, "baseFilename"))
     assert Path(info["path"]) == Path(handler.baseFilename)

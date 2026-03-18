@@ -207,13 +207,13 @@ class SmartLogger:
     __file_handler_lock = threading.RLock()
 
     def __init__(self, name: str, level: int = TRACE) -> None:
-        self._smart_state = _SmartLoggerState()
+        self.__smart_state = _SmartLoggerState()
 
-        self._name = name
+        self.__name = name
 
-        self._py_logger = logging.getLogger(name)
-        self._py_logger.propagate = False
-        self._py_logger.setLevel(level)
+        self.__py_logger = logging.getLogger(name)
+        self.__py_logger.propagate = False
+        self.__py_logger.setLevel(level)
 
         # Register this logger in the global logging manager so that
         # logging.getLogger(name) returns THIS instance from now on.
@@ -227,15 +227,15 @@ class SmartLogger:
             parent = manager.loggerDict.get(parent_name)
             if parent is None:
                 parent = logging.getLogger(parent_name)
-            self._py_logger.parent = parent
+            self.__py_logger.parent = parent
         else:
-            self._py_logger.parent = logging.getLogger()  # root
+            self.__py_logger.parent = logging.getLogger()  # root
 
         # Set this logger's own level
-        self._py_logger.setLevel(level)
+        self.__py_logger.setLevel(level)
 
         # Auditing still controls propagation
-        self._py_logger.propagate = SmartLogger.__audit_enabled
+        self.__py_logger.propagate = SmartLogger.__audit_enabled
 
     def trace(self, msg, *args, **kwargs):
         self.__log(TRACE, msg, args, **kwargs)
@@ -257,15 +257,15 @@ class SmartLogger:
 
     @property
     def name(self) -> str:
-        return self._name
+        return self.__name
 
     @property
     def level(self) -> int:
-        return self._py_logger.level
+        return self.__py_logger.level
 
     @level.setter
     def level(self, value) -> None:
-        self._py_logger.setLevel(value)
+        self.__py_logger.setLevel(value)
 
     @staticmethod
     def __bleach_non_colored_text(message: str) -> str:
@@ -329,10 +329,10 @@ class SmartLogger:
         Console handlers receive colored output.
         File handlers sanitize ANSI unless do_not_sanitize_colors_from_string=True.
         """
-        if self._smart_state.retired:
-            raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot be used.") # pragma: no cover
+        if self.__smart_state.retired:
+            raise RuntimeError(f"Logger {self.__py_logger.name!r} has been retired and cannot be used.") # pragma: no cover
 
-        for handler in self._py_logger.handlers:
+        for handler in self.__py_logger.handlers:
             stream = getattr(handler, "stream", None)
 
             # FIX: FileHandler lazily opens the file; force-open if needed
@@ -387,11 +387,11 @@ class SmartLogger:
         return frame
 
     def __log(self, level, msg, args, exc_info=None, stack_info=False, **kwargs):
-        if self._smart_state.retired:
-            raise RuntimeError(f"Logger {self._name!r} has been retired and cannot be used.")   # pragma: no cover
+        if self.__smart_state.retired:
+            raise RuntimeError(f"Logger {self.__name!r} has been retired and cannot be used.")   # pragma: no cover
 
         # Level filtering (hierarchy-aware)
-        if not self._py_logger.isEnabledFor(level):
+        if not self.__py_logger.isEnabledFor(level):
             return
 
         # if extra is None:
@@ -405,7 +405,7 @@ class SmartLogger:
 
         # Sanitize ANSI for file logging unless explicitly disabled
         sanitize = True
-        for handler in self._py_logger.handlers:
+        for handler in self.__py_logger.handlers:
             if hasattr(handler, "baseFilename"):  # file handler
                 if getattr(handler, "do_not_sanitize_colors_from_string", False):
                     sanitize = False
@@ -424,7 +424,7 @@ class SmartLogger:
 
         # Build LogRecord
         record = logging.LogRecord(
-            name=self._name,
+            name=self.__name,
             level=level,
             pathname=pathname,
             lineno=lineno,
@@ -443,13 +443,13 @@ class SmartLogger:
             SmartLogger.__audit_handler.handle(record)
 
         # Let Python logging handle hierarchy + filtering + propagation
-        self._py_logger.handle(record)
+        self.__py_logger.handle(record)
 
     def __wrap_builtin(self, level_value: int) -> Callable[..., None]:
         def log_method(msg=None, *args, **kwargs):
             if msg is None:
                 msg = ""
-            if self._py_logger.isEnabledFor(level_value):
+            if self.__py_logger.isEnabledFor(level_value):
                 self.__log(level_value, msg, args, **kwargs)
 
         return log_method
@@ -469,11 +469,11 @@ class SmartLogger:
             log_record_details: Optional[LogRecordDetails] = None,
             output_mode: str | OutputMode = OutputMode.COLOR,
     ) -> None:
-        if self._smart_state.retired:   # pragma: no cover
-            raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot accept handlers.")
+        if self.__smart_state.retired:   # pragma: no cover
+            raise RuntimeError(f"Logger {self.__py_logger.name!r} has been retired and cannot accept handlers.")
 
         if any([1 for info in self.handler_info if info["kind"] == "console"]):
-            raise RuntimeError(f"Logger {self._py_logger.name!r} already has a console handler.")   # pragma: no cover
+            raise RuntimeError(f"Logger {self.__py_logger.name!r} already has a console handler.")   # pragma: no cover
 
         mode: OutputMode = self.__normalize_output_mode(output_mode)
 
@@ -498,9 +498,9 @@ class SmartLogger:
             formatter = StructuredPlainFormatter(log_record_details)
 
         handler.setFormatter(formatter)
-        self._py_logger.addHandler(handler)
+        self.__py_logger.addHandler(handler)
 
-        self._smart_state.handlers.append(
+        self.__smart_state.handlers.append(
             HandlerMetadata(
                 kind="console",
                 level=logging.getLevelName(level),
@@ -514,17 +514,17 @@ class SmartLogger:
         Raises:
             RuntimeError: if no console handler exists.
         """
-        for h in list(self._py_logger.handlers):
+        for h in list(self.__py_logger.handlers):
             if isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename"):
-                self._py_logger.removeHandler(h)
+                self.__py_logger.removeHandler(h)
                 h.close()
                 break
         else:
-            raise RuntimeError(f"Logger {self._py_logger.name!r} has no console handler to remove.")    # pragma: no cover
+            raise RuntimeError(f"Logger {self.__py_logger.name!r} has no console handler to remove.")    # pragma: no cover
 
             # Remove metadata
-        self._smart_state.handlers = [
-            info for info in self._smart_state.handlers
+        self.__smart_state.handlers = [
+            info for info in self.__smart_state.handlers
             if info.kind != "console"
         ]
 
@@ -554,8 +554,8 @@ class SmartLogger:
             do_not_sanitize_colors_from_string: bool = False,
             output_mode: str | OutputMode = OutputMode.PLAIN,
     ) -> None:
-        if self._smart_state.retired:
-            raise RuntimeError(f"Logger {self._py_logger.name!r} has been retired and cannot accept handlers.") # pragma: no cover
+        if self.__smart_state.retired:
+            raise RuntimeError(f"Logger {self.__py_logger.name!r} has been retired and cannot accept handlers.") # pragma: no cover
 
         mode = self.__normalize_output_mode(output_mode)
 
@@ -573,7 +573,7 @@ class SmartLogger:
         os.makedirs(log_dir_path, exist_ok=True)
 
         if logfile_name is None:
-            logfile_name = f"{self._py_logger.name}.log"
+            logfile_name = f"{self.__py_logger.name}.log"
 
         file_path = log_dir_path / logfile_name
         resolved_path = str(file_path.resolve())
@@ -600,7 +600,7 @@ class SmartLogger:
 
         handler = self.__create_sync_handler(rotation_logic, str(file_path))
 
-        handler.setLevel(level or self._py_logger.level)
+        handler.setLevel(level or self.__py_logger.level)
         handler.setFormatter(formatter)
 
         handler.log_record_details = log_record_details
@@ -615,7 +615,7 @@ class SmartLogger:
                 if not isinstance(logger, SmartLogger):
                     continue
 
-                for info in logger._smart_state.handlers:
+                for info in logger.__smart_state.handlers:
                     if info.kind != "file" or not info.path:
                         continue
 
@@ -629,7 +629,7 @@ class SmartLogger:
                         )
 
             # 2. Safe to attach
-            self._py_logger.addHandler(handler)
+            self.__py_logger.addHandler(handler)
 
             # 3. Track metadata
             rotation_meta = (
@@ -642,10 +642,10 @@ class SmartLogger:
                 if rotation_logic else None
             )
 
-            self._smart_state.handlers.append(
+            self.__smart_state.handlers.append(
                 HandlerMetadata(
                     kind="file",
-                    level=logging.getLevelName(level or self._py_logger.level),
+                    level=logging.getLevelName(level or self.__py_logger.level),
                     formatter=str(mode.value),
                     path=resolved_path,
                     rotation=rotation_meta,
@@ -667,9 +667,9 @@ class SmartLogger:
         target_path = str(Path(log_dir, logfile_name).resolve())
 
         removed = False
-        for h in list(self._py_logger.handlers):
+        for h in list(self.__py_logger.handlers):
             if isinstance(h, logging.FileHandler) and Path(h.baseFilename).resolve() == Path(target_path):
-                self._py_logger.removeHandler(h)
+                self.__py_logger.removeHandler(h)
                 h.close()
                 removed = True
                 FileHandlerRegistry.unregister(h.baseFilename)
@@ -677,12 +677,12 @@ class SmartLogger:
 
         if not removed: # pragma: no cover
             raise RuntimeError(
-                f"Logger {self._py_logger.name!r} has no file handler for "
+                f"Logger {self.__py_logger.name!r} has no file handler for "
                 f"log_dir={log_dir!r}, logfile_name={logfile_name!r}."
             )
 
-        self._smart_state.handlers = [
-            info for info in self._smart_state.handlers
+        self.__smart_state.handlers = [
+            info for info in self.__smart_state.handlers
             if not (info.kind == "file" and info.path == target_path)
         ]
 
@@ -691,23 +691,23 @@ class SmartLogger:
     # ------------------------------------------------------------------
     @property
     def handler_info(self) -> list[dict[str, Any]]:
-        return [asdict(h) for h in self._smart_state.handlers]
+        return [asdict(h) for h in self.__smart_state.handlers]
 
     @property
     def console_handler(self):
-        for h in self._smart_state.handlers:
+        for h in self.__smart_state.handlers:
             if h.kind == "console":
                 return asdict(h)
         return None
 
     @property
     def file_handlers(self):
-        return [asdict(h) for h in self._smart_state.handlers if h.kind == "file"]
+        return [asdict(h) for h in self.__smart_state.handlers if h.kind == "file"]
 
     @property
     def output_targets(self) -> list[str]:
         out_targets = []
-        for info in self._smart_state.handlers:
+        for info in self.__smart_state.handlers:
             if info.kind == "console":
                 out_targets.append("console")
             else:
@@ -835,11 +835,11 @@ class SmartLogger:
           - clear metadata
           - mark logger as unusable
         """
-        if self._smart_state.retired:
+        if self.__smart_state.retired:
             return  # pragma: no cover
 
             # Close and remove all real handlers
-        for h in list(self._py_logger.handlers):
+        for h in list(self.__py_logger.handlers):
             # noinspection PyBroadException
             try:
                 h.close()
@@ -847,13 +847,13 @@ class SmartLogger:
                 pass    # pragma: no cover
             # noinspection PyBroadException
             try:
-                self._py_logger.removeHandler(h)
+                self.__py_logger.removeHandler(h)
             except Exception:   # pragma: no cover
                 pass    # pragma: no cover
 
-        self._py_logger.handlers.clear()
-        self._smart_state.handlers.clear()
-        self._smart_state.retired = True
+        self.__py_logger.handlers.clear()
+        self.__smart_state.handlers.clear()
+        self.__smart_state.retired = True
 
     def destroy(self) -> None:
         """
@@ -874,44 +874,44 @@ class SmartLogger:
           - A new logger with the same name can be created cleanly
         """
         # 1. Ensure handlers are closed and logger is marked retired
-        if not self._smart_state.retired:
+        if not self.__smart_state.retired:
             self.retire()
 
         # 2. Remove from loggerDict (main fingerprint)
         # noinspection PyBroadException
         try:
-            logging.Logger.manager.loggerDict.pop(self._py_logger.name, None)
+            logging.Logger.manager.loggerDict.pop(self.__py_logger.name, None)
         except Exception:   # pragma: no cover
             pass    # pragma: no cover
 
         # 3. Detach from parent
         # noinspection PyBroadException
         try:
-            self._py_logger.parent = None
+            self.__py_logger.parent = None
         except Exception:   # pragma: no cover
             pass    # pragma: no cover
 
         # 4. Re-parent children to root (important!)
         root = logging.getLogger("root")
         for child_name, child in list(logging.Logger.manager.loggerDict.items()):
-            if isinstance(child, logging.Logger) and child.parent is self._py_logger:
+            if isinstance(child, logging.Logger) and child.parent is self.__py_logger:
                 child.parent = root
 
         # 5. Clear filters, level, and other attributes
         # noinspection PyBroadException
         try:
-            self._py_logger.filters.clear()
+            self.__py_logger.filters.clear()
         except Exception:   # pragma: no cover
             pass    # pragma: no cover
 
         # noinspection PyBroadException
         try:
-            self._py_logger.setLevel(logging.NOTSET)
+            self.__py_logger.setLevel(logging.NOTSET)
         except Exception:   # pragma: no cover
             pass    # pragma: no cover
 
         # 6. Mark as destroyed (optional but useful)
-        self._smart_state.retired = True
+        self.__smart_state.retired = True
 
     # ------------------------------------------------------------------
     #  DYNAMIC LEVELS VIA __getattr__
@@ -928,14 +928,14 @@ class SmartLogger:
         level_value = LEVELS.get(upper)["value"]
 
         def dynamic_log_method(msg: str, *args, **kwargs):
-            if self._py_logger.isEnabledFor(level_value):
+            if self.__py_logger.isEnabledFor(level_value):
                 self.__log(level_value, msg, args, **kwargs)
 
         return dynamic_log_method
 
     @property
     def retired(self) -> bool:
-        return self._smart_state.retired
+        return self.__smart_state.retired
 
     # ------------------------------------------------------------------
     #  MISC HELPERS

@@ -19,7 +19,8 @@ async def test_async_stream_reopen_rotating_when_stream_none(tmp_path):
     logger.add_file(str(tmp_path), "r.log", rotation_logic=logic)
 
     handler = next(
-        h for h in logger._py_logger.handlers
+        # h for h in logger.__py_logger.handlers
+        h for h in logger._AsyncSmartLogger__py_logger.handlers # accessing private member. do not use outside of test suite
         if hasattr(h, "baseFilename")
     )
 
@@ -30,7 +31,7 @@ async def test_async_stream_reopen_rotating_when_stream_none(tmp_path):
 
     await logger.a_info("hello")
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     assert handler.stream is not None
     assert not handler.stream.closed
@@ -57,7 +58,8 @@ async def test_async_stream_reopen_json_when_stream_none(tmp_path):
     )
 
     handler = next(
-        h for h in logger._py_logger.handlers
+        # h for h in logger.__py_logger.handlers
+        h for h in logger._AsyncSmartLogger__py_logger.handlers # accessing private member. do not use outside of test suite
         if hasattr(h, "baseFilename")
     )
 
@@ -68,7 +70,7 @@ async def test_async_stream_reopen_json_when_stream_none(tmp_path):
 
     await logger.a_info("hello", extra={"foo": "bar"})
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     assert handler.stream is not None
     assert not handler.stream.closed

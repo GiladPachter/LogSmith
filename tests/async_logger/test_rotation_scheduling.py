@@ -11,7 +11,8 @@ from LogSmith.rotation_base import RotationLogic, When
 
 
 def _get_async_rotating_handler(logger: AsyncSmartLogger) -> Async_TimedSizedRotatingFileHandler:
-    for h in logger._py_logger.handlers:
+    # noinspection PyProtectedMember
+    for h in logger._AsyncSmartLogger__py_logger.handlers:
         if isinstance(h, Async_TimedSizedRotatingFileHandler):
             return h
     raise RuntimeError("Async rotating handler not found")
@@ -28,7 +29,7 @@ async def test_size_based_rotation_triggers_callback(tmp_path):
         rotation_logic=rotation_logic,
     )
 
-    handler = _get_async_rotating_handler(logger)
+    handler: Async_TimedSizedRotatingFileHandler = _get_async_rotating_handler(logger)
 
     # Spy: wrap rotation_callback
     called = {"count": 0}
@@ -46,7 +47,7 @@ async def test_size_based_rotation_triggers_callback(tmp_path):
         await logger.a_info("x" * 20)
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     assert called["count"] >= 1
 
@@ -67,10 +68,11 @@ async def test_time_based_rotation_triggers_callback(tmp_path, monkeypatch):
         rotation_logic=rotation_logic,
     )
 
-    handler = _get_async_rotating_handler(logger)
+    handler: Async_TimedSizedRotatingFileHandler = _get_async_rotating_handler(logger)
 
     # Force _rollover_at in the past so should_rotate() returns True
-    handler._rollover_at = time.time() - 1
+    # handler.__rollover_at = time.time() - 1
+    handler._Async_TimedSizedRotatingFileHandler__rollover_at = time.time() - 1 # accessing private member. do not use outside of test suite
 
     called = {"count": 0}
     original_cb = handler.rotation_callback
@@ -84,7 +86,7 @@ async def test_time_based_rotation_triggers_callback(tmp_path, monkeypatch):
 
     await logger.a_info("trigger time rotation")
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     assert called["count"] >= 1
 
@@ -100,20 +102,20 @@ async def test_rotation_enqueued_and_executed(tmp_path):
         rotation_logic=rotation_logic,
     )
 
-    handler = _get_async_rotating_handler(logger)
+    handler: Async_TimedSizedRotatingFileHandler = _get_async_rotating_handler(logger)
 
     # Make file large enough to trigger rotation
     for _ in range(20):
         await logger.a_info("x" * 20)
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     # Force rotation directly via callback to ensure ROTATE op is enqueued
     handler.rotation_callback(handler)
     await asyncio.sleep(0)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     base = Path(handler.baseFilename)
     rotated = base.with_suffix(base.suffix + ".1")
@@ -141,7 +143,7 @@ async def test_rotation_under_load(tmp_path):
     tasks = [asyncio.create_task(writer(i)) for i in range(200)]
     await asyncio.gather(*tasks)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     base = tmp_path / "load.log"
     assert base.exists()

@@ -19,7 +19,7 @@ async def test_console_raw_bleaching(capsys):
     msg = "plain " + "\x1b[31mred\x1b[0m" + " plain2"
     await logger.a_raw(msg)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     await logger.flush()
 
@@ -44,7 +44,7 @@ async def test_file_raw_sanitization(tmp_path):
     msg = "hello \x1b[32mgreen\x1b[0m world"
     await logger.a_raw(msg)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "raw.log").read_text()
 
@@ -69,7 +69,7 @@ async def test_file_raw_passthrough(tmp_path):
     msg = "hello \x1b[35mpurple\x1b[0m world"
     await logger.a_raw(msg)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "passthrough.log").read_text()
 
@@ -88,7 +88,7 @@ async def test_raw_end_parameter(tmp_path):
 
     await logger.a_raw("hello", end="")
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "end.log").read_text()
     assert text.endswith("hello")  # no newline
@@ -102,7 +102,7 @@ async def test_raw_stream_reopening(tmp_path):
     logger = AsyncSmartLogger("test_raw_reopen", logging.INFO)
     logger.add_file(str(tmp_path), "reopen.log")
 
-    handler = logger._py_logger.handlers[0]
+    handler = logger._AsyncSmartLogger__py_logger.handlers[0]
 
     # Simulate closed stream
     handler.stream.close()
@@ -110,7 +110,7 @@ async def test_raw_stream_reopening(tmp_path):
 
     await logger.a_raw("reopened")
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "reopen.log").read_text()
     assert "reopened" in text

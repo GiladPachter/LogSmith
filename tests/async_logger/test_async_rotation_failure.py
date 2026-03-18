@@ -18,6 +18,6 @@ async def test_async_rotation_failure_does_not_crash(tmp_path):
         await logger.a_info("x" * 5000)
 
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     assert (tmp_path / "a.log").exists()

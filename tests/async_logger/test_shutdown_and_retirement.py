@@ -12,7 +12,7 @@ async def test_stopped_logger_rejects_new_logs(tmp_path):
 
     # Simulate stop
     # logger._stopped = True
-    logger._AsyncSmartLogger__stopped = True    # this is an abuse. do not use outside of test suite
+    logger._AsyncSmartLogger__stopped = True    # accessing private member. do not use outside of test suite
 
     with pytest.raises(RuntimeError):
         await logger.a_info("should fail")
@@ -23,7 +23,7 @@ async def test_retired_logger_rejects_new_logs(tmp_path):
     logger = AsyncSmartLogger("test_retired_rejects", logging.INFO)
     logger.add_file(str(tmp_path), "retired.log")
 
-    logger._retired = True
+    logger.__retired = True
 
     with pytest.raises(RuntimeError):
         await logger.a_info("should fail")
@@ -33,7 +33,8 @@ async def test_retired_logger_rejects_new_logs(tmp_path):
 async def test_retired_logger_rejects_handler_additions(tmp_path):
     logger = AsyncSmartLogger("test_retired_handlers", logging.INFO)
 
-    logger._retired = True
+    # logger.__retired = True
+    logger._AsyncSmartLogger__retired = True    # accessing private member. do not use outside of test suite
 
     with pytest.raises(RuntimeError):
         logger.add_console()
@@ -53,7 +54,7 @@ async def test_worker_drains_queue_before_exit(tmp_path):
 
     # Let worker process
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "drain.log").read_text()
     for i in range(20):
@@ -65,12 +66,12 @@ async def test_retired_logger_rejects_new_logs(tmp_path):
     logger = AsyncSmartLogger("retire_test", logging.INFO)
     logger.add_file(str(tmp_path), "r.log", output_mode=OutputMode.PLAIN)
 
-    # retire
-    logger._retired = True
+    # logger.__retired = True
+    logger._AsyncSmartLogger__retired = True    # accessing private member. do not use outside of test suite
 
     with pytest.raises(RuntimeError):
         await logger.a_info("should-fail")
 
     # but existing queue processing still works (no deadlock)
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite

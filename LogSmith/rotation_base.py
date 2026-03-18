@@ -225,4 +225,4 @@ class BaseTimedSizedRotatingFileHandler(BaseRotatingHandler):
         self.large_entry_behavior = large_entry_behavior
 
         # For subclasses to use
-        self._rotation_scheduled = False
+        self.__rotation_scheduled = False

@@ -265,7 +265,7 @@ class StructuredPlainFormatter:
         self._details = details
 
     @staticmethod
-    def _format_exc_info(record: logging.LogRecord) -> str:
+    def __format_exc_info(record: logging.LogRecord) -> str:
         import traceback
         return "".join(traceback.format_exception(*record.exc_info))
 
@@ -326,7 +326,7 @@ class StructuredPlainFormatter:
                 elif part == "process_name" and rf.process_name:
                     parts.append(record.processName)
                 elif part == "exc_info" and rf.exc_info and record.exc_info:
-                    parts.append(self._format_exc_info(record))
+                    parts.append(self.__format_exc_info(record))
                 elif part == "stack_info" and rf.stack_info and record.stack_info:
                     parts.append(str(record.stack_info))
 
@@ -351,7 +351,7 @@ class StructuredPlainFormatter:
 
         if rf:
             if rf.exc_info and record.exc_info and "exc_info" not in mpo:
-                line += "\n" + self._format_exc_info(record)
+                line += "\n" + self.__format_exc_info(record)
 
             if rf.stack_info and record.stack_info and "stack_info" not in mpo:
                 line += "\n" + str(record.stack_info)
@@ -382,27 +382,27 @@ class StructuredColorFormatter:
     ) -> None:
         if details is None:
             details = LogRecordDetails()
-        self._details       = details
-        self._key_fg        = key_fg
-        self._key_intensity = key_intensity
-        self._value_fg      = value_fg
-        self._current_style: LevelStyle | None = None
+        self.__details       = details
+        self.__key_fg        = key_fg
+        self.__key_intensity = key_intensity
+        self.__value_fg      = value_fg
+        self.__current_style: LevelStyle | None = None
 
         self.FIELD_RENDERERS: dict[str, Renderer] = {
-            "relative_created": self.render_relative_created,
-            "level":            self.render_level,
-            "logger_name":      self.render_logger_name,
-            "file_path":        self.render_file_path,
-            "file_name":        self.render_file_name,
-            "lineno":           self.render_lineno,
-            "func_name":        self.render_func_name,
-            "thread_id":        self.render_thread_id,
-            "thread_name":      self.render_thread_name,
-            "task_name":        self.render_task_name,
-            "process_id":       self.render_process_id,
-            "process_name":     self.render_process_name,
-            "exc_info":         self.render_exc_info,
-            "stack_info":       self.render_stack_info,
+            "relative_created": self.__render_relative_created,
+            "level":            self.__render_level,
+            "logger_name":      self.__render_logger_name,
+            "file_path":        self.__render_file_path,
+            "file_name":        self.__render_file_name,
+            "lineno":           self.__render_lineno,
+            "func_name":        self.__render_func_name,
+            "thread_id":        self.__render_thread_id,
+            "thread_name":      self.__render_thread_name,
+            "task_name":        self.__render_task_name,
+            "process_id":       self.__render_process_id,
+            "process_name":     self.__render_process_name,
+            "exc_info":         self.__render_exc_info,
+            "stack_info":       self.__render_stack_info,
         }
 
     # ------------------------------------------------------------
@@ -417,7 +417,7 @@ class StructuredColorFormatter:
         )
 
     @staticmethod
-    def apply_level(text: str, style: LevelStyle | None) -> str:
+    def __apply_level(text: str, style: LevelStyle | None) -> str:
         if not style:
             return text
         return CPrint.colorize(
@@ -428,72 +428,72 @@ class StructuredColorFormatter:
             styles=style.styles,
         )
 
-    def style_meta(self, text: str, style: LevelStyle | None) -> str:
-        if self._details.color_all_log_record_fields:
-            return self.apply_level(text, style)
+    def __style_meta(self, text: str, style: LevelStyle | None) -> str:
+        if self.__details.color_all_log_record_fields:
+            return self.__apply_level(text, style)
         return self.dim(text)
 
     # ------------------------------------------------------------
     # Field renderers
     # ------------------------------------------------------------
-    def render_timestamp(self, rec):
-        ts = _format_timestamp(rec, self._details.datefmt)
-        return self.style_meta(ts, self._current_style)
+    def __render_timestamp(self, rec):
+        ts = _format_timestamp(rec, self.__details.datefmt)
+        return self.__style_meta(ts, self.__current_style)
 
-    def render_relative_created(self, rec):
-        return self.style_meta(str(int(rec.relativeCreated)), self._current_style)
+    def __render_relative_created(self, rec):
+        return self.__style_meta(str(int(rec.relativeCreated)), self.__current_style)
 
-    def render_level(self, rec):
-        return self.apply_level(rec.levelname.ljust(8), self._current_style)
+    def __render_level(self, rec):
+        return self.__apply_level(rec.levelname.ljust(8), self.__current_style)
 
-    def render_logger_name(self, rec):
-        return self.style_meta(f"LOGGER={rec.name}", self._current_style)
+    def __render_logger_name(self, rec):
+        return self.__style_meta(f"LOGGER={rec.name}", self.__current_style)
 
-    def render_file_path(self, rec):
-        return self.style_meta(rec.pathname, self._current_style)
+    def __render_file_path(self, rec):
+        return self.__style_meta(rec.pathname, self.__current_style)
 
-    def render_file_name(self, rec):
-        return self.style_meta(rec.filename, self._current_style)
+    def __render_file_name(self, rec):
+        return self.__style_meta(rec.filename, self.__current_style)
 
-    def render_lineno(self, rec):
-        return self.style_meta("L=" + str(rec.lineno), self._current_style)
+    def __render_lineno(self, rec):
+        return self.__style_meta("L=" + str(rec.lineno), self.__current_style)
 
-    def render_func_name(self, rec):
-        return self.style_meta(rec.funcName, self._current_style)
+    def __render_func_name(self, rec):
+        return self.__style_meta(rec.funcName, self.__current_style)
 
-    def render_thread_id(self, rec):
-        return self.style_meta("t=" + str(rec.thread), self._current_style)
+    def __render_thread_id(self, rec):
+        return self.__style_meta("t=" + str(rec.thread), self.__current_style)
 
-    def render_thread_name(self, rec):
-        return self.style_meta(rec.threadName, self._current_style)
+    def __render_thread_name(self, rec):
+        return self.__style_meta(rec.threadName, self.__current_style)
 
-    def render_task_name(self, rec):
-        return self.style_meta(getattr(rec, "taskName"), self._current_style)
+    def __render_task_name(self, rec):
+        return self.__style_meta(getattr(rec, "taskName"), self.__current_style)
 
-    def render_process_id(self, rec):
-        return self.style_meta("P=" + str(rec.process), self._current_style)
+    def __render_process_id(self, rec):
+        return self.__style_meta("P=" + str(rec.process), self.__current_style)
 
-    def render_process_name(self, rec):
-        return self.style_meta(rec.processName, self._current_style)
+    def __render_process_name(self, rec):
+        return self.__style_meta(rec.processName, self.__current_style)
 
     @staticmethod
-    def render_exc_info(rec) -> str:
+    def __render_exc_info(rec) -> str:
         import traceback
         text = "".join(traceback.format_exception(*rec.exc_info))
         return CPrint.colorize(text, fg=CPrint.FG.BRIGHT_RED)
 
     @staticmethod
-    def render_stack_info(rec):
+    def __render_stack_info(rec):
         return CPrint.colorize(str(rec.stack_info), fg=CPrint.FG.BRIGHT_MAGENTA)
 
-    def render_message(self, rec):
-        return self.apply_level(rec.getMessage(), self._current_style)
+    def __render_message(self, rec):
+        return self.__apply_level(rec.getMessage(), self.__current_style)
 
     # ------------------------------------------------------------
     # Extras renderer
     # ------------------------------------------------------------
     @staticmethod
-    def render_extras_colored(named_arguments: Mapping[str, Any]) -> str:
+    def __render_extras_colored(named_arguments: Mapping[str, Any]) -> str:
         parts = []
         for k, v in named_arguments.items():
             colored_key = CPrint.colorize(
@@ -512,24 +512,24 @@ class StructuredColorFormatter:
     # Main format()
     # ------------------------------------------------------------
     def format(self, record: logging.LogRecord) -> str:
-        rf = self._details.optional_record_fields
+        rf = self.__details.optional_record_fields
 
         level_entry = LEVELS.get(record.levelname)
-        self._current_style = level_entry["style"] if level_entry else None
+        self.__current_style = level_entry["style"] if level_entry else None
 
         if rf is None:  # SIMPLE MODE
             parts = [
-                self.render_timestamp(record),
-                self.render_level(record),
-                self.render_message(record),
+                self.__render_timestamp(record),
+                self.__render_level(record),
+                self.__render_message(record),
             ]
         else:   # STRICT MODE
             # timestamp is always first
-            parts = [self.render_timestamp(record)]
+            parts = [self.__render_timestamp(record)]
 
             # Inline fields
-            if self._details.message_parts_order:
-                for part in self._details.message_parts_order:
+            if self.__details.message_parts_order:
+                for part in self.__details.message_parts_order:
                     renderer = self.FIELD_RENDERERS.get(part)
                     if renderer:
                         # respect rf flags for diagnostics as well
@@ -540,13 +540,13 @@ class StructuredColorFormatter:
                         parts.append(renderer(record))
             else:
                 # diagnostics-only mode → include level
-                parts.append(self.render_level(record))
+                parts.append(self.__render_level(record))
 
             # Always last
-            parts.append(self.render_message(record))
+            parts.append(self.__render_message(record))
 
         sep = CPrint.colorize(
-            self._details.separator,
+            self.__details.separator,
             fg=CPrint.FG.BRIGHT_WHITE,
             intensity=CPrint.Intensity.BOLD,
         )
@@ -554,7 +554,7 @@ class StructuredColorFormatter:
 
         extras = _extract_extras(record)
         if extras:
-            line = f"{line} {self.render_extras_colored(extras)}"
+            line = f"{line} {self.__render_extras_colored(extras)}"
 
         # Note: no extra exc_info/stack_info append here;
         # they are handled as structured fields when enabled.
@@ -562,8 +562,8 @@ class StructuredColorFormatter:
         # ------------------------------------------------------------
         # Fallback: diagnostics appended last if not in message_parts_order
         # ------------------------------------------------------------
-        rf = self._details.optional_record_fields
-        mpo = self._details.message_parts_order or []
+        rf = self.__details.optional_record_fields
+        mpo = self.__details.message_parts_order or []
 
         if rf:
             if rf.exc_info and record.exc_info and "exc_info" not in mpo:
@@ -625,16 +625,16 @@ class StructuredJSONFormatter(logging.Formatter):
     # Public API
     # ------------------------------------------------------------------ #
     def format(self, record: logging.LogRecord) -> str:
-        data = self._record_to_dict(record)
-        data = self._apply_optional_fields_filter(data)
-        data = self._apply_ordering(data)
+        data = self.__record_to_dict(record)
+        data = self.__apply_optional_fields_filter(data)
+        data = self.__apply_ordering(data)
         return json.dumps(data, ensure_ascii=False, indent=self.indent)
 
     # ------------------------------------------------------------------ #
     # Core normalization
     # ------------------------------------------------------------------ #
     @staticmethod
-    def _record_to_dict(record: logging.LogRecord) -> dict[str, Any]:
+    def __record_to_dict(record: logging.LogRecord) -> dict[str, Any]:
         """
         Build the canonical base dict from a LogRecord.
 
@@ -679,7 +679,7 @@ class StructuredJSONFormatter(logging.Formatter):
     # ------------------------------------------------------------------ #
     # OptionalRecordFields filtering
     # ------------------------------------------------------------------ #
-    def _apply_optional_fields_filter(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def __apply_optional_fields_filter(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Remove metadata fields that are disabled in OptionalRecordFields.
 
@@ -717,7 +717,7 @@ class StructuredJSONFormatter(logging.Formatter):
     # ------------------------------------------------------------------ #
     # Ordering via message_parts_order
     # ------------------------------------------------------------------ #
-    def _apply_ordering(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def __apply_ordering(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply canonical ordering rules:
 

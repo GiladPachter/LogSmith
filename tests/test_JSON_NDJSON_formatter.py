@@ -24,7 +24,7 @@ async def test_json_formatter_deep_fields(tmp_path):
     payload = {"a": {"b": {"c": 123, "d": ["x", "y"]}}}
     await logger.a_info("deep", extra={"fields": payload})
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "jdeep.log").read_text(encoding="utf-8").strip()
     assert "deep" in text

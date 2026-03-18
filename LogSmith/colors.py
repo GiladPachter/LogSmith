@@ -190,11 +190,11 @@ class CPrint:
         STRIKE: Code = 9
         _REVERSE: Code = 7
 
-    _RESET = "\033[0m"
+    __RESET = "\033[0m"
 
-    _ANSI_RE = re.compile(r"\033\[([0-9;]+)m")
+    __ANSI_RE = re.compile(r"\033\[([0-9;]+)m")
 
-    _NO_COLOR = not terminal_supports_color()
+    __NO_COLOR = not terminal_supports_color()
 
     @classmethod
     def _join_codes(cls, codes: Iterable[Code]) -> str:
@@ -222,7 +222,7 @@ class CPrint:
         Solid colorization method.
         """
 
-        if cls._NO_COLOR:
+        if cls.__NO_COLOR:
             return text # pragma: no cover
 
         codes: list[Code] = []
@@ -238,7 +238,7 @@ class CPrint:
         prefix = cls._join_codes(codes)
         if not prefix:
             return text # pragma: no cover
-        return f"{prefix}{text}{cls._RESET}"
+        return f"{prefix}{text}{cls.__RESET}"
 
     @classmethod
     def gradient(   # pragma: no cover
@@ -255,7 +255,7 @@ class CPrint:
         Apply a 256-color gradient across the text.
         """
 
-        if cls._NO_COLOR:
+        if cls.__NO_COLOR:
             return text # pragma: no cover
 
         if not text or not fg_codes:
@@ -348,10 +348,10 @@ class CPrint:
         Flip FG and BG of an already-colored string.
         """
 
-        if cls._NO_COLOR:
+        if cls.__NO_COLOR:
             return colored_text
 
-        matches = cls._ANSI_RE.findall(colored_text)
+        matches = cls.__ANSI_RE.findall(colored_text)
         if not matches:
             return colored_text
 
@@ -390,12 +390,12 @@ class CPrint:
         new_codes.extend(others)
 
         prefix = cls._join_codes(new_codes)
-        stripped = cls._ANSI_RE.sub("", colored_text)
-        return f"{prefix}{stripped}{cls._RESET}"
+        stripped = cls.__ANSI_RE.sub("", colored_text)
+        return f"{prefix}{stripped}{cls.__RESET}"
 
     @classmethod
     def strip_ansi(cls, text: str) -> str:
-        return cls._ANSI_RE.sub("", text)
+        return cls.__ANSI_RE.sub("", text)
 
     @staticmethod
     def escape_ansi_for_display(text: str) -> str:

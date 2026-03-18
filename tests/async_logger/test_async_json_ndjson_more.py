@@ -9,7 +9,7 @@ async def test_async_json_formatting(tmp_path):
 
     await logger.a_info("hello", user="gilad")
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "j.log").read_text()
     assert '"message": "hello"' in text
@@ -22,7 +22,7 @@ async def test_async_ndjson_formatting(tmp_path):
 
     await logger.a_info("hello")
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     text = (tmp_path / "n.log").read_text()
     assert text.strip().startswith("{")

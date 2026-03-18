@@ -100,7 +100,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         # time-based rollover scheduling
         self._rollover_at: Optional[float] = None
         if self.when is not None:
-            self._rollover_at = self._compute_initial_rollover()
+            self._rollover_at = self.__compute_initial_rollover()
 
             # noinspection PyBroadException
             try:
@@ -109,13 +109,13 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
 
                     # If the file is older than the last scheduled rollover moment,
                     # force rollover immediately.
-                    if file_modify_time < (self._rollover_at - self._rollover_interval_seconds()):
+                    if file_modify_time < (self._rollover_at - self.__rollover_interval_seconds()):
                         # Force rollover on first emit
                         self._rollover_at = 0
             except Exception:   # pragma: no cover
                 pass    # pragma: no cover
 
-    def _rollover_interval_seconds(self) -> float:
+    def __rollover_interval_seconds(self) -> float:
         if self.when == When.SECOND:
             return self.interval
         if self.when == When.MINUTE:
@@ -131,12 +131,12 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # LOCKING
     # ------------------------------------------------------------------
 
-    def _open_lock_file(self) -> None:
+    def __open_lock_file(self) -> None:
         if self._lock_file is None:
             self._lock_file = open(self._lock_file_path, "a+b")
 
-    def _acquire_lock(self) -> None:
-        self._open_lock_file()
+    def __acquire_lock(self) -> None:
+        self.__open_lock_file()
         f = self._lock_file
 
         if _HAS_FCNTL:
@@ -154,7 +154,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             # no-op fallback (not ideal, but keeps API usable)
             pass    # pragma: no cover
 
-    def _release_lock(self) -> None:
+    def __release_lock(self) -> None:
         if self._lock_file is None:
             return  # pragma: no cover
         f = self._lock_file
@@ -170,11 +170,11 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # TIME-BASED ROLLOVER CALCULATION
     # ------------------------------------------------------------------
 
-    def _compute_initial_rollover(self) -> float:
+    def __compute_initial_rollover(self) -> float:
         now = time.time()
-        return self._compute_next_rollover(now)
+        return self.__compute_next_rollover(now)
 
-    def _compute_next_rollover(self, current: float) -> float:
+    def __compute_next_rollover(self, current: float) -> float:
         """
         Compute the next rollover time after 'current' (epoch seconds),
         based on When + interval + Timestamp.
@@ -229,7 +229,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ROLLOVER DECISION
     # ------------------------------------------------------------------
 
-    def shouldRollover(self, record: logging.LogRecord) -> bool:
+    def __shouldRollover(self, record: logging.LogRecord) -> bool:
         """
         Decide if rollover should occur (size and/or time).
         """
@@ -256,7 +256,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ------------------------------------------------------------------
     # EMIT WITH CONCURRENCY
     # ------------------------------------------------------------------
-    def _handle_large_entry(self, formatted: str) -> bool:
+    def __handle_large_entry(self, formatted: str) -> bool:
         """
         Apply LargeLogEntryBehavior.
         Returns True if the entry was handled and emit() should return early.
@@ -282,20 +282,20 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
                 # write first, then rotate
                 self.stream.write(formatted)
                 self.stream.flush()
-                self._doRollover()
-                self._apply_expiration_policy()
+                self.__doRollover()
+                self.__apply_expiration_policy()
                 return True
             else:
                 # rotate first, then write
-                self._doRollover()
-                self._apply_expiration_policy()
+                self.__doRollover()
+                self.__apply_expiration_policy()
                 self.stream.write(formatted)
                 self.stream.flush()
                 return True
 
         if behavior is LargeLogEntryBehavior.RotateFirst:
-            self._doRollover()
-            self._apply_expiration_policy()
+            self.__doRollover()
+            self.__apply_expiration_policy()
             self.stream.write(formatted)
             self.stream.flush()
             return True
@@ -315,7 +315,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         Emit a record with concurrency-safe rollover.
         """
         try:
-            self._acquire_lock()
+            self.__acquire_lock()
 
             if not self.filter(record):
                 return  # pragma: no cover
@@ -323,13 +323,13 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             formatted = self.format(record) + self.terminator
 
             # Handle oversized entries according to LargeLogEntryBehavior
-            if self._handle_large_entry(formatted):
+            if self.__handle_large_entry(formatted):
                 return
 
             # Normal rollover path
-            if self.shouldRollover(record):
-                self._doRollover()
-                self._apply_expiration_policy()
+            if self.__shouldRollover(record):
+                self.__doRollover()
+                self.__apply_expiration_policy()
 
             # Write normally
             msg = formatted
@@ -337,13 +337,13 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             self.stream.flush()
 
         finally:
-            self._release_lock()
+            self.__release_lock()
 
     # ------------------------------------------------------------------
     # ROLLOVER IMPLEMENTATION
     # ------------------------------------------------------------------
 
-    def _doRollover(self) -> None:
+    def __doRollover(self) -> None:
         """
         Perform rollover:
             - close current file
@@ -389,11 +389,11 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         # compute next rollover time
         if self.when is not None:
             now = time.time()
-            self._rollover_at = self._compute_next_rollover(now)
+            self._rollover_at = self.__compute_next_rollover(now)
         else:
             self._rollover_at = None
 
-    def _apply_expiration_policy(self):
+    def __apply_expiration_policy(self):
         rule = self.expiration_rule
         if rule is None:
             return  # pragma: no cover
@@ -416,14 +416,14 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             return  # pragma: no cover
 
         # Delete rotated files older than cutoff
-        for path in self._list_rotated_files():
+        for path in self.__list_rotated_files():
             if datetime.fromtimestamp(os.path.getmtime(path)) < cutoff:
                 try:
                     os.remove(path)
                 except OSError:
                     pass    # pragma: no cover
 
-    def _list_rotated_files(self) -> List[str]:
+    def __list_rotated_files(self) -> List[str]:
         base = self.baseFilename
         dir_name = os.path.dirname(base)
         prefix = os.path.basename(base)

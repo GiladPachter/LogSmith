@@ -13,10 +13,11 @@ async def test_async_audit_does_not_mirror_itself(tmp_path):
 
     await logger.a_info("hello self")
     # await logger.__queue.join()
-    await logger._AsyncSmartLogger__queue.join()    # this is an abuse. do not use outside of test suite
+    await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     # flush
-    for h in logger._py_logger.handlers:
+    # for h in logger.__py_logger.handlers:
+    for h in logger._AsyncSmartLogger__py_logger.handlers:  # accessing private member. do not use outside of test suite
         h.flush()
 
     text = (tmp_path / "a.log").read_text()

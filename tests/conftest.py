@@ -92,9 +92,9 @@ def logger():
     finally:
         # optional: destroy/retire to clean up handlers
         # noinspection PyProtectedMember
-        for h in list(lg._py_logger.handlers):
+        for h in list(lg._SmartLogger__py_logger.handlers):
             # noinspection PyProtectedMember
-            lg._py_logger.removeHandler(h)
+            lg._SmartLogger__py_logger.removeHandler(h)
             h.close()
 
 
