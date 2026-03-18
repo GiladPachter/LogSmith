@@ -89,17 +89,17 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         )
 
         self.large_entry_behavior = (
-                large_entry_behavior or LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty
+            large_entry_behavior or LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty
         )
 
         # lock file for cross-process safety
-        self._lock_file = None
-        self._lock_file_path = self.baseFilename + ".lock"
+        self.__lock_file = None
+        self.__lock_file_path = self.baseFilename + ".lock"
 
         # time-based rollover scheduling
-        self._rollover_at: Optional[float] = None
+        self.__rollover_at: Optional[float] = None
         if self.when is not None:
-            self._rollover_at = self.__compute_initial_rollover()
+            self.__rollover_at = self.__compute_initial_rollover()
 
             # noinspection PyBroadException
             try:
@@ -108,9 +108,9 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
 
                     # If the file is older than the last scheduled rollover moment,
                     # force rollover immediately.
-                    if file_modify_time < (self._rollover_at - self.__rollover_interval_seconds()):
+                    if file_modify_time < (self.__rollover_at - self.__rollover_interval_seconds()):
                         # Force rollover on first emit
-                        self._rollover_at = 0
+                        self.__rollover_at = 0
             except Exception:   # pragma: no cover
                 pass    # pragma: no cover
 
@@ -130,12 +130,12 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # LOCKING
     # ------------------------------------------------------------------
     def __open_lock_file(self) -> None:
-        if self._lock_file is None:
-            self._lock_file = open(self._lock_file_path, "a+b")
+        if self.__lock_file is None:
+            self.__lock_file = open(self.__lock_file_path, "a+b")
 
     def __acquire_lock(self) -> None:
         self.__open_lock_file()
-        f = self._lock_file
+        f = self.__lock_file
 
         if _HAS_FCNTL:
             while True:
@@ -153,9 +153,9 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             pass    # pragma: no cover
 
     def __release_lock(self) -> None:
-        if self._lock_file is None:
+        if self.__lock_file is None:
             return  # pragma: no cover
-        f = self._lock_file
+        f = self.__lock_file
 
         if _HAS_FCNTL:
             fcntl.flock(f.fileno(), fcntl.LOCK_UN)
@@ -242,9 +242,9 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
                 return True
 
         # time-based
-        if self._rollover_at is not None:
+        if self.__rollover_at is not None:
             now = time.time()
-            if now >= self._rollover_at:
+            if now >= self.__rollover_at:
                 return True
 
         return False
@@ -384,9 +384,9 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         # compute next rollover time
         if self.when is not None:
             now = time.time()
-            self._rollover_at = self.__compute_next_rollover(now)
+            self.__rollover_at = self.__compute_next_rollover(now)
         else:
-            self._rollover_at = None
+            self.__rollover_at = None
 
     def __apply_expiration_policy(self):
         rule = self.expiration_rule

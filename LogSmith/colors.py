@@ -197,7 +197,7 @@ class CPrint:
     __NO_COLOR = not terminal_supports_color()
 
     @classmethod
-    def _join_codes(cls, codes: Iterable[Code]) -> str:
+    def __join_codes(cls, codes: Iterable[Code]) -> str:
         parts: list[str] = []
         for c in codes:
             if isinstance(c, int):
@@ -235,7 +235,7 @@ class CPrint:
         if styles:
             codes.extend(styles)
 
-        prefix = cls._join_codes(codes)
+        prefix = cls.__join_codes(codes)
         if not prefix:
             return text # pragma: no cover
         return f"{prefix}{text}{cls.__RESET}"
@@ -308,7 +308,6 @@ class CPrint:
                 out: list[str] = []
                 for i, ch in enumerate(chars):
                     idx = int(i * (m - 1) / (n - 1))
-                    # code = f"38;5;{codes[idx]}"
                     # out.append(cls.colorize(ch, fg=code, intensity=intensity, styles=styles))
                     fg = f"38;5;{fg_codes[idx]}" if fg_codes else None
                     bg = f"48;5;{bg_codes[idx]}" if bg_codes else None
@@ -389,7 +388,7 @@ class CPrint:
             new_codes.append(new_bg)
         new_codes.extend(others)
 
-        prefix = cls._join_codes(new_codes)
+        prefix = cls.__join_codes(new_codes)
         stripped = cls.__ANSI_RE.sub("", colored_text)
         return f"{prefix}{stripped}{cls.__RESET}"
 

@@ -112,7 +112,7 @@ def get_file_list():
         return []
 
 
-def _build_tree_from_paths(paths: list[str]):
+def __build_tree_from_paths(paths: list[str]):
     tree: dict[str, dict] = {}
     for p in paths:
         if "__pycache__" in p:
@@ -124,7 +124,7 @@ def _build_tree_from_paths(paths: list[str]):
     return tree
 
 
-def _render_tree_ascii(tree: dict, prefix: str = "") -> list[str]:
+def __render_tree_ascii(tree: dict, prefix: str = "") -> list[str]:
     lines = []
     entries = list(tree.items())
     for i, (name, subtree) in enumerate(entries):
@@ -133,13 +133,13 @@ def _render_tree_ascii(tree: dict, prefix: str = "") -> list[str]:
         lines.append(prefix + connector + name)
         if subtree:
             extension = "    " if is_last else "|   "
-            lines.extend(_render_tree_ascii(subtree, prefix + extension))
+            lines.extend(__render_tree_ascii(subtree, prefix + extension))
     return lines
 
 
 def get_logsmith_file_tree(file_list: list[str]) -> str:
-    tree = _build_tree_from_paths(file_list)
-    return "\n".join(_render_tree_ascii(tree))
+    tree = __build_tree_from_paths(file_list)
+    return "\n".join(__render_tree_ascii(tree))
 
 
 def capture_stdout_from_string(text: str) -> str:
