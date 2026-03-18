@@ -8,13 +8,6 @@ from logging import FileHandler
 from logging.handlers import BaseRotatingHandler
 from typing import Optional
 
-# from .rotation import (
-#     When,
-#     RotationTimestamp,
-#     ExpirationRule,
-#     LargeLogEntryBehavior,
-# )
-
 
 class When(Enum):
     """
