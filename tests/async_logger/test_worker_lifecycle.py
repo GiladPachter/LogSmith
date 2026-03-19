@@ -11,9 +11,9 @@ async def test_worker_starts_automatically():
     logger = AsyncSmartLogger("test_worker_start", logging.INFO)
 
     # Worker tasks should exist and be running
-    assert hasattr(logger, "_worker_tasks")
-    assert len(logger._worker_tasks) >= 1
-    for task in logger._worker_tasks:
+    assert hasattr(logger, "_AsyncSmartLogger__worker_tasks")
+    assert len(logger._AsyncSmartLogger__worker_tasks) >= 1
+    for task in logger._AsyncSmartLogger__worker_tasks:
         assert not task.done()
 
 
@@ -42,10 +42,10 @@ async def test_worker_stops_on_sentinel():
     await logger._AsyncSmartLogger__queue.put(_QueueItem(op=AsyncOp.SENTINEL, payload={}))  # accessing private member. do not use outside of test suite
 
     # Wait for worker to exit
-    for task in logger._worker_tasks:
+    for task in logger._AsyncSmartLogger__worker_tasks:
         await task
 
-    assert all(task.done() for task in logger._worker_tasks)
+    assert all(task.done() for task in logger._AsyncSmartLogger__worker_tasks)
 
 
 @pytest.mark.asyncio

@@ -11,7 +11,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, ClassVar, Optional
+from typing import Any, ClassVar, Optional, List
 import os
 import threading
 import time
@@ -70,7 +70,9 @@ class AsyncSmartLogger:
     • Supports TRACE and dynamically registered levels
     """
 
-    __default_level: ClassVar[int] = logging.INFO
+    __default_level: ClassVar[int] = TRACE
+
+    __worker_init_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
 
     # auditing state
     __audit_enabled: ClassVar[bool] = False
@@ -101,8 +103,14 @@ class AsyncSmartLogger:
         else:
             self.__py_logger.setLevel(level)
 
-        self.__loop = asyncio.get_running_loop()
+        try:
+            self.__loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No running loop yet — defer worker creation
+            self.__loop = None
+
         self.__queue: asyncio.Queue[_QueueItem] = asyncio.Queue(maxsize=0)
+        self.__worker_tasks: List[asyncio.Task[None]] = [self.__loop.create_task(self.__worker())]
         self.__worker_task: Optional[asyncio.Task[None]] = None
         self.__stopped = False
 
@@ -174,9 +182,14 @@ class AsyncSmartLogger:
     # WORKER
     # ------------------------------------------------------------------
     def __start_worker(self, workers: int = 1):
-        if hasattr(self, "__worker_tasks"):
-            return  # pragma: no cover
-        self._worker_tasks = [
+        if self.__loop is None:
+            # Defer worker creation until first awaited call
+            return
+
+        if hasattr(self, "_AsyncSmartLogger__worker_tasks"):
+            return
+
+        self.__worker_tasks = [
             self.__loop.create_task(self.__worker())
             for _ in range(workers)
         ]
@@ -803,6 +816,9 @@ class AsyncSmartLogger:
         lineno: int,
         func_name: str,
     ) -> None:
+
+        await self.__ensure_worker_started()
+
         if self.__stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
         if self.__retired:
@@ -845,6 +861,9 @@ class AsyncSmartLogger:
         return self.__messages_enqueued
 
     async def __enqueue_raw(self, message: str, end: str) -> None:
+
+        await self.__ensure_worker_started()
+
         if self.__stopped:
             raise RuntimeError("AsyncSmartLogger has been shut down.")
         if self.__retired:
@@ -860,8 +879,14 @@ class AsyncSmartLogger:
     def __enqueue_rotation(self, handler):
         try:
             # If the loop is already closed, ignore late rotation events
-            if self.__loop.is_closed():
+            if self.__loop is None or self.__loop.is_closed():
                 return
+
+            # Schedule worker initialization inside the loop
+            self.__loop.call_soon_threadsafe(
+                asyncio.create_task,
+                self.__ensure_worker_started()
+            )
 
             item = _QueueItem(
                 op=AsyncOp.ROTATE,
@@ -889,6 +914,23 @@ class AsyncSmartLogger:
         else:
             # Called from another thread / loop → schedule thread-safe
             self.__loop.call_soon_threadsafe(self.__queue.put_nowait, item)
+
+    async def __ensure_worker_started(self):
+        # If worker already exists, nothing to do
+        if getattr(self, "_AsyncSmartLogger__worker_tasks", None):
+            return
+
+        if self.__worker_tasks is not None:
+            return  # avoid needless lock
+
+        async with AsyncSmartLogger.__worker_init_lock:
+            # Bind to the *current* running loop
+            self.__loop = asyncio.get_running_loop()
+
+            # Start worker(s)
+            self.__worker_tasks = [
+                self.__loop.create_task(self.__worker())
+            ]
 
     # ------------------------------------------------------------------
     # PUBLIC: ASYNC LOGGING API
@@ -1069,9 +1111,9 @@ class AsyncSmartLogger:
         await self.__queue.join()
 
         # 2. Stop workers
-        for task in self._worker_tasks:
+        for task in self.__worker_tasks:
             self.__queue.put_nowait(_QueueItem(op=AsyncOp.SENTINEL, payload={}))
-        await asyncio.gather(*self._worker_tasks, return_exceptions=True)
+        await asyncio.gather(*self.__worker_tasks, return_exceptions=True)
 
         # 3. Flush + close handlers
         for handler in self.__py_logger.handlers:
