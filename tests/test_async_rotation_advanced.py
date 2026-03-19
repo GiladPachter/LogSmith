@@ -195,8 +195,9 @@ def test_size_would_exceed_direct(tmp_path):
     handler = make_handler(tmp_path, max_bytes=20)
 
     emit_direct(handler, "12345")
+    # noinspection PyUnresolvedReferences
     assert not handler._Async_TimedSizedRotatingFileHandler__size_would_exceed("12345")
-
+    # noinspection PyUnresolvedReferences
     assert handler._Async_TimedSizedRotatingFileHandler__size_would_exceed("X" * 50)
 
 
@@ -254,6 +255,7 @@ def test_expiration_policy_direct(tmp_path, monkeypatch):
         lambda: [str(old_file), str(new_file)],
     )
 
+    # noinspection PyUnresolvedReferences
     handler._Async_TimedSizedRotatingFileHandler__apply_expiration_policy()
 
     assert not old_file.exists()
