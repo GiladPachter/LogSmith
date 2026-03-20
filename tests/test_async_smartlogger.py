@@ -1,15 +1,32 @@
+import io
 import os
+import asyncio
+import logging
 import pytest
 
 from pathlib import Path
+from unittest.mock import MagicMock
 
-from LogSmith import CPrint, LogRecordDetails, OptionalRecordFields, RotationLogic
-from LogSmith.async_smartlogger import AsyncSmartLogger
-from LogSmith.rotation_base import RotationLogic, When
+from LogSmith import CPrint, LogRecordDetails, OptionalRecordFields
+from LogSmith import AsyncSmartLogger
+from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
+from LogSmith import RotationLogic, When, LargeLogEntryBehavior
 from LogSmith import LevelStyle
+from LogSmith.async_smartlogger import _QueueItem, AsyncOp
 from LogSmith.level_registry import LEVELS
 
-from tests.helpers import read_file
+from tests.helpers import read_file, DummyHandler
+
+
+# ------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------
+
+async def drain(logger: AsyncSmartLogger):
+    # noinspection PyProtectedMember
+    q = logger._AsyncSmartLogger__queue
+    await q.join()
+    await asyncio.sleep(0)
 
 
 # ---------------------------------------------------------
@@ -359,3 +376,249 @@ async def test_get_record_includes_basic_metadata():
     assert rec.thread_id is not None
     assert rec.process_id == os.getpid()
     assert rec.stack_info is not None
+
+
+# ------------------------------------------------------------
+# 1. Basic async logging dispatch (console handler)
+# ------------------------------------------------------------
+
+# 1. Basic async log processing via __enqueue_log
+@pytest.mark.asyncio
+async def test_basic_async_log_processing():
+    logger = AsyncSmartLogger("test_basic")
+
+    dummy = DummyHandler()
+    logger._AsyncSmartLogger__py_logger.addHandler(dummy)
+
+    await logger._AsyncSmartLogger__enqueue_log(
+        level=logging.INFO,
+        msg="hello",
+        args=(),
+        extra={},
+        fields={},
+        exc_info=None,
+        stack_info_flag=False,
+        pathname=__file__,
+        lineno=123,
+        func_name="test_basic_async_log_processing",
+    )
+
+    await drain(logger)
+
+    assert dummy.records == ["hello"]
+
+
+# 2. Multiple handlers receive the same record
+@pytest.mark.asyncio
+async def test_multiple_handlers_receive_log():
+    logger = AsyncSmartLogger("test_multi")
+
+    h1 = DummyHandler()
+    h2 = DummyHandler()
+    logger._AsyncSmartLogger__py_logger.addHandler(h1)
+    logger._AsyncSmartLogger__py_logger.addHandler(h2)
+
+    await logger._AsyncSmartLogger__enqueue_log(
+        level=logging.WARNING,
+        msg="warn",
+        args=(),
+        extra={},
+        fields={},
+        exc_info=None,
+        stack_info_flag=False,
+        pathname=__file__,
+        lineno=10,
+        func_name="test_multiple_handlers_receive_log",
+    )
+
+    await drain(logger)
+
+    assert h1.records == ["warn"]
+    assert h2.records == ["warn"]
+
+
+# 3. Handler exception is swallowed, others still run
+@pytest.mark.asyncio
+async def test_handler_exception_swallowed():
+    logger = AsyncSmartLogger("test_exc")
+
+    # Force worker creation properly
+    logger._AsyncSmartLogger__worker_tasks = None
+    await logger._AsyncSmartLogger__ensure_worker_started()
+
+    # Clear inherited handlers from earlier tests
+    logger._AsyncSmartLogger__py_logger.handlers.clear()
+
+    bad = DummyHandler()
+    bad.emit = MagicMock(side_effect=RuntimeError("boom"))
+
+    good = DummyHandler()
+
+    # Good first, then bad
+    logger._AsyncSmartLogger__py_logger.addHandler(good)
+    logger._AsyncSmartLogger__py_logger.addHandler(bad)
+
+    item = _QueueItem(
+        op=AsyncOp.LOG,
+        payload={
+            "level": logging.ERROR,
+            "msg": "oops",
+            "args": (),
+            "extra": {},
+            "fields": {},
+            "exc_info": None,
+            "stack_info_flag": False,
+            "pathname": __file__,
+            "lineno": 20,
+            "func_name": "test_handler_exception_swallowed",
+            "stack_info": None,
+        },
+    )
+    logger._AsyncSmartLogger__queue.put_nowait(item)
+
+    await drain(logger)
+
+    assert good.records == ["oops"]
+
+
+# 4. __process_raw writes to console handler (StreamHandler)
+@pytest.mark.asyncio
+async def test_process_raw_console():
+    logger = AsyncSmartLogger("test_raw_console")
+
+    buf = io.StringIO()
+    console = logging.StreamHandler(stream=buf)
+    logger._AsyncSmartLogger__py_logger.addHandler(console)
+
+    item = _QueueItem(
+        op=AsyncOp.RAW,
+        payload={"message": "hello raw", "end": "\n"},
+    )
+    logger._AsyncSmartLogger__queue.put_nowait(item)
+
+    await drain(logger)
+
+    out = buf.getvalue()
+    assert "hello raw" in out
+
+
+# 5. __process_raw treats file-like handler as file (no console bleaching)
+@pytest.mark.asyncio
+async def test_process_raw_file_like():
+    logger = AsyncSmartLogger("test_raw_file")
+
+    buf = io.StringIO()
+    file_handler = logging.StreamHandler(stream=buf)
+    # Mark as "file" by giving it a baseFilename attribute
+    setattr(file_handler, "baseFilename", "dummy.log")
+    logger._AsyncSmartLogger__py_logger.addHandler(file_handler)
+
+    colored = "\x1b[31mRED\x1b[0m"
+    item = _QueueItem(
+        op=AsyncOp.RAW,
+        payload={"message": colored, "end": ""},
+    )
+    logger._AsyncSmartLogger__queue.put_nowait(item)
+
+    await drain(logger)
+
+    # For file handlers, ANSI is stripped unless do_not_sanitize is True
+    out = buf.getvalue()
+    assert "RED" in out
+    assert "\x1b" not in out
+
+
+# 6. __process_rotate calls perform_rotation on Async_TimedSizedRotatingFileHandler
+@pytest.mark.asyncio
+async def test_process_rotate_calls_perform_rotation(tmp_path):
+    logger = AsyncSmartLogger("test_rotate")
+
+    file = tmp_path / "log.txt"
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        max_bytes=5,
+        backup_count=2,
+        large_entry_behavior=LargeLogEntryBehavior.RotateFirst,
+    )
+
+    logger._AsyncSmartLogger__py_logger.addHandler(handler)
+
+    handler.perform_rotation = MagicMock()
+
+    item = _QueueItem(
+        op=AsyncOp.ROTATE,
+        payload={"handler": handler},
+    )
+    logger._AsyncSmartLogger__queue.put_nowait(item)
+
+    await drain(logger)
+
+    handler.perform_rotation.assert_called_once()
+
+
+# 7. queue_size property reflects enqueued items
+@pytest.mark.asyncio
+async def test_queue_size_property():
+    logger = AsyncSmartLogger("test_queue_size")
+
+    # Enqueue without draining
+    await logger._AsyncSmartLogger__enqueue_log(
+        level=logging.INFO,
+        msg="one",
+        args=(),
+        extra={},
+        fields={},
+        exc_info=None,
+        stack_info_flag=False,
+        pathname=__file__,
+        lineno=1,
+        func_name="test_queue_size_property",
+    )
+
+    assert logger.queue_size >= 1
+
+    await drain(logger)
+
+
+# 8. Shutdown prevents further logging via __enqueue_log
+@pytest.mark.asyncio
+async def test_shutdown_prevents_enqueue():
+    logger = AsyncSmartLogger("test_shutdown")
+
+    dummy = DummyHandler()
+    logger._AsyncSmartLogger__py_logger.addHandler(dummy)
+
+    await logger._AsyncSmartLogger__enqueue_log(
+        level=logging.INFO,
+        msg="before",
+        args=(),
+        extra={},
+        fields={},
+        exc_info=None,
+        stack_info_flag=False,
+        pathname=__file__,
+        lineno=1,
+        func_name="test_shutdown_prevents_enqueue",
+    )
+    await drain(logger)
+
+    # Call the real shutdown (async) if present
+    if hasattr(logger, "shutdown"):
+        await logger.shutdown()
+    else:
+        # Fallback: mark stopped flag directly if shutdown is named differently
+        logger._AsyncSmartLogger__stopped = True
+
+    with pytest.raises(RuntimeError):
+        await logger._AsyncSmartLogger__enqueue_log(
+            level=logging.INFO,
+            msg="after",
+            args=(),
+            extra={},
+            fields={},
+            exc_info=None,
+            stack_info_flag=False,
+            pathname=__file__,
+            lineno=2,
+            func_name="test_shutdown_prevents_enqueue",
+        )

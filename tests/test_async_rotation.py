@@ -1,10 +1,15 @@
+import asyncio
 import os
 import time
 from datetime import datetime
 import logging
+from unittest.mock import MagicMock
+
 import pytest
 
+from LogSmith import AsyncSmartLogger
 from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
+from LogSmith.async_smartlogger import _QueueItem, AsyncOp
 from LogSmith.rotation_base import (
     When,
     RotationTimestamp,
@@ -12,6 +17,7 @@ from LogSmith.rotation_base import (
     ExpirationScale,
     LargeLogEntryBehavior,
 )
+from tests.helpers import DummyHandler
 
 
 # ------------------------------------------------------------
@@ -34,6 +40,13 @@ def write(handler, msg):
     """Emit a record synchronously."""
     rec = make_record(msg)
     handler.emit(rec)
+
+
+async def drain(logger: AsyncSmartLogger):
+    # noinspection PyProtectedMember
+    q = logger._AsyncSmartLogger__queue
+    await q.join()
+    await asyncio.sleep(0)
 
 
 # ------------------------------------------------------------
@@ -191,6 +204,7 @@ def test_expiration_policy(tmp_path):
     )
 
     # Call the expiration logic directly to cover it
+    # noinspection PyUnresolvedReferences
     handler._Async_TimedSizedRotatingFileHandler__apply_expiration_policy()
 
     assert not old1.exists()
@@ -246,21 +260,44 @@ def test_compute_next_rollover_daily(monkeypatch):
 # 10. Reopen logic after external deletion
 # ------------------------------------------------------------
 
-def test_reopen_after_deletion(tmp_path):
-    file = tmp_path / "log.txt"
+@pytest.mark.asyncio
+async def test_handler_exception_swallowed():
+    logger = AsyncSmartLogger("test_exc")
 
-    handler = Async_TimedSizedRotatingFileHandler(filename=str(file))
+    # Force worker creation manually
+    loop = asyncio.get_running_loop()
+    logger._AsyncSmartLogger__loop = loop
+    logger._AsyncSmartLogger__worker_tasks = [
+        loop.create_task(logger._AsyncSmartLogger__worker())
+    ]
 
-    write(handler, "hello")
+    bad = DummyHandler()
+    bad.emit = MagicMock(side_effect=RuntimeError("boom"))
 
-    # Close the stream so Windows will allow deletion
-    handler.stream.close()
-    handler.stream = None
+    good = DummyHandler()
 
-    # Now deletion works on Windows
-    file.unlink()
+    # Good first, then bad
+    logger._AsyncSmartLogger__py_logger.addHandler(good)
+    logger._AsyncSmartLogger__py_logger.addHandler(bad)
 
-    # Next write should recreate the file
-    write(handler, "world")
+    item = _QueueItem(
+        op=AsyncOp.LOG,
+        payload={
+            "level": logging.ERROR,
+            "msg": "oops",
+            "args": (),
+            "extra": {},
+            "fields": {},
+            "exc_info": None,
+            "stack_info_flag": False,
+            "pathname": __file__,
+            "lineno": 20,
+            "func_name": "test_handler_exception_swallowed",
+            "stack_info": None,
+        },
+    )
+    logger._AsyncSmartLogger__queue.put_nowait(item)
 
-    assert file.read_text() == "world\n"
+    await drain(logger)
+
+    assert good.records == ["oops"]

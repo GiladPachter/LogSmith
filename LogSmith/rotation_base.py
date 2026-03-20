@@ -1,4 +1,4 @@
-# LogSmith/base_rotation.py  (new file)
+# LogSmith/rotation_base.py  (new file)
 
 from __future__ import annotations
 

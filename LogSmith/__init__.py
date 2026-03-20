@@ -41,6 +41,7 @@ from .rotation_base import (
     RotationTimestamp,
     ExpirationRule,
     ExpirationScale,
+    LargeLogEntryBehavior,
 )
 
 # Colors & gradients
@@ -70,6 +71,7 @@ __all__ = [
     "RotationTimestamp",
     "ExpirationRule",
     "ExpirationScale",
+    "LargeLogEntryBehavior",
 
     # Colors & gradients
     "CPrint",
