@@ -255,11 +255,13 @@ class AsyncSmartLogger:
             msg = CPrint.strip_ansi(msg)
 
         # Build unified structured args (like SmartLogger kwargs)
-        merged_kwargs: dict[str, Any] = {}
+        merged_kwargs = {}
+
         if extra:
-            merged_kwargs.update(extra)
+            merged_kwargs["extra"] = extra
+
         if fields:
-            merged_kwargs.update(fields)
+            merged_kwargs["fields"] = fields
 
         # PROFILING: measure find_caller
         if self.__profile_enabled:
@@ -294,7 +296,8 @@ class AsyncSmartLogger:
                 func_name,
             )
 
-        record_name = merged_kwargs.pop("__audited_logger_name__", self.__name)
+        audited_name = extra.pop("__audited_logger_name__", None)
+        record_name = audited_name or self.__name
 
         # PROFILING: measure record creation
         if self.__profile_enabled:
@@ -1165,6 +1168,7 @@ class AsyncSmartLogger:
         # Override the formatter on the actual handler
         handler = audit_logger.__py_logger.handlers[-1]
         handler.setFormatter(formatter)
+        handler.rotation_logic = rotation_logic
 
         cls.__audit_handler = audit_logger.__py_logger.handlers[-1]
 

@@ -283,7 +283,7 @@ class StructuredPlainFormatter:
 
             extras = _extract_extras(record)
             if extras:
-                kv = " ".join(f"{k}={v!r}" for k, v in extras.items())
+                kv = ", ".join(f"{k}={v!r}" for k, v in extras.items())
                 line = f"{line} {{{kv}}}"
 
             return line
@@ -337,7 +337,7 @@ class StructuredPlainFormatter:
 
         extras = _extract_extras(record)
         if extras:
-            kv = " ".join(f"{k}={v!r}" for k, v in extras.items())
+            kv = ", ".join(f"{k}={v!r}" for k, v in extras.items())
             line = f"{line} {kv}"
 
         # Note: no extra exc_info/stack_info append here anymore;
