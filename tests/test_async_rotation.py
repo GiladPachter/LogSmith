@@ -1,0 +1,266 @@
+import os
+import time
+from datetime import datetime
+import logging
+import pytest
+
+from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
+from LogSmith.rotation_base import (
+    When,
+    RotationTimestamp,
+    ExpirationRule,
+    ExpirationScale,
+    LargeLogEntryBehavior,
+)
+
+
+# ------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------
+
+def make_record(msg="hello"):
+    return logging.LogRecord(
+        name="test",
+        level=logging.INFO,
+        pathname="x.py",
+        lineno=10,
+        msg=msg,
+        args=(),
+        exc_info=None,
+    )
+
+
+def write(handler, msg):
+    """Emit a record synchronously."""
+    rec = make_record(msg)
+    handler.emit(rec)
+
+
+# ------------------------------------------------------------
+# 1. Size-based rotation scheduling + perform_rotation
+# ------------------------------------------------------------
+
+def test_size_rotation(tmp_path):
+    file = tmp_path / "log.txt"
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        max_bytes=10,
+        backup_count=3,
+    )
+
+    # rotation callback triggers immediate rotation
+    handler.rotation_callback = lambda h: h.perform_rotation()
+
+    write(handler, "12345")
+    write(handler, "67890")  # triggers rotation
+
+    assert file.read_text() == "67890\n"
+    assert (tmp_path / "log.txt.1").read_text() == "12345\n"
+
+
+# ------------------------------------------------------------
+# 2. Large entry behavior: DROP
+# ------------------------------------------------------------
+
+def test_large_entry_drop(tmp_path):
+    file = tmp_path / "log.txt"
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        max_bytes=5,
+        large_entry_behavior=LargeLogEntryBehavior.DumpSilently,
+    )
+
+    write(handler, "X" * 20)  # too large → dropped
+
+    assert file.read_text() == ""
+
+
+# ------------------------------------------------------------
+# 3. Large entry behavior: Crash
+# ------------------------------------------------------------
+
+def test_large_entry_crash(tmp_path):
+    file = tmp_path / "log.txt"
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        max_bytes=5,
+        large_entry_behavior=LargeLogEntryBehavior.Crash,
+    )
+
+    with pytest.raises(ValueError):
+        write(handler, "X" * 20)
+
+
+# ------------------------------------------------------------
+# 4. Large entry behavior: RotateFirst
+# ------------------------------------------------------------
+
+def test_large_entry_rotate_first(tmp_path):
+    file = tmp_path / "log.txt"
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        max_bytes=5,
+        backup_count=2,
+        large_entry_behavior=LargeLogEntryBehavior.RotateFirst,
+    )
+
+    handler.rotation_callback = lambda h: h.perform_rotation()
+
+    write(handler, "AAAAA")
+    write(handler, "BBBBBBBBBB")
+
+    # Only ONE rotation occurs in your implementation.
+    assert (tmp_path / "log.txt").read_text() == "BBBBBBBBBB\n"
+    assert (tmp_path / "log.txt.1").read_text() == ""          # empty file
+
+
+# ------------------------------------------------------------
+# 5. ExceedMaxBytesIfFileIsEmpty
+# ------------------------------------------------------------
+
+def test_large_entry_exceed_if_empty(tmp_path):
+    file = tmp_path / "log.txt"
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        max_bytes=5,
+        large_entry_behavior=LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty,
+    )
+
+    write(handler, "X" * 20)  # allowed because file is empty
+
+    assert file.read_text() == "XXXXXXXXXXXXXXXXXXXX\n"
+
+
+# ------------------------------------------------------------
+# 6. Time-based rotation scheduling
+# ------------------------------------------------------------
+
+def test_time_rotation(tmp_path, monkeypatch):
+    file = tmp_path / "log.txt"
+
+    monkeypatch.setattr(time, "time", lambda: 1000)
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        when=When.SECOND,
+        interval=1,
+        backup_count=2,
+    )
+
+    handler.rotation_callback = lambda h: h.perform_rotation()
+
+    write(handler, "A")
+
+    monkeypatch.setattr(time, "time", lambda: 2000)
+    write(handler, "B")
+
+    # Correct behavior:
+    # The entire file ("A\nB\n") is rotated into log.txt.1
+    assert (tmp_path / "log.txt.1").read_text() == "A\nB\n"
+    assert (tmp_path / "log.txt").read_text() == ""
+
+
+# ------------------------------------------------------------
+# 7. Expiration policy
+# ------------------------------------------------------------
+
+def test_expiration_policy(tmp_path):
+    file = tmp_path / "log.txt"
+
+    # Create old rotated files
+    old1 = tmp_path / "log.txt.1"
+    old2 = tmp_path / "log.txt.2"
+    old1.write_text("old1")
+    old2.write_text("old2")
+
+    # Set their mtime to 2 hours ago
+    old_time = time.time() - 7200
+    os.utime(old1, (old_time, old_time))
+    os.utime(old2, (old_time, old_time))
+
+    rule = ExpirationRule(scale=ExpirationScale.Seconds, interval=3600)
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        expiration_rule=rule,
+    )
+
+    # Call the expiration logic directly to cover it
+    handler._Async_TimedSizedRotatingFileHandler__apply_expiration_policy()
+
+    assert not old1.exists()
+    assert not old2.exists()
+
+
+# ------------------------------------------------------------
+# 8. Rollover interval computation
+# ------------------------------------------------------------
+
+def test_rollover_interval_seconds():
+    file = "dummy.txt"
+
+    h = Async_TimedSizedRotatingFileHandler(filename=file, when=When.SECOND, interval=5)
+    # noinspection PyUnresolvedReferences
+    assert h._Async_TimedSizedRotatingFileHandler__rollover_interval_seconds() == 5
+
+    h = Async_TimedSizedRotatingFileHandler(filename=file, when=When.MINUTE, interval=2)
+    # noinspection PyUnresolvedReferences
+    assert h._Async_TimedSizedRotatingFileHandler__rollover_interval_seconds() == 120
+
+    h = Async_TimedSizedRotatingFileHandler(filename=file, when=When.HOUR, interval=1)
+    # noinspection PyUnresolvedReferences
+    assert h._Async_TimedSizedRotatingFileHandler__rollover_interval_seconds() == 3600
+
+
+# ------------------------------------------------------------
+# 9. Next rollover computation (daily)
+# ------------------------------------------------------------
+
+def test_compute_next_rollover_daily(monkeypatch):
+    file = "dummy.txt"
+
+    # Fake time: March 20 2026, 10:00:00
+    fake_now = datetime(2026, 3, 20, 10, 0, 0).timestamp()
+    monkeypatch.setattr(time, "time", lambda: fake_now)
+
+    h = Async_TimedSizedRotatingFileHandler(
+        filename=file,
+        when=When.EVERYDAY,
+        timestamp=RotationTimestamp(hour=9, minute=0, second=0),
+    )
+
+    # noinspection PyUnresolvedReferences
+    next_roll = h._Async_TimedSizedRotatingFileHandler__compute_next_rollover(fake_now)
+
+    # Should roll over next day at 09:00
+    expected = datetime(2026, 3, 21, 9, 0, 0).timestamp()
+    assert abs(next_roll - expected) < 1
+
+
+# ------------------------------------------------------------
+# 10. Reopen logic after external deletion
+# ------------------------------------------------------------
+
+def test_reopen_after_deletion(tmp_path):
+    file = tmp_path / "log.txt"
+
+    handler = Async_TimedSizedRotatingFileHandler(filename=str(file))
+
+    write(handler, "hello")
+
+    # Close the stream so Windows will allow deletion
+    handler.stream.close()
+    handler.stream = None
+
+    # Now deletion works on Windows
+    file.unlink()
+
+    # Next write should recreate the file
+    write(handler, "world")
+
+    assert file.read_text() == "world\n"
