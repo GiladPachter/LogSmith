@@ -34,9 +34,35 @@ def test_caller_resolution(tmp_path):
 # 2. ANSI bleaching (322–325, 341–347)
 # ----------------------------------------------------------------------
 def test_bleach_non_colored_text(tmp_path):
-    logger = SmartLogger("bleach-test")
-    buf = io.StringIO()
-    handler = logging.StreamHandler(buf)
+    # Use a unique logger name to avoid handler pollution
+    logger = SmartLogger("bleach-test-unique")
+
+    # Remove any handlers that SmartLogger or earlier tests may have attached
+    for h in list(logger._SmartLogger__py_logger.handlers):
+        logger._SmartLogger__py_logger.removeHandler(h)
+
+    class UnclosableBuffer:
+        def __init__(self):
+            self.data = []
+        def write(self, s):
+            self.data.append(s)
+        def flush(self):
+            pass
+        def getvalue(self):
+            return "".join(self.data)
+        def close(self):
+            pass  # pytest cannot close this
+
+    buf = UnclosableBuffer()
+
+    class CustomConsoleHandler(logging.StreamHandler):
+        def __init__(self, stream):
+            super().__init__()
+            self.stream = stream  # force SmartLogger to use this
+        def close(self):
+            pass
+
+    handler = CustomConsoleHandler(buf)
     logger._SmartLogger__py_logger.addHandler(handler)
 
     colored_red = CPrint.colorize("RED", fg=CPrint.FG.RED) + " plain"
@@ -45,7 +71,7 @@ def test_bleach_non_colored_text(tmp_path):
 
     out = buf.getvalue()
     assert "RED" in out
-    assert CPrint.FG.CONSOLE_DEFAULT.split(";")[0] in out  # colored plain text
+    assert CPrint.FG.CONSOLE_DEFAULT.split(";")[0] in out
 
 
 # ----------------------------------------------------------------------
@@ -288,3 +314,8 @@ def test_invalid_level_registration():
     reset_levels_for_tests()
     with pytest.raises(ValueError):
         SmartLogger.register_level("bad name", 50)
+
+
+# ----------------------------------------------------------------------
+# 17. Fallback branches
+# ----------------------------------------------------------------------
