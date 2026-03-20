@@ -131,7 +131,7 @@ def test_message_parts_order(logger, capsys):
 
     logger.info("hello")
     out = capsys.readouterr().out
-    assert out.index("test_message_parts_order") < out.index("test_smartlogger.py")
+    assert out.index("test_message_parts_order") < out.index("test_smartlogger_basic.py")
 
 
 # ---------------------------------------------------------
