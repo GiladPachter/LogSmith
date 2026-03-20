@@ -41,7 +41,7 @@ def main():
     run("xml")
 
     # Optional: print summary to console
-    run("report")
+    # run("report")
 
     print("\nCoverage report generated at: coverage_html/index.html")
 
