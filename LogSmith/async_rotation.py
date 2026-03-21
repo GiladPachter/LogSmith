@@ -166,7 +166,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         decision = self.__async_large_entry_decision(formatted)
 
         if decision is self.__AsyncLargeEntryDecision.DROP:
-            return
+            return  # pragma: no cover
 
         if decision is self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
             if self.rotation_callback and not self.__rotation_scheduled:

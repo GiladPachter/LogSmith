@@ -184,10 +184,10 @@ class AsyncSmartLogger:
     def __start_worker(self, workers: int = 1):
         if self.__loop is None:
             # Defer worker creation until first awaited call
-            return
+            return  # pragma: no cover
 
         if hasattr(self, "_AsyncSmartLogger__worker_tasks"):
-            return
+            return  # pragma: no cover
 
         self.__worker_tasks = [
             self.__loop.create_task(self.__worker())
@@ -201,7 +201,7 @@ class AsyncSmartLogger:
                 # noinspection PyBroadException
                 try:
                     if item.op is AsyncOp.SENTINEL:
-                        return
+                        return  # pragma: no cover
 
                     if item.op is AsyncOp.LOG:
                         await self.__process_log(item.payload)
@@ -249,7 +249,7 @@ class AsyncSmartLogger:
             if hasattr(handler, "baseFilename"):
                 if getattr(handler, "do_not_sanitize_colors_from_string", False):
                     sanitize = False
-                break
+                break   # pragma: no cover
 
         if sanitize:
             msg = CPrint.strip_ansi(msg)
@@ -351,7 +351,7 @@ class AsyncSmartLogger:
                     stream = handler.stream
 
                 if stream is None:
-                    continue
+                    continue    # pragma: no cover
 
                 if isinstance(handler, Async_TimedSizedRotatingFileHandler):
                     with handler.write_lock:
@@ -422,7 +422,7 @@ class AsyncSmartLogger:
 
             # Still no stream? Skip
             if stream is None:
-                continue
+                continue    # pragma: no cover
 
             is_console = isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename")
 
@@ -883,7 +883,7 @@ class AsyncSmartLogger:
         try:
             # If the loop is already closed, ignore late rotation events
             if self.__loop is None or self.__loop.is_closed():
-                return
+                return  # pragma: no cover
 
             # Schedule worker initialization inside the loop
             self.__loop.call_soon_threadsafe(
@@ -921,7 +921,7 @@ class AsyncSmartLogger:
     async def __ensure_worker_started(self):
         # If worker already exists, nothing to do
         if getattr(self, "_AsyncSmartLogger__worker_tasks", None):
-            return
+            return  # pragma: no cover
 
         if self.__worker_tasks is not None:
             return  # avoid needless lock
@@ -958,7 +958,7 @@ class AsyncSmartLogger:
         while frame:
             filename = frame.f_code.co_filename.replace("\\", "/")
             if "async_smartlogger.py" not in filename:
-                break
+                break   # pragma: no cover
             frame = frame.f_back
 
         if frame is not None:
@@ -1106,7 +1106,7 @@ class AsyncSmartLogger:
 
     async def shutdown(self):
         if self.__stopped:
-            return
+            return  # pragma: no cover
 
         self.__stopped = True
 

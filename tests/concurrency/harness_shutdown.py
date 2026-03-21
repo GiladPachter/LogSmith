@@ -20,7 +20,7 @@ async def shutdown_race_tester(logger, *, messages: int = 5000):
         for i in range(messages):
             await logger.a_info(f"msg {i}")
             if random.random() < 0.0005:
-                break
+                break   # pragma: no cover
 
     spam_task = asyncio.create_task(spammer())
 

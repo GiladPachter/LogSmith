@@ -1,5 +1,13 @@
 # examples/02_json_logging.py
 
+# ----------------------------------------------------------------------------------------------------------
+# Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
+# ----------------------------------------------------------------------------------------------------------
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+# ----------------------------------------------------------------------------------------------------------
+
 import logging
 from pathlib import Path
 

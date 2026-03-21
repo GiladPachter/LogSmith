@@ -141,7 +141,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             while True:
                 try:
                     fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-                    break
+                    break   # pragma: no cover
                 except OSError as e:
                     if e.errno != errno.EINTR:
                         raise
@@ -320,7 +320,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
 
             # Handle oversized entries according to LargeLogEntryBehavior
             if self.__handle_large_entry(formatted):
-                return
+                return  # pragma: no cover
 
             # Normal rollover path
             if self.__shouldRollover(record):

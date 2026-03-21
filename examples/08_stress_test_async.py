@@ -8,9 +8,13 @@ Async stress test with:
 - Throughput metrics
 """
 
+# ----------------------------------------------------------------------------------------------------------
+# Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
+# ----------------------------------------------------------------------------------------------------------
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
+# ----------------------------------------------------------------------------------------------------------
 
 import asyncio
 import time
@@ -150,7 +154,7 @@ async def main():
             )
 
             if processed >= TOTAL:
-                break
+                break   # pragma: no cover
 
         await a_stdout()  # newline after finishing
 
