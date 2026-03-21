@@ -692,6 +692,26 @@ class AsyncSmartLogger:
             handler.rotation_callback = self.__enqueue_rotation
             handler.resolved_path = resolved_path
 
+        # ------------------------------------------------------------------
+        # Duplicate detection (process-wide) – mirror SmartLogger behavior
+        # ------------------------------------------------------------------
+        resolved_for_compare = str(Path(resolved_path).resolve())
+        for logger in logging.Logger.manager.loggerDict.values():
+            if not isinstance(logger, AsyncSmartLogger):
+                continue
+
+            for info in logger.__handlers:
+                if info.kind != "file" or not info.path:
+                    continue
+                existing_resolved = str(Path(info.path).resolve())
+                if existing_resolved == resolved_for_compare:
+                    FileHandlerRegistry.unregister(str(file_path))
+                    raise ValueError(
+                        f"A file handler for '{resolved_for_compare}' is already active "
+                        f"in this process. This is usually caused by a duplicate "
+                        f"configuration or copy‑paste error."
+                    )
+
         self.__py_logger.addHandler(handler)
 
         rotation_meta = (
@@ -1194,50 +1214,99 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     @classmethod
     def get_record(cls, *, exc_info: bool = False, stack_info: bool = False) -> RetrievedRecord:
-        now = datetime.now()
+        """
+        Async metadata snapshot, mirroring SmartLogger.get_record_parts semantics
+        as closely as possible.
+        """
+        now = time.time()
 
-        # Caller frame
-        frame = inspect.stack()[1]
-        frame_info = frame.frame
-        file_path = frame_info.f_code.co_filename
-        file_name = os.path.basename(file_path)
-        lineno = frame_info.f_lineno
-        func_name = frame_info.f_code.co_name
+        # Resolve caller frame similarly to SmartLogger.__find_caller()
+        frame = inspect.currentframe()
+        if frame is not None:
+            frame = frame.f_back  # caller of get_record()
+
+        caller_frame = None
+        while frame:
+            filename = frame.f_code.co_filename.replace("\\", "/")
+            base = os.path.basename(filename)
+
+            if base != "async_smartlogger.py" and not (
+                os.path.basename(filename) == "logging/__init__.py"
+                or "pytest" in filename
+                or "pluggy" in filename
+                or "unittest" in filename
+            ):
+                caller_frame = frame
+                break
+
+            frame = frame.f_back
+
+        if caller_frame is not None:
+            file_path = caller_frame.f_code.co_filename
+            lineno = caller_frame.f_lineno
+            func_name = caller_frame.f_code.co_name
+        else:  # pragma: no cover
+            file_path = None
+            lineno = None
+            func_name = None
 
         # Thread / task / process
         thread = threading.current_thread()
-        task = asyncio.current_task()
+        # noinspection PyBroadException
+        try:
+            task = asyncio.current_task()
+            task_name = task.get_name() if task else None
+        except Exception:  # pragma: no cover
+            task_name = None
 
         # Exception metadata (only inside except block)
-        exc = None
+        exc_dict = None
         if exc_info:
             exc_type, exc_val, tb = sys.exc_info()
-            if exc_type:
-                exc = {
-                    "type": exc_type.__name__,
-                    "message": str(exc_val),
-                    "traceback": traceback.format_exception(exc_type, exc_val, tb),
+            if exc_type is not None:
+                exc_dict = {
+                    "exc_parts": {
+                        "err_type_name": exc_type.__name__,
+                        "error_text": str(exc_val),
+                        "stack_trace": "".join(traceback.format_tb(tb)) if tb else None,
+                    },
+                    "full_trace_text": "".join(
+                        traceback.format_exception(exc_type, exc_val, tb)
+                    ),
                 }
 
-        # Stack metadata
-        stack = None
+        # Stack metadata – start from the resolved caller frame (one level above get_record)
         if stack_info:
-            stack = "".join(traceback.format_stack())
+            if caller_frame is not None:
+                stack_val = "".join(traceback.format_stack(caller_frame))
+            else:  # fallback, should be rare
+                stack_val = "".join(traceback.format_stack())
+        else:
+            stack_val = None
+
+        # Build record
+        dt = datetime.fromtimestamp(now)
+        timestamp = dt.isoformat(timespec="milliseconds").replace("T", " ")
+
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        rel_created = now - logging._startTime
+        if rel_created < 0:  # pragma: no cover
+            rel_created = 0
 
         return RetrievedRecord(
-            timestamp=now.isoformat(),
-            relative_created=time.monotonic(),
+            timestamp=timestamp,
+            relative_created=rel_created,
             file_path=file_path,
-            file_name=file_name,
+            file_name=os.path.basename(file_path) if file_path else None,
             lineno=lineno,
             func_name=func_name,
             thread_id=thread.ident,
             thread_name=thread.name,
-            task_name=(task.get_name() if task else None),
+            task_name=task_name,
             process_id=os.getpid(),
             process_name=multiprocessing.current_process().name,
-            exc_info=exc,
-            stack_info=stack,
+            exc_info=exc_dict,
+            stack_info=stack_val,
         )
 
     # ------------------------------------------------------------------

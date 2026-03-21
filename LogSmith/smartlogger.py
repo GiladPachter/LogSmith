@@ -1209,7 +1209,7 @@ class SmartLogger:
             # noinspection PyUnresolvedReferences,PyProtectedMember
             rec.relative_created = now - logging._startTime
             if rec.relative_created < 0:
-                rec.relative_created = 0
+                rec.relative_created = 0    # pragma: no cover
 
         if file_path:
             rec.file_path = fn
