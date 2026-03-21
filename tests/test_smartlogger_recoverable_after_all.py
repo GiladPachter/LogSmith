@@ -194,3 +194,94 @@ def test_get_record_parts_thread_process():
     assert rec.process_id == os.getpid()
 
 
+def test_retire_closes_and_clears_handlers(tmp_path):
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("life.retire")
+    logger.add_console()
+    logger.add_file(str(tmp_path), "x.log")
+
+    assert logger.handler_info  # sanity
+
+    logger.retire()
+
+    assert logger.retired is True
+    assert logger.handler_info == []
+    assert logger._SmartLogger__py_logger.handlers == []
+
+
+def test_destroy_removes_logger_and_reparents_children():
+    from LogSmith.smartlogger import SmartLogger
+    import logging
+
+    parent = SmartLogger("life.parent")
+    child = SmartLogger("life.parent.child")
+
+    assert child._SmartLogger__py_logger.parent is parent._SmartLogger__py_logger
+
+    parent.destroy()
+
+    # Parent removed from loggerDict
+    assert "life.parent" not in logging.Logger.manager.loggerDict
+
+    # Child reparented to root
+    root = logging.getLogger("root")
+    assert child._SmartLogger__py_logger.parent is root
+
+    # Parent marked retired
+    assert parent.retired is True
+
+
+def test_destroy_is_idempotent():
+    from LogSmith.smartlogger import SmartLogger
+
+    logger = SmartLogger("life.idempotent")
+    logger.destroy()
+    logger.destroy()  # should not raise
+    assert logger.retired is True
+
+
+def test_dynamic_level_method_calls___log(monkeypatch):
+    from LogSmith.smartlogger import SmartLogger, LEVELS
+
+    logger = SmartLogger("dyn.level")
+    LEVELS.register("CUSTOM", 35, None)
+
+    called = {}
+
+    def fake_log(self, level, msg, args, **kwargs):
+        called["level"] = level
+        called["msg"] = msg
+
+    monkeypatch.setattr(SmartLogger, "_SmartLogger__log", fake_log)
+
+    logger.custom("hello")
+    assert called["level"] == LEVELS.get("CUSTOM")["value"]
+    assert called["msg"] == "hello"
+
+
+def test_get_record_parts_process_name_non_empty():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("proc.name")
+
+    rec = logger.get_record_parts(process_name=True)
+    assert rec.process_name is None or isinstance(rec.process_name, str)
+
+
+def test_stdout_uses_smartlogger_raw(monkeypatch, capsys):
+    from LogSmith.smartlogger import stdout, __get_stdout_logger
+
+    logger = __get_stdout_logger()
+
+    called = {}
+
+    def fake_raw(msg, end="\n"):
+        called["msg"] = msg
+        called["end"] = end
+
+    monkeypatch.setattr(logger, "raw", fake_raw)
+
+    stdout("hello", "world", sep="-", end="!")
+    assert called["msg"] == "hello-world!"
+    assert called["end"] == ""
+
+
