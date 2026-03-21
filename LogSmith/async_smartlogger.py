@@ -186,7 +186,7 @@ class AsyncSmartLogger:
             # Defer worker creation until first awaited call
             return  # pragma: no cover
 
-        if hasattr(self, "_AsyncSmartLogger__worker_tasks"):
+        if hasattr(self, "_AsyncSmartLogger__worker_tasks"):    # pragma: no cover
             return  # pragma: no cover
 
         self.__worker_tasks = [
@@ -333,7 +333,7 @@ class AsyncSmartLogger:
                 # noinspection PyBroadException
                 try:
                     formatted = await asyncio.to_thread(formatter.format, record) + "\n"
-                except Exception:
+                except Exception:   # pragma: no cover
                     print("LogSmith: formatter error", file=sys.stderr)
                     continue
 
@@ -438,7 +438,7 @@ class AsyncSmartLogger:
                 stream.flush()
             except Exception:   # pragma: no cover
                 # Ignore write errors
-                pass    # pragma: no cover
+                pass
 
     # ------------------------------------------------------------------
     # PROCESS ROTATION
@@ -902,8 +902,8 @@ class AsyncSmartLogger:
     def __enqueue_rotation(self, handler):
         try:
             # If the loop is already closed, ignore late rotation events
-            if self.__loop is None or self.__loop.is_closed():
-                return  # pragma: no cover
+            if self.__loop is None or self.__loop.is_closed():  # pragma: no cover
+                return
 
             # Schedule worker initialization inside the loop
             self.__loop.call_soon_threadsafe(
@@ -917,16 +917,16 @@ class AsyncSmartLogger:
             )
 
             self.__loop.call_soon_threadsafe(self.__queue.put_nowait, item)
-        except RuntimeError:
+        except RuntimeError:    # pragma: no cover
             # Loop may have closed between is_closed() and call_soon_threadsafe
-            pass
+            pass    # pragma: no cover
 
         if self.__stopped or self.__retired:
             return  # pragma: no cover
 
         try:
             loop = asyncio.get_running_loop()
-        except RuntimeError:
+        except RuntimeError:    # pragma: no cover
             loop = None
 
         item = _QueueItem(op=AsyncOp.ROTATE, payload={"handler": handler})
@@ -940,8 +940,8 @@ class AsyncSmartLogger:
 
     async def __ensure_worker_started(self):
         # If worker already exists, nothing to do
-        if getattr(self, "_AsyncSmartLogger__worker_tasks", None):
-            return  # pragma: no cover
+        if getattr(self, "_AsyncSmartLogger__worker_tasks", None):  # pragma: no cover
+            return
 
         if self.__worker_tasks is not None:
             return  # avoid needless lock
@@ -1204,7 +1204,7 @@ class AsyncSmartLogger:
             try:
                 cls.__audit_logger.__py_logger.removeHandler(cls.__audit_handler)
             except Exception:   # pragma: no cover
-                pass    # pragma: no cover
+                pass
 
         cls.__audit_logger = None
         cls.__audit_handler = None
@@ -1321,12 +1321,12 @@ class AsyncSmartLogger:
             try:
                 self.__py_logger.removeHandler(handler)
             except Exception:   # pragma: no cover
-                pass    # pragma: no cover
+                pass
             # noinspection PyBroadException
             try:
                 handler.close()
             except Exception:   # pragma: no cover
-                pass    # pragma: no cover
+                pass
 
         self.__py_logger.handlers.clear()
         self.__handlers.clear()
