@@ -3,7 +3,8 @@ import sys
 
 import pytest
 import logging
-from LogSmith.formatter import _format_timestamp, LogRecordDetails
+# noinspection PyProtectedMember
+from LogSmith.formatter import _format_timestamp
 from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
 from LogSmith.formatter import StructuredPlainFormatter
 from LogSmith.formatter import StructuredColorFormatter

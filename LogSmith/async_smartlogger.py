@@ -98,10 +98,7 @@ class AsyncSmartLogger:
         self.__py_logger = logging.getLogger(name)
         self.__py_logger.propagate = False
 
-        if level == logging.NOTSET:
-            self.__py_logger.setLevel(logging.NOTSET)
-        else:
-            self.__py_logger.setLevel(level)
+        self.__py_logger.setLevel(level)
 
         try:
             self.__loop = asyncio.get_running_loop()
@@ -620,7 +617,7 @@ class AsyncSmartLogger:
     def add_file(
             self,
             log_dir: str,
-            logfile_name: str,
+            logfile_name: str | None = None,
             level: Optional[int] = None,
             log_record_details: Optional[LogRecordDetails] = None,
             rotation_logic: Optional[RotationLogic] = None,

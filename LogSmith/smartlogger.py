@@ -239,9 +239,6 @@ class SmartLogger:
         else:
             self.__py_logger.parent = logging.getLogger()  # root
 
-        # Set this logger's own level
-        self.__py_logger.setLevel(level)
-
         # Auditing still controls propagation
         self.__py_logger.propagate = SmartLogger.__audit_enabled
 
