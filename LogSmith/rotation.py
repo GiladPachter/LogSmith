@@ -70,7 +70,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
 
         # BaseRotatingHandler -> FileHandler
-        BaseRotatingHandler.__init__(self, filename, mode="a", encoding=encoding, delay=False)
+        BaseRotatingHandler.__init__(self, filename, mode="a", encoding=encoding)
 
         # Tell PyCharm the truth: stream can be None
         self.stream: Optional[IO[str]] = self.stream
@@ -85,7 +85,6 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             expiration_rule=expiration_rule,
             encoding=encoding,
             large_entry_behavior=large_entry_behavior,
-            delay=False,
         )
 
         self.large_entry_behavior = (

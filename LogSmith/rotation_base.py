@@ -203,10 +203,9 @@ class BaseTimedSizedRotatingFileHandler(BaseRotatingHandler):
         expiration_rule: Optional[ExpirationRule] = None,
         encoding: Optional[str] = "utf-8",
         large_entry_behavior: Optional[LargeLogEntryBehavior] = None,
-        delay: bool = False,
     ) -> None:
 
-        FileHandler.__init__(self, filename, mode="a", encoding=encoding, delay=delay)
+        FileHandler.__init__(self, filename, mode="a", encoding=encoding)
 
         # Store rotation parameters
         self.when = when

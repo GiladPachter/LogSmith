@@ -49,7 +49,6 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             expiration_rule: Optional[ExpirationRule] = None,
             encoding: Optional[str] = "utf-8",
             large_entry_behavior: Optional[LargeLogEntryBehavior] = None,
-            delay: bool = False,
     ) -> None:
 
         # Initialize the base class (FileHandler + parameter storage)
@@ -63,7 +62,6 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             expiration_rule=expiration_rule,
             encoding=encoding,
             large_entry_behavior=large_entry_behavior,
-            delay=delay,
         )
 
         self.__last_rotation_check = 0.0
