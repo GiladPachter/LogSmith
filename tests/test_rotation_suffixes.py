@@ -41,15 +41,12 @@ def _list_rotated_files(base: Path):
     ]
 
 
-@pytest.mark.parametrize(
-    "pid,ts",
-    [
-        (False, False),
-        (True,  False),
-        (False, True),
-        (True,  True),
-    ],
-)
+@pytest.mark.parametrize("pid, ts",
+                         [(False, False),
+                          (True,  False),
+                          (False, True),
+                          (True,  True)]
+                         )
 def test_smartlogger_rotation_suffixes(tmp_path, pid, ts):
     log_dir = tmp_path
     logfile = "app.log"
@@ -78,15 +75,12 @@ def test_smartlogger_rotation_suffixes(tmp_path, pid, ts):
     assert pattern.match(rotated[0]), rotated[0]
 
 
-@pytest.mark.parametrize(
-    "pid,ts",
-    [
-        (False, False),
-        (True,  False),
-        (False, True),
-        (True,  True),
-    ],
-)
+@pytest.mark.parametrize("pid, ts",
+                         [(False, False),
+                          (True,  False),
+                          (False, True),
+                          (True,  True)]
+                         )
 @pytest.mark.asyncio
 async def test_asyncsmartlogger_rotation_suffixes(tmp_path, pid, ts):
     log_dir = tmp_path
