@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import ABC
 from dataclasses import dataclass
 from enum import Enum, auto
 from logging import FileHandler
@@ -184,7 +185,7 @@ class RotationLogic:
         return f"{base}.{pid}{ext}"
 
 
-class BaseTimedSizedRotatingFileHandler(BaseRotatingHandler):
+class BaseTimedSizedRotatingFileHandler(ABC, BaseRotatingHandler):
     """
     Abstract base class for both synchronous and asynchronous rotating handlers.
     This class does NOT implement rotation or writing logic.
@@ -203,6 +204,8 @@ class BaseTimedSizedRotatingFileHandler(BaseRotatingHandler):
         expiration_rule: Optional[ExpirationRule] = None,
         encoding: Optional[str] = "utf-8",
         large_entry_behavior: Optional[LargeLogEntryBehavior] = None,
+        append_filename_pid: bool = False,
+        append_filename_timestamp: bool = False,
     ) -> None:
 
         FileHandler.__init__(self, filename, mode="a", encoding=encoding)
@@ -215,6 +218,8 @@ class BaseTimedSizedRotatingFileHandler(BaseRotatingHandler):
         self.backup_count = backup_count
         self.expiration_rule = expiration_rule
         self.large_entry_behavior = large_entry_behavior
+        self.append_filename_pid = append_filename_pid
+        self.append_filename_timestamp = append_filename_timestamp
 
         # For subclasses to use
         self.__rotation_scheduled = False

@@ -665,15 +665,17 @@ class AsyncSmartLogger:
         # Handler creation
         if rotation_logic:
             handler = Async_TimedSizedRotatingFileHandler(
-                filename=str(file_path),
-                when=rotation_logic.when,
-                interval=rotation_logic.interval or 1,
-                timestamp=rotation_logic.timestamp,
-                max_bytes=rotation_logic.maxBytes or 0,
-                backup_count=rotation_logic.backupCount,
-                expiration_rule=rotation_logic.expiration_rule,
-                encoding="utf-8",
-                large_entry_behavior=rotation_logic.large_entry_behavior,
+                filename = str(file_path),
+                when = rotation_logic.when,
+                interval = rotation_logic.interval or 1,
+                timestamp = rotation_logic.timestamp,
+                max_bytes = rotation_logic.maxBytes or 0,
+                backup_count = rotation_logic.backupCount,
+                expiration_rule = rotation_logic.expiration_rule,
+                encoding = "utf-8",
+                large_entry_behavior = rotation_logic.large_entry_behavior,
+                append_filename_pid = rotation_logic.append_filename_pid,
+                append_filename_timestamp = rotation_logic.append_filename_timestamp,
             )
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")

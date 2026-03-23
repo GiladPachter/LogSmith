@@ -66,6 +66,8 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         expiration_rule: ExpirationRule | None = None,
         encoding: Optional[str] = "utf-8",
         large_entry_behavior: LargeLogEntryBehavior | None = None,
+        append_filename_pid: bool = False,
+        append_filename_timestamp: bool = False,
     ):
         os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
 
@@ -77,14 +79,16 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
 
         super().__init__(
             filename,
-            when=when,
-            interval=interval,
-            timestamp=timestamp,
-            max_bytes=max_bytes,
-            backup_count=backup_count,
-            expiration_rule=expiration_rule,
-            encoding=encoding,
-            large_entry_behavior=large_entry_behavior,
+            when = when,
+            interval = interval,
+            timestamp = timestamp,
+            max_bytes = max_bytes,
+            backup_count = backup_count,
+            expiration_rule = expiration_rule,
+            encoding = encoding,
+            large_entry_behavior = large_entry_behavior,
+            append_filename_pid = append_filename_pid,
+            append_filename_timestamp = append_filename_timestamp,
         )
 
         self.large_entry_behavior = (
@@ -337,6 +341,14 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ------------------------------------------------------------------
     # ROLLOVER IMPLEMENTATION
     # ------------------------------------------------------------------
+    def _rotation_suffix(self) -> str:
+        parts = []
+        if self.append_filename_pid:
+            parts.append(str(os.getpid()))
+        if self.append_filename_timestamp:
+            parts.append(datetime.now().strftime("%Y%m%d_%H%M%S"))
+        return ".".join(parts)
+
     def __doRollover(self) -> None:
         """
         Perform rollover:
@@ -352,8 +364,17 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         # rotate backups
         if self.backup_count > 0:
             for i in range(self.backup_count - 1, 0, -1):
-                sfn = f"{self.baseFilename}.{i}"
-                dfn = f"{self.baseFilename}.{i + 1}"
+
+                # sfn = f"{self.baseFilename}.{i}"
+                # dfn = f"{self.baseFilename}.{i + 1}"
+                suffix = self._rotation_suffix()
+                if suffix:
+                    sfn = f"{self.baseFilename}.{suffix}.{i}"
+                    dfn = f"{self.baseFilename}.{suffix}.{i + 1}"
+                else:
+                    sfn = f"{self.baseFilename}.{i}"
+                    dfn = f"{self.baseFilename}.{i + 1}"
+
                 if os.path.exists(sfn):
                     if os.path.exists(dfn):
                         os.remove(dfn)
@@ -364,7 +385,13 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
                     except FileNotFoundError:
                         pass    # pragma: no cover
 
-            dfn = f"{self.baseFilename}.1"
+            # dfn = f"{self.baseFilename}.1"
+            suffix = self._rotation_suffix()
+            if suffix:
+                dfn = f"{self.baseFilename}.{suffix}.1"
+            else:
+                dfn = f"{self.baseFilename}.1"
+
             if os.path.exists(dfn):
                 os.remove(dfn)
             if os.path.exists(self.baseFilename):

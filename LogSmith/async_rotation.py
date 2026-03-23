@@ -49,19 +49,23 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             expiration_rule: Optional[ExpirationRule] = None,
             encoding: Optional[str] = "utf-8",
             large_entry_behavior: Optional[LargeLogEntryBehavior] = None,
+            append_filename_pid: bool = False,
+            append_filename_timestamp: bool = False,
     ) -> None:
 
         # Initialize the base class (FileHandler + parameter storage)
         super().__init__(
             filename,
-            when=when,
-            interval=interval,
-            timestamp=timestamp,
-            max_bytes=max_bytes,
-            backup_count=backup_count,
-            expiration_rule=expiration_rule,
-            encoding=encoding,
-            large_entry_behavior=large_entry_behavior,
+            when = when,
+            interval = interval,
+            timestamp = timestamp,
+            max_bytes = max_bytes,
+            backup_count = backup_count,
+            expiration_rule = expiration_rule,
+            encoding = encoding,
+            large_entry_behavior = large_entry_behavior,
+            append_filename_pid = append_filename_pid,
+            append_filename_timestamp = append_filename_timestamp,
         )
 
         self.__last_rotation_check = 0.0
@@ -186,6 +190,14 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
     # ------------------------------------------------------------------
     #  PERFORM ROTATION (executed by AsyncSmartLogger worker)
     # ------------------------------------------------------------------
+    def _rotation_suffix(self) -> str:
+        parts = []
+        if self.append_filename_pid:
+            parts.append(str(os.getpid()))
+        if self.append_filename_timestamp:
+            parts.append(datetime.now().strftime("%Y%m%d_%H%M%S"))
+        return ".".join(parts)
+
     def perform_rotation(self) -> None:
         """
         Executed inside AsyncSmartLogger's worker thread.
@@ -201,8 +213,17 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             # Rotate backups
             if self.backup_count > 0:
                 for i in range(self.backup_count - 1, 0, -1):
-                    sfn = f"{self.baseFilename}.{i}"
-                    dfn = f"{self.baseFilename}.{i + 1}"
+
+                    # sfn = f"{self.baseFilename}.{i}"
+                    # dfn = f"{self.baseFilename}.{i + 1}"
+                    suffix = self._rotation_suffix()
+                    if suffix:
+                        sfn = f"{self.baseFilename}.{suffix}.{i}"
+                        dfn = f"{self.baseFilename}.{suffix}.{i + 1}"
+                    else:
+                        sfn = f"{self.baseFilename}.{i}"
+                        dfn = f"{self.baseFilename}.{i + 1}"
+
                     if os.path.exists(sfn):
                         if os.path.exists(dfn):
                             os.remove(dfn)
@@ -210,7 +231,13 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
                         os.replace(sfn, dfn)
                         os.utime(dfn, (orig_mtime, orig_mtime))
 
-                dfn = f"{self.baseFilename}.1"
+                # dfn = f"{self.baseFilename}.1"
+                suffix = self._rotation_suffix()
+                if suffix:
+                    dfn = f"{self.baseFilename}.{suffix}.1"
+                else:
+                    dfn = f"{self.baseFilename}.1"
+
                 if os.path.exists(dfn):
                     os.remove(dfn)
                 if os.path.exists(self.baseFilename):
