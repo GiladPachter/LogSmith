@@ -102,7 +102,7 @@ class AsyncSmartLogger:
 
         try:
             self.__loop = asyncio.get_running_loop()
-        except RuntimeError:
+        except RuntimeError:    # pragma: no cover
             # No running loop yet — defer worker creation
             self.__loop = None
 
@@ -215,7 +215,7 @@ class AsyncSmartLogger:
                     # traceback.print_exc()
                     # swallow ANY error inside the worker
                     # this prevents the worker from dying
-                    pass    # pragma: no cover
+                    pass
 
             finally:
                 self.__queue.task_done()
@@ -244,7 +244,7 @@ class AsyncSmartLogger:
         sanitize = True
         for handler in self.__py_logger.handlers:
             if hasattr(handler, "baseFilename"):
-                if getattr(handler, "do_not_sanitize_colors_from_string", False):
+                if getattr(handler, "preserve_colors_in_log_files", False):
                     sanitize = False
                 break   # pragma: no cover
 
@@ -426,7 +426,7 @@ class AsyncSmartLogger:
             if is_console:
                 text = self.__bleach_non_colored_text(message)
             else:
-                do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
+                do_not_sanitize = getattr(handler, "preserve_colors_in_log_files", False)
                 text = message if do_not_sanitize else CPrint.strip_ansi(message)
 
             # noinspection PyBroadException
@@ -621,7 +621,7 @@ class AsyncSmartLogger:
             level: Optional[int] = None,
             log_record_details: Optional[LogRecordDetails] = None,
             rotation_logic: Optional[RotationLogic] = None,
-            do_not_sanitize_colors_from_string: bool = False,
+            preserve_colors_in_log_files: bool = False,
             output_mode: str | OutputMode = OutputMode.PLAIN,
     ) -> None:
         if self.__retired:
@@ -657,7 +657,7 @@ class AsyncSmartLogger:
         elif mode is OutputMode.NDJSON:
             formatter = StructuredNDJSONFormatter(log_record_details)
         else:
-            if do_not_sanitize_colors_from_string:
+            if preserve_colors_in_log_files:
                 formatter = PassthroughFormatter()
             else:
                 formatter = StructuredPlainFormatter(log_record_details)
@@ -685,7 +685,7 @@ class AsyncSmartLogger:
         handler.setLevel(level or self.__py_logger.level)
         handler.setFormatter(formatter)
 
-        setattr(handler, "do_not_sanitize_colors_from_string", do_not_sanitize_colors_from_string)
+        setattr(handler, "preserve_colors_in_log_files", preserve_colors_in_log_files)
 
         if isinstance(handler, Async_TimedSizedRotatingFileHandler):
             handler.rotation_callback = self.__enqueue_rotation
@@ -730,7 +730,7 @@ class AsyncSmartLogger:
                 formatter=str(mode.value),
                 path=resolved_path,
                 rotation=rotation_meta,
-                do_not_sanitize_colors_from_string=do_not_sanitize_colors_from_string,
+                preserve_colors_in_log_files=preserve_colors_in_log_files,
             )
         )
 
@@ -815,7 +815,7 @@ class AsyncSmartLogger:
             "formatter": formatter,
             "path": getattr(h, "baseFilename", None),
             "rotation": rotation_meta,
-            "do_not_sanitize_colors_from_string": getattr(h, "do_not_sanitize_colors_from_string", False),
+            "preserve_colors_in_log_files": getattr(h, "preserve_colors_in_log_files", False),
         }
 
     @staticmethod

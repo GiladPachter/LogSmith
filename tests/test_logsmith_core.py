@@ -250,7 +250,7 @@ async def test_asyncsmartlogger_raw_respects_sanitization(tmp_path):
     logger.add_file(
         log_dir=str(tmp_path),
         logfile_name="raw_async.log",
-        do_not_sanitize_colors_from_string=False,
+        preserve_colors_in_log_files=False,
     )
 
     colored = CPrint.colorize("async-raw", fg=CPrint.FG.BRIGHT_GREEN)

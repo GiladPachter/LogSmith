@@ -36,7 +36,7 @@ async def test_console_raw_bleaching(capsys):
 async def test_file_raw_sanitization(tmp_path):
     """
     File handlers should strip ANSI sequences unless
-    do_not_sanitize_colors_from_string=True.
+    preserve_colors_in_log_files=True.
     """
     logger = AsyncSmartLogger("test_file_raw_sanitize", logging.INFO)
     logger.add_file(str(tmp_path), "raw.log")
@@ -63,7 +63,7 @@ async def test_file_raw_passthrough(tmp_path):
     logger.add_file(
         log_dir=str(tmp_path),
         logfile_name="passthrough.log",
-        do_not_sanitize_colors_from_string=True,
+        preserve_colors_in_log_files=True,
     )
 
     msg = "hello \x1b[35mpurple\x1b[0m world"

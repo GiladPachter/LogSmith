@@ -19,7 +19,7 @@ def test_raw_output_and_bleaching(tmp_path):
 
 def test_passthrough_formatter(tmp_path):
     logger = SmartLogger("pass", logging.INFO)
-    logger.add_file(str(tmp_path), "p.log", do_not_sanitize_colors_from_string=True)
+    logger.add_file(str(tmp_path), "p.log", preserve_colors_in_log_files=True)
 
     colored = CPrint.colorize("HELLO", fg=CPrint.FG.GREEN)
     logger.raw(colored)

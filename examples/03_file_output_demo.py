@@ -136,7 +136,7 @@ logger.add_file(
     logfile_name="color_preserved.log",
     level=levels["TRACE"],
     log_record_details=file_details,
-    do_not_sanitize_colors_from_string=True,
+    preserve_colors_in_log_files=True,
 )
 
 stdout("\nWriting colored text via logger.raw():")

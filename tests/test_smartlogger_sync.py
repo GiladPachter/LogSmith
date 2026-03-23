@@ -156,7 +156,7 @@ def test_sync_logger_strips_ansi_by_default(clean_sync_logger, tmp_path):
 
 def test_sync_logger_preserves_ansi_when_passthrough_enabled(clean_sync_logger, tmp_path):
     logger = clean_sync_logger
-    logger.add_file(str(tmp_path), "x.log", do_not_sanitize_colors_from_string=True)
+    logger.add_file(str(tmp_path), "x.log", preserve_colors_in_log_files=True)
 
     ansi_msg = "\x1b[31mred-text\x1b[0m"
     logger.info(ansi_msg)

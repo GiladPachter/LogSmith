@@ -119,7 +119,7 @@ def test_formatter_selection(tmp_path):
     logger.add_file(str(tmp_path), "b.ndjson", output_mode="ndjson")
     logger.add_file(str(tmp_path), "c.txt", output_mode="plain")
     logger.add_file(str(tmp_path), "d.pass", output_mode="plain",
-                    do_not_sanitize_colors_from_string=True)
+                    preserve_colors_in_log_files=True)
 
     logger.info("hello")
 

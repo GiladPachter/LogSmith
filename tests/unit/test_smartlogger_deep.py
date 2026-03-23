@@ -187,7 +187,7 @@ def test_passthrough_formatter(tmp_path):
     logger.add_file(
         str(tmp_path),
         "pass.log",
-        do_not_sanitize_colors_from_string=True,
+        preserve_colors_in_log_files=True,
         output_mode="plain",
     )
 

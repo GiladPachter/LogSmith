@@ -184,7 +184,7 @@ def test_passthrough_formatter(tmp_path):
         str(tmp_path),
         "p.log",
         output_mode="plain",
-        do_not_sanitize_colors_from_string=True,
+        preserve_colors_in_log_files=True,
     )
 
     colored = CPrint.colorize("X", fg=CPrint.FG.RED)

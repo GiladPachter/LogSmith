@@ -79,7 +79,7 @@ class HandlerMetadata:
     formatter: str
     path: Optional[str] = None
     rotation: Optional[Dict[str, Any]] = None
-    do_not_sanitize_colors_from_string: Optional[bool] = None
+    preserve_colors_in_log_files: Optional[bool] = None
 
 
 # ======================================================================
@@ -332,7 +332,7 @@ class SmartLogger:
         """
         Write raw text to all handlers.
         Console handlers receive colored output.
-        File handlers sanitize ANSI unless do_not_sanitize_colors_from_string=True.
+        File handlers sanitize ANSI unless preserve_colors_in_log_files=True.
         """
         if self.__smart_state.retired:
             raise RuntimeError(f"Logger {self.__py_logger.name!r} has been retired and cannot be used.") # pragma: no cover
@@ -361,7 +361,7 @@ class SmartLogger:
                 text = self.__bleach_non_colored_text(message)
             else:
                 # File: sanitize unless passthrough enabled
-                do_not_sanitize = getattr(handler, "do_not_sanitize_colors_from_string", False)
+                do_not_sanitize = getattr(handler, "preserve_colors_in_log_files", False)
                 text = message if do_not_sanitize else CPrint.strip_ansi(message)
 
             stream.write(text + end)
@@ -412,7 +412,7 @@ class SmartLogger:
         sanitize = True
         for handler in self.__py_logger.handlers:
             if hasattr(handler, "baseFilename"):  # file handler
-                if getattr(handler, "do_not_sanitize_colors_from_string", False):
+                if getattr(handler, "preserve_colors_in_log_files", False):
                     sanitize = False
                 break   # pragma: no cover
 
@@ -547,7 +547,7 @@ class SmartLogger:
             level: int | None = None,
             log_record_details: LogRecordDetails | None = None,
             rotation_logic: RotationLogic | None = None,
-            do_not_sanitize_colors_from_string: bool = False,
+            preserve_colors_in_log_files: bool = False,
             output_mode: str | OutputMode = OutputMode.PLAIN,
     ) -> None:
         if self.__smart_state.retired:
@@ -583,7 +583,7 @@ class SmartLogger:
         elif mode is OutputMode.NDJSON:
             formatter = StructuredNDJSONFormatter(log_record_details)
         else:
-            if do_not_sanitize_colors_from_string:
+            if preserve_colors_in_log_files:
                 formatter = PassthroughFormatter()
             else:
                 formatter = StructuredPlainFormatter(log_record_details)
@@ -601,7 +601,7 @@ class SmartLogger:
 
         handler.log_record_details = log_record_details
         handler.rotation_logic = rotation_logic
-        handler.do_not_sanitize_colors_from_string = do_not_sanitize_colors_from_string
+        handler.preserve_colors_in_log_files = preserve_colors_in_log_files
 
         # --- CRITICAL SECTION (tight lock) --------------------------------
         with SmartLogger.__file_handler_lock:
@@ -645,7 +645,7 @@ class SmartLogger:
                     formatter=str(mode.value),
                     path=resolved_path,
                     rotation=rotation_meta,
-                    do_not_sanitize_colors_from_string=do_not_sanitize_colors_from_string,
+                    preserve_colors_in_log_files=preserve_colors_in_log_files,
                 )
             )
 
@@ -747,7 +747,7 @@ class SmartLogger:
             "formatter": formatter,
             "path": getattr(h, "baseFilename", None),
             "rotation": rotation_meta,
-            "do_not_sanitize_colors_from_string": getattr(h, "do_not_sanitize_colors_from_string", False),
+            "preserve_colors_in_log_files": getattr(h, "preserve_colors_in_log_files", False),
         }
 
     # ------------------------------------------------------------------
