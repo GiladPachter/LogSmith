@@ -1,6 +1,10 @@
 import logging
 
-from LogSmith import AsyncSmartLogger, SmartLogger, CPrint
+import pytest
+
+from LogSmith import AsyncSmartLogger, SmartLogger, CPrint, OutputMode, LevelStyle, NEON_THEME, PASTEL_THEME, \
+    LIGHT_THEME
+from LogSmith.level_registry import LEVELS
 
 
 async def test_async_smartlogger_no_parent():
@@ -60,3 +64,55 @@ async def test_colored_raw(tmp_path):
 
     assert "rocks" in text
     assert "multiple" in a_text
+
+
+async def test_smartlogger_console_with_NDJSON():
+    logger = SmartLogger("logger")
+
+    logger.add_console(output_mode = OutputMode.NDJSON)
+    assert logger.handler_info[0]["kind"] == "console"
+
+    logger.remove_console()
+    logger.add_console(output_mode = OutputMode.PLAIN)
+    assert logger.handler_info[0]["kind"] == "console"
+
+    with pytest.raises(Exception):
+        logger.add_console(output_mode=OutputMode.COLOR)
+
+
+def test_smartlogger_blocks_multiple_console_handlers(tmp_path):
+    logger = SmartLogger("logger")
+    logger.add_file(str(tmp_path))
+
+    logger.remove_file_handler(logger.name + ".log", str(tmp_path))
+
+    assert len(logger.handler_info) == 0
+    assert logger.console_handler is None
+
+
+def test_illegal_register_level(tmp_path):
+    logger = SmartLogger("logger")
+
+    with pytest.raises(Exception):
+        logger.register_level("LEVEL", 25, LevelStyle())
+
+    with pytest.raises(Exception):
+        logger.register_level("ADD_CONSOLE", 25, LevelStyle())
+
+
+def reset_levels_for_tests():
+    LEVELS._LevelRegistry__init_builtin_levels()
+    LEVELS._LevelRegistry__cache.clear()
+
+async def test_theme():
+    reset_levels_for_tests()
+    SmartLogger.apply_color_theme(LIGHT_THEME)
+
+    info_meta = LEVELS.get("INFO")
+    assert info_meta["style"].fg == LIGHT_THEME[20].fg
+
+    reset_levels_for_tests()
+    AsyncSmartLogger.apply_color_theme(PASTEL_THEME)
+
+    info_meta = LEVELS.get("INFO")
+    assert info_meta["style"].fg == PASTEL_THEME[20].fg

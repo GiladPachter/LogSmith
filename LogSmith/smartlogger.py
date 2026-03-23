@@ -450,15 +450,6 @@ class SmartLogger:
         # Let Python logging handle hierarchy + filtering + propagation
         self.__py_logger.handle(record)
 
-    def __wrap_builtin(self, level_value: int) -> Callable[..., None]:
-        def log_method(msg=None, *args, **kwargs):
-            if msg is None:
-                msg = ""
-            if self.__py_logger.isEnabledFor(level_value):
-                self.__log(level_value, msg, args, **kwargs)
-
-        return log_method
-
     @staticmethod
     def __normalize_output_mode(mode: str | OutputMode) -> OutputMode:
         if isinstance(mode, OutputMode):
@@ -732,11 +723,11 @@ class SmartLogger:
         # Determine formatter mode
         fmt = h.formatter
         if isinstance(fmt, StructuredJSONFormatter):
-            formatter = "json"
+            formatter = "json"  # pragma: no cover
         elif isinstance(fmt, StructuredNDJSONFormatter):
-            formatter = "ndjson"
+            formatter = "ndjson"  # pragma: no cover
         elif isinstance(fmt, StructuredColorFormatter):
-            formatter = "color"
+            formatter = "color"  # pragma: no cover
         else:
             formatter = "plain"
 
@@ -771,9 +762,10 @@ class SmartLogger:
 
     @staticmethod
     def __safeguard_internals(name: str, value: int):
+        low_name = name.lower()
         # Prevent overriding internal SmartLogger attributes
-        if name in SmartLogger.__dict__:
-            raise ValueError(f"Cannot override internal SmartLogger attribute '{name}'")
+        if low_name in SmartLogger.__dict__:
+            raise ValueError(f"Cannot override internal SmartLogger attribute/property/method '{low_name}'")
 
         # Prevent duplicate level names
         if name in LEVELS.all():
@@ -817,7 +809,7 @@ class SmartLogger:
             value = meta["value"]
 
             if value not in theme:
-                continue
+                continue    # pragma: no cover
 
             style = theme[value]
 
