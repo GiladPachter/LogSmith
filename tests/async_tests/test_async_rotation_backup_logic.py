@@ -131,3 +131,56 @@ def test_rotation_no_backups(tmp_path):
     assert len(list(tmp_path.iterdir())) == 1
 
 
+def test_rollover_weekday_today_future(tmp_path):
+    from datetime import datetime
+    from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
+    from LogSmith.rotation_base import When, RotationTimestamp
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(tmp_path / "x.log"),
+        when=When.WEDNESDAY,
+        timestamp=RotationTimestamp(hour=3, minute=0, second=0),
+    )
+
+    # Fake "now" Wednesday 01:00
+    now_dt = datetime(2024, 1, 3, 1, 0, 0)  # Wednesday
+    now = now_dt.timestamp()
+
+    # noinspection PyUnresolvedReferences
+    nxt = handler._Async_TimedSizedRotatingFileHandler__compute_next_rollover(now)
+    nxt_dt = datetime.fromtimestamp(nxt)
+
+    assert nxt_dt.date() == now_dt.date()   # same day
+    assert nxt_dt.hour == 3
+
+
+def test_expiration_delete_failure(tmp_path, monkeypatch):
+    import os, time
+    from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
+    from LogSmith.rotation_base import ExpirationRule, ExpirationScale
+
+    base = tmp_path / "exp.log"
+    base.write_text("x")
+
+    old = tmp_path / "exp.log.1"
+    old.write_text("old")
+
+    # Make it old enough to expire
+    old_mtime = time.time() - 10
+    os.utime(old, (old_mtime, old_mtime))
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(base),
+        expiration_rule=ExpirationRule(ExpirationScale.Seconds, interval=5),
+    )
+
+    # Force deletion to fail
+    monkeypatch.setattr(os, "remove", lambda *args, **kwargs: (_ for _ in ()).throw(OSError()))
+
+    # noinspection PyUnresolvedReferences
+    handler._Async_TimedSizedRotatingFileHandler__apply_expiration_policy()
+
+    # File should still exist because deletion failed
+    assert old.exists()
+
+
