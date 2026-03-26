@@ -107,7 +107,13 @@ class AsyncSmartLogger:
             self.__loop = None
 
         self.__queue: asyncio.Queue[_QueueItem] = asyncio.Queue(maxsize=0)
-        self.__worker_tasks: List[asyncio.Task[None]] = [self.__loop.create_task(self.__worker())]
+
+        if self.__loop is not None:
+            self.__worker_tasks = [self.__loop.create_task(self.__worker())]
+        else:
+            # Defer worker creation until first awaited log call
+            self.__worker_tasks = None
+
         self.__worker_task: Optional[asyncio.Task[None]] = None
         self.__stopped = False
 

@@ -1,6 +1,6 @@
 import multiprocessing
 from pathlib import Path
-from LogSmith import SmartLogger
+from LogSmith.smartlogger import SmartLogger
 from LogSmith.rotation_base import RotationLogic
 
 def worker(log_dir):
