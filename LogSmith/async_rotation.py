@@ -51,6 +51,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             large_entry_behavior: Optional[LargeLogEntryBehavior] = None,
             append_filename_pid: bool = False,
             append_filename_timestamp: bool = False,
+            audit_mode: bool = False
     ) -> None:
 
         # Initialize the base class (FileHandler + parameter storage)
@@ -67,6 +68,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             append_filename_pid = append_filename_pid,
             append_filename_timestamp = append_filename_timestamp,
         )
+        self.audit_mode = audit_mode
 
         self.__last_rotation_check = 0.0
 
@@ -156,6 +158,9 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         now = time.time()
 
         formatted = self.format(record)
+
+        if self.audit_mode:
+            formatted = f"{record.name} : {formatted}"
 
         # 1. Size-based rotation BEFORE writing
         # if self.max_bytes and self.should_rotate(record):

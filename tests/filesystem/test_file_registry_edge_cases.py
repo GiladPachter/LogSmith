@@ -1,6 +1,9 @@
 import pytest
 from pathlib import Path
+
+from LogSmith import SmartLogger
 from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith.file_registry import FileHandlerRegistry
 from LogSmith.rotation_base import RotationLogic
 
 
@@ -128,3 +131,121 @@ async def test_no_global_state_leak(tmp_path):
 
     await logger1.shutdown()
     await logger2.shutdown()
+
+
+# ------------------------------------------------------------
+# 7. Basic register/unregister
+# ------------------------------------------------------------
+def test_basic_register_unregister(tmp_path):
+    p = tmp_path / "a.log"
+
+    FileHandlerRegistry.register(str(p))
+    # noinspection PyUnresolvedReferences
+    assert str(p.resolve()) in FileHandlerRegistry._FileHandlerRegistry__active_paths
+
+    FileHandlerRegistry.unregister(str(p))
+    # noinspection PyUnresolvedReferences
+    assert str(p.resolve()) not in FileHandlerRegistry._FileHandlerRegistry__active_paths
+
+
+# ------------------------------------------------------------
+# 8. Duplicate registration raises
+# ------------------------------------------------------------
+def test_duplicate_registration_raises(tmp_path):
+    p = tmp_path / "dup.log"
+
+    FileHandlerRegistry.register(str(p))
+    with pytest.raises(ValueError):
+        FileHandlerRegistry.register(str(p))
+
+    FileHandlerRegistry.unregister(str(p))
+
+
+# ------------------------------------------------------------
+# 9. Normalization: different string → same resolved path
+# ------------------------------------------------------------
+def test_normalization(tmp_path):
+    p1 = tmp_path / "norm.log"
+    p2 = Path(str(tmp_path)) / "./norm.log"
+
+    FileHandlerRegistry.register(str(p1))
+    with pytest.raises(ValueError):
+        FileHandlerRegistry.register(str(p2))
+
+    FileHandlerRegistry.unregister(str(p1))
+
+
+# ------------------------------------------------------------
+# 10. SmartLogger respects registry
+# ------------------------------------------------------------
+def test_smartlogger_respects_registry(tmp_path):
+    p = tmp_path / "s.log"
+
+    lg1 = SmartLogger("s1")
+    lg1.add_file(log_dir=str(tmp_path), logfile_name="s.log")
+
+    lg2 = SmartLogger("s2")
+    with pytest.raises(ValueError):
+        lg2.add_file(log_dir=str(tmp_path), logfile_name="s.log")
+
+    lg1.destroy()
+    FileHandlerRegistry.unregister(str(p))
+
+
+# ------------------------------------------------------------
+# 11. AsyncSmartLogger respects registry
+# ------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_asyncsmartlogger_respects_registry(tmp_path):
+    p = tmp_path / "a.log"
+
+    lg1 = AsyncSmartLogger("a1")
+    lg1.add_file(log_dir=str(tmp_path), logfile_name="a.log")
+
+    lg2 = AsyncSmartLogger("a2")
+    with pytest.raises(ValueError):
+        lg2.add_file(log_dir=str(tmp_path), logfile_name="a.log")
+
+    await lg1.shutdown()
+    FileHandlerRegistry.unregister(str(p))
+
+
+# ------------------------------------------------------------
+# 12. Removing handler cleans registry
+# ------------------------------------------------------------
+def test_remove_handler_cleans_registry(tmp_path):
+    p = tmp_path / "clean.log"
+
+    lg = SmartLogger("clean")
+    lg.add_file(log_dir=str(tmp_path), logfile_name="clean.log")
+
+    # noinspection PyUnresolvedReferences
+    assert str(p.resolve()) in FileHandlerRegistry._FileHandlerRegistry__active_paths
+
+    lg.remove_file_handler("clean.log", str(tmp_path))
+
+    # noinspection PyUnresolvedReferences
+    assert str(p.resolve()) not in FileHandlerRegistry._FileHandlerRegistry__active_paths
+
+    lg.destroy()
+
+
+# ------------------------------------------------------------
+# 13. Async remove handler cleans registry
+# ------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_async_remove_handler_cleans_registry(tmp_path):
+    p = tmp_path / "clean_async.log"
+
+    lg = AsyncSmartLogger("clean_async")
+    lg.add_file(log_dir=str(tmp_path), logfile_name="clean_async.log")
+
+    # noinspection PyUnresolvedReferences
+    assert str(p.resolve()) in FileHandlerRegistry._FileHandlerRegistry__active_paths
+
+    lg.remove_file_handler("clean_async.log", str(tmp_path))
+
+    # noinspection PyUnresolvedReferences
+    assert str(p.resolve()) not in FileHandlerRegistry._FileHandlerRegistry__active_paths
+
+    await lg.shutdown()

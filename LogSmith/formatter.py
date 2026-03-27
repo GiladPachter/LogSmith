@@ -243,6 +243,10 @@ def _extract_extras(record: logging.LogRecord) -> Mapping[str, Any]:
         k: v for k, v in record.__dict__.items() if k not in standard
     }
 
+    # Remove empty extras
+    if "extra" in extras and extras["extra"] == {}:
+        extras.pop("extra")
+
     fields = extras.get("fields", {})
     if isinstance(fields, dict):
         extras = {k: v for k, v in extras.items() if k != "fields"}

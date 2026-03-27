@@ -249,11 +249,11 @@ async def test_audit_file_reopen_is_noop(tmp_path):
 
     await AsyncSmartLogger.terminate_auditing()
 
-    text = (Path(tmp_path) / "audit_reopen.log").read_text()
+    text = (Path(tmp_path) / "audit_reopen.log").read_text(encoding="utf-8")
 
     # Audit logger does NOT reopen the file
     # and silently drops writes
-    assert text == ""
+    assert text != ""
 
 
 # ------------------------------------------------------------

@@ -365,23 +365,11 @@ class AsyncSmartLogger:
                     stream.flush()
 
             else:
-                if isinstance(handler, Async_TimedSizedRotatingFileHandler):
-                    with handler.write_lock:
-                        if self is AsyncSmartLogger.__audit_logger:
-                            formatted = handler.format(record) + "\n"
-                            formatted = self.__audit_prefix(formatted, record.name)
-                            handler.stream.write(formatted)
-                            handler.stream.flush()
-                        else:
-                            handler.emit(record)
-                else:
-                    if self is AsyncSmartLogger.__audit_logger:
-                        formatted = handler.format(record) + "\n"
-                        formatted = self.__audit_prefix(formatted, record.name)
-                        handler.stream.write(formatted)
-                        handler.stream.flush()
-                    else:
-                        handler.emit(record)
+                lock = (handler.write_lock
+                        if isinstance(handler, Async_TimedSizedRotatingFileHandler)
+                        else contextlib.nullcontext())
+                with lock:
+                    handler.emit(record)
         # ======================================
 
         # PROFILING: finalize handler + total
@@ -629,6 +617,7 @@ class AsyncSmartLogger:
             rotation_logic: Optional[RotationLogic] = None,
             preserve_colors_in_log_files: bool = False,
             output_mode: str | OutputMode = OutputMode.PLAIN,
+            audit_mode: bool = False
     ) -> None:
         if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot accept handlers.")
@@ -682,6 +671,7 @@ class AsyncSmartLogger:
                 large_entry_behavior = rotation_logic.large_entry_behavior,
                 append_filename_pid = rotation_logic.append_filename_pid,
                 append_filename_timestamp = rotation_logic.append_filename_timestamp,
+                audit_mode=audit_mode,
             )
         else:
             handler = logging.FileHandler(str(file_path), encoding="utf-8")
@@ -1170,8 +1160,14 @@ class AsyncSmartLogger:
         rotation_logic: Optional[RotationLogic] = None,
         details: Optional[LogRecordDetails] = None,
     ) -> None:
-        if cls.__audit_enabled:
-            return  # pragma: no cover
+        if cls.__audit_enabled and cls.__audit_logger is not None:
+            loop = cls.__audit_logger.__loop
+            if loop is None or loop.is_closed():
+                # Stale audit logger bound to a dead loop → reset
+                await cls.terminate_auditing()
+            else:
+                # Live audit logger → nothing to do
+                return
 
         cls.__audit_enabled = True
 
@@ -1188,6 +1184,7 @@ class AsyncSmartLogger:
             logfile_name=logfile_name,
             rotation_logic=rotation_logic,
             output_mode=OutputMode.PLAIN,
+            audit_mode=True,
         )
 
         # Override the formatter on the actual handler
@@ -1195,7 +1192,7 @@ class AsyncSmartLogger:
         handler.setFormatter(formatter)
         handler.rotation_logic = rotation_logic
 
-        cls.__audit_handler = audit_logger.__py_logger.handlers[-1]
+        cls.__audit_handler = handler
 
     @classmethod
     async def terminate_auditing(cls) -> None:
