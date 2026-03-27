@@ -13,9 +13,8 @@ from LogSmith.formatter import (
     OptionalRecordFields,
     StructuredPlainFormatter,
     StructuredJSONFormatter,
-    OutputMode,
 )
-from LogSmith.rotation_base import RotationTimestamp, RotationLogic, When, ExpirationRule, ExpirationScale
+from LogSmith.rotation_base import RotationTimestamp, RotationLogic
 from LogSmith.smartlogger import SmartLogger
 from LogSmith.colors import CPrint
 
@@ -42,17 +41,6 @@ def test_rotationlogic_validation_negative_maxbytes():
 def test_rotationlogic_validation_negative_backupcount():
     with pytest.raises(ValueError):
         RotationLogic(backupCount=-1)
-
-
-def test_rotationlogic_pid_and_timestamp_suffix(tmp_path):
-    base = tmp_path / "app.log"
-    rl = RotationLogic(append_filename_pid=True, append_filename_timestamp=True)
-    with_pid = rl._apply_pid_suffix(str(base))
-    assert f".{os.getpid()}" in with_pid
-
-    with_ts = rl._apply_timestamp_suffix(str(base))
-    assert "app_" in Path(with_ts).name
-    assert with_ts.endswith(".log")
 
 
 # =========================

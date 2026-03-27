@@ -159,31 +159,6 @@ class RotationLogic:
         self.append_filename_pid       = append_filename_pid
         self.append_filename_timestamp = append_filename_timestamp
 
-    def _apply_timestamp_suffix(self, file_path: str) -> str:
-        """
-        Insert a timestamp before the file extension.
-        Example:
-            "logs/app.log" → "logs/app_20240210_2130.log"
-        """
-        if not self.append_filename_timestamp:
-            return file_path
-
-        import datetime, os
-
-        base, ext = os.path.splitext(file_path)
-        stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"{base}_{stamp}{ext}"
-
-    def _apply_pid_suffix(self, file_path: str) -> str:
-        if not self.append_filename_pid:
-            return file_path
-
-        import os
-        pid = os.getpid()
-
-        base, ext = os.path.splitext(file_path)
-        return f"{base}.{pid}{ext}"
-
 
 class BaseTimedSizedRotatingFileHandler(ABC, BaseRotatingHandler):
     """
