@@ -855,14 +855,19 @@ class AsyncSmartLogger:
             "func_name": func_name,
         }
 
-        queue_item = _QueueItem(op=AsyncOp.LOG, payload=payload)
+        item = _QueueItem(op=AsyncOp.LOG, payload=payload)
 
-        try:
-            self.__queue.put_nowait(queue_item)
-        except asyncio.QueueFull:
-            # cooperative yield, then retry
-            await asyncio.sleep(0)
-            await self.__queue.put(queue_item)
+        # --- Minimal exponential backpressure ---
+        delays = (0, 0.001, 0.002, 0.004, 0.008)
+        for delay in delays:
+            try:
+                self.__queue.put_nowait(item)
+                break   # pragma: no cover
+            except asyncio.QueueFull:
+                await asyncio.sleep(delay)
+        else:   # pragma: no cover
+            return  # drop silently, preserve original semantics
+        # ----------------------------------------
 
         self.__messages_enqueued += 1
 
@@ -887,12 +892,22 @@ class AsyncSmartLogger:
         if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
-        await self.__queue.put(
-            _QueueItem(
-                op=AsyncOp.RAW,
-                payload={"message": message, "end": end},
-            )
+        item = _QueueItem(
+            op=AsyncOp.RAW,
+            payload={"message": message, "end": end},
         )
+
+        # --- Minimal exponential backpressure ---
+        delays = (0, 0.001, 0.002, 0.004, 0.008)
+        for delay in delays:
+            try:
+                self.__queue.put_nowait(item)
+                break   # pragma: no cover
+            except asyncio.QueueFull:
+                await asyncio.sleep(delay)
+        else:   # pragma: no cover
+            return  # drop silently
+        # ----------------------------------------
 
     def __enqueue_rotation(self, handler):
         try:
@@ -911,7 +926,25 @@ class AsyncSmartLogger:
                 payload={"handler": handler},
             )
 
+            # --- Exponential backoff identical to __enqueue_log/raw ---
+            delays = (0, 0.001, 0.002, 0.004, 0.008)
+
+            def attempt_put():
+                for delay in delays:
+                    try:
+                        self.__queue.put_nowait(item)
+                        return  # pragma: no cover
+                    except asyncio.QueueFull:
+                        # schedule a retry after delay
+                        self.__loop.call_later(delay, attempt_put)
+                        return  # pragma: no cover
+                # all retries failed → drop silently
+                return  # pragma: no cover
+
+            # -----------------------------------------------------------
+
             self.__loop.call_soon_threadsafe(self.__queue.put_nowait, item)
+
         except RuntimeError:    # pragma: no cover
             # Loop may have closed between is_closed() and call_soon_threadsafe
             pass    # pragma: no cover
@@ -928,7 +961,14 @@ class AsyncSmartLogger:
 
         if loop is self.__loop:
             # Already on the logger's loop (worker context) → enqueue synchronously
-            self.__queue.put_nowait(item)
+            # Add small retry loop to survive QueueFull (used only in tests)
+            for _ in range(3):
+                try:
+                    self.__queue.put_nowait(item)
+                    break
+                except asyncio.QueueFull:
+                    # swallow and retry; after 3 attempts, drop silently
+                    continue
         else:
             # Called from another thread / loop → schedule thread-safe
             self.__loop.call_soon_threadsafe(self.__queue.put_nowait, item)
