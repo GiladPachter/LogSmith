@@ -146,55 +146,59 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         return projected >= self.max_bytes
 
-    def emit(self, record):
-        # Ensure stream open
-        if self.stream is None or getattr(self.stream, "closed", False):
-            try:
-                self.acquire()
+    def emit(self, record) -> None:
+        """
+        Async-safe emit:
+        - decides rotation (size/time/large-entry)
+        - schedules rotation via rotation_callback
+        - writes synchronously under write_lock
+        """
+        try:
+            # Ensure stream is open
+            if self.stream is None or getattr(self.stream, "closed", False):
                 self.stream = self._open()
-            finally:
-                self.release()
 
-        now = time.time()
+            formatted = self.format(record)
 
-        formatted = self.format(record)
+            if self.audit_mode:
+                formatted = f"{record.name} : {formatted}"
 
-        if self.audit_mode:
-            formatted = f"{record.name} : {formatted}"
+            msg = formatted + "\n"
 
-        # 1. Size-based rotation BEFORE writing
-        # if self.max_bytes and self.should_rotate(record):
-        if self.max_bytes and self.__size_would_exceed(formatted):
-            if self.rotation_callback and not self.__rotation_scheduled:
-                self.__rotation_scheduled = True
-                self.rotation_callback(self)
+            # 1. Large-entry behavior (mirrors Concurrent handler semantics)
+            decision = self.__async_large_entry_decision(formatted)
 
-        # 2. Large-entry behavior (async-safe)
-        decision = self.__async_large_entry_decision(formatted)
+            if decision is self.__AsyncLargeEntryDecision.DROP:
+                return  # drop silently
 
-        if decision is self.__AsyncLargeEntryDecision.DROP:
-            return  # pragma: no cover
+            if decision is self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
+                self.__schedule_rotation()
 
-        if decision is self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
-            if self.rotation_callback and not self.__rotation_scheduled:
-                self.__rotation_scheduled = True
-                self.rotation_callback(self)
+            # 2. Size/time-based rotation (normal path)
+            #    Only if we didn't already decide to rotate for large-entry reasons
+            elif self.__should_rotate(record):
+                self.__schedule_rotation()
 
-        # 3. Write normally (no synchronous rotation)
-        logging.FileHandler.emit(self, record)
+            # 3. Write under lock
+            with self.write_lock:
+                # Re-check stream in case rotation closed/reopened it
+                if self.stream is None or getattr(self.stream, "closed", False):
+                    self.stream = self._open()
+                self.stream.write(msg)
+                self.stream.flush()
 
-        # 4. Time-based rotation (throttled)
-        if self.when is not None:
-            if now - self.__last_rotation_check >= 0.25:
-                self.__last_rotation_check = now
-                if self.__should_rotate(record):
-                    if self.rotation_callback and not self.__rotation_scheduled:
-                        self.__rotation_scheduled = True
-                        self.rotation_callback(self)
+        except Exception:
+            self.handleError(record)
 
-    # ------------------------------------------------------------------
-    #  PERFORM ROTATION (executed by AsyncSmartLogger worker)
-    # ------------------------------------------------------------------
+    def __schedule_rotation(self) -> None:
+        """
+        Helper: schedule async rotation exactly once per need.
+        """
+        if self.rotation_callback and not self.__rotation_scheduled:
+            self.__rotation_scheduled = True
+            # AsyncSmartLogger.__enqueue_rotation will enqueue ROTATE
+            self.rotation_callback(self)
+
     def _rotation_suffix(self) -> str:
         parts = []
         if self.append_filename_pid:

@@ -277,17 +277,14 @@ class AsyncSmartLogger:
             if hasattr(handler, "baseFilename"):
                 if getattr(handler, "preserve_colors_in_log_files", False):
                     sanitize = False
-                break   # pragma: no cover
+                break
 
         if sanitize:
             msg = CPrint.strip_ansi(msg)
 
-        # Build unified structured args (like SmartLogger kwargs)
         merged_kwargs = {}
-
         if extra:
             merged_kwargs["extra"] = extra
-
         if fields:
             merged_kwargs["fields"] = fields
 
@@ -295,7 +292,6 @@ class AsyncSmartLogger:
         if self.__profile_enabled:
             t_find = time.perf_counter()
 
-        # Resolve caller (still using payload for now)
         pathname = payload["pathname"]
         lineno = payload["lineno"]
         func_name = payload["func_name"]
@@ -305,7 +301,7 @@ class AsyncSmartLogger:
 
         sinfo = "".join(traceback.format_stack()) if stack_info_flag else None
 
-        # AUDIT
+        # AUDIT (unchanged)
         if (
                 AsyncSmartLogger.__audit_enabled
                 and AsyncSmartLogger.__audit_logger is not None
@@ -353,106 +349,12 @@ class AsyncSmartLogger:
         if self.__profile_enabled:
             t_handlers = time.perf_counter()
 
-        # ======================================
+        # === NEW: delegate to logging + handlers, no special-casing ===
         for handler in self.__py_logger.handlers:
-            formatter = handler.formatter
-
-            # JSON / NDJSON handlers
-            if isinstance(formatter, (StructuredJSONFormatter, StructuredNDJSONFormatter)):
-                try:
-                    formatted = await asyncio.to_thread(formatter.format, record) + "\n"
-                except Exception:  # pragma: no cover
-                    print("LogSmith: formatter error", file=sys.stderr)
-                    continue
-
-                if self is AsyncSmartLogger.__audit_logger:
-                    formatted = self.__audit_prefix(formatted, record.name)
-
-                # stream = getattr(handler, "stream", None)
-                stream = handler.stream
-                if (stream is None or getattr(stream, "closed", False)) and hasattr(handler, "_open"):
-                    try:
-                        handler.acquire()
-                        # noinspection PyProtectedMember
-                        handler.stream = handler._open()
-
-                    finally:
-                        handler.release()
-                    stream = handler.stream
-
-                if stream is None:
-                    continue  # pragma: no cover
-
-                if isinstance(handler, Async_TimedSizedRotatingFileHandler):
-                    # Explicit async rotation + write
-                    try:
-                        # noinspection PyProtectedMember
-                        if handler._Async_TimedSizedRotatingFileHandler__should_rotate(record):
-                            if handler.rotation_callback is not None:
-                                handler.rotation_callback(handler)
-                    except Exception:
-                        pass
-
-                    # Use handler's formatter
-                    try:
-                        formatted = handler.format(record) + "\n"
-                    except Exception:
-                        continue
-
-                    if not hasattr(handler, "_debug_write_target_printed"):
-                        print("WRITE TARGET 1:", handler.baseFilename)
-                        handler._debug_write_target_printed = True
-
-                    with handler.write_lock:
-                        stream.write(formatted)
-                        stream.flush()
-                else:
-                    stream.write(formatted)
-                    stream.flush()
-
-            # Non‑JSON handlers
-            else:
-                if isinstance(handler, Async_TimedSizedRotatingFileHandler):
-                    # Ensure stream is open
-                    # stream = getattr(handler, "stream", None)
-                    stream = handler.stream
-                    if (stream is None or getattr(stream, "closed", False)) and hasattr(handler, "_open"):
-                        try:
-                            handler.acquire()
-                            # noinspection PyProtectedMember
-                            handler.stream = handler._open()
-                        finally:
-                            handler.release()
-                        stream = handler.stream
-
-                    if stream is None:
-                        continue  # pragma: no cover
-
-                    # Decide rotation explicitly
-                    try:
-                        # noinspection PyProtectedMember
-                        if handler._Async_TimedSizedRotatingFileHandler__should_rotate(record):
-                            if handler.rotation_callback is not None:
-                                handler.rotation_callback(handler)
-                    except Exception:
-                        pass
-
-                    # Use handler's formatter
-                    try:
-                        formatted = handler.format(record) + "\n"
-                    except Exception:  # pragma: no cover
-                        continue
-
-                    if not hasattr(handler, "_debug_write_target_printed"):
-                        print("WRITE TARGET 2:", handler.baseFilename)
-                        handler._debug_write_target_printed = True
-
-                    with handler.write_lock:
-                        stream.write(formatted)
-                        stream.flush()
-                else:
-                    handler.emit(record)
-        # ======================================
+            # Let logging filters run
+            if not handler.filter(record):
+                continue
+            handler.handle(record)
 
         # PROFILING: finalize handler + total
         if self.__profile_enabled:
@@ -463,7 +365,6 @@ class AsyncSmartLogger:
             self.__profile_stats["total"] += total
             self.__profile_stats["count"] += 1
 
-            # steady vs spike
             if total < 0.0005:
                 self.__profile_stats["steady_count"] += 1
                 self.__profile_stats["steady_total"] += total
@@ -526,8 +427,6 @@ class AsyncSmartLogger:
 
         with handler.write_lock:
             await asyncio.to_thread(handler.perform_rotation)
-
-        setattr(handler, "_rotation_enqueued", False)
 
         if self.__profile_enabled:
             self.__profile_stats["rotation_time"] += time.perf_counter() - t0
@@ -1019,11 +918,6 @@ class AsyncSmartLogger:
             if real is None:
                 return  # nothing to rotate
             handler = real
-
-        # Per-handler dedupe
-        if getattr(handler, "_rotation_enqueued", False):
-            return
-        setattr(handler, "_rotation_enqueued", True)
 
         # Ensure we know the loop and its thread if we're in a running loop
         if self.__loop is None:
