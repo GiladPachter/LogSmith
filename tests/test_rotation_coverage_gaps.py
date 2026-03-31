@@ -1,7 +1,12 @@
+import asyncio
+import logging
 import os
 import time
 import pytest
 from pathlib import Path
+
+from LogSmith import AsyncSmartLogger
+from LogSmith.async_smartlogger import AsyncOp
 from LogSmith.rotation import ConcurrentTimedSizedRotatingFileHandler
 from LogSmith.rotation_base import (
     RotationLogic,
@@ -174,3 +179,234 @@ def test_expiration_policy(tmp_path):
 
     remaining = list(tmp_path.glob("exp.log.*"))
     assert len(remaining) == 1  # only the newest survives
+
+
+@pytest.mark.asyncio
+async def test_rotation_callback_never_raises_even_if_queuefull(monkeypatch, tmp_path):
+    lg = AsyncSmartLogger("rot_cb_never_raises")
+    logic = RotationLogic(maxBytes=10, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    class AlwaysFull:
+        def __init__(self):
+            self.calls = 0
+        def boom(self, *a, **kw):
+            self.calls += 1
+            raise asyncio.QueueFull
+
+    full = AlwaysFull()
+    monkeypatch.setattr(lg._AsyncSmartLogger__queue, "put_nowait", full.boom)
+
+    # Should not raise
+    handler.rotation_callback(handler)
+
+    await asyncio.sleep(0.05)
+    assert full.calls >= 3
+
+
+@pytest.mark.asyncio
+async def test_rotation_callback_ignored_after_shutdown(tmp_path):
+    lg = AsyncSmartLogger("rot_after_shutdown")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    await lg.shutdown()
+
+    # Should not raise and should not enqueue
+    handler.rotation_callback(handler)
+
+    # Queue should remain empty
+    assert lg._AsyncSmartLogger__queue.qsize() == 0
+
+
+@pytest.mark.asyncio
+async def test_rotation_callback_many_calls(tmp_path, monkeypatch):
+    lg = AsyncSmartLogger("rot_many")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    events = []
+
+    def fake_put_nowait(item):
+        events.append(item)
+
+    monkeypatch.setattr(lg._AsyncSmartLogger__queue, "put_nowait", fake_put_nowait)
+
+    # Call rotation callback many times
+    for _ in range(20):
+        handler.rotation_callback(handler)
+
+    await asyncio.sleep(0.05)
+
+    # Still only one rotation event should have been enqueued
+    assert sum(1 for e in events if e.op is AsyncOp.ROTATE) == 1
+
+    await lg.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_rotation_callback_starts_worker(tmp_path):
+    lg = AsyncSmartLogger("rot_start_worker")
+    lg._AsyncSmartLogger__worker_tasks = None  # simulate no worker
+
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    handler.rotation_callback(handler)
+
+    await asyncio.sleep(0.05)
+
+    assert lg._AsyncSmartLogger__worker_tasks is not None
+    assert lg._AsyncSmartLogger__queue.qsize() == 1
+
+    # prevent dangling tasks
+    await lg.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_rotation_callback_after_retire(tmp_path):
+    lg = AsyncSmartLogger("rot_after_retire")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    lg.retire()
+
+    handler.rotation_callback(handler)
+
+    await asyncio.sleep(0.05)
+
+    assert lg._AsyncSmartLogger__queue.qsize() == 0
+
+
+@pytest.mark.asyncio
+async def test_rotation_callback_queuefull_retry(tmp_path, monkeypatch):
+    lg = AsyncSmartLogger("rot_retry")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    class AlwaysFull:
+        def __init__(self):
+            self.calls = 0
+        def boom(self, *a, **kw):
+            self.calls += 1
+            raise asyncio.QueueFull
+
+    full = AlwaysFull()
+    monkeypatch.setattr(lg._AsyncSmartLogger__queue, "put_nowait", full.boom)
+
+    handler.rotation_callback(handler)
+
+    await asyncio.sleep(0.05)
+
+    assert full.calls >= 3
+
+
+@pytest.mark.asyncio
+async def test_rotation_callback_no_duplicate_events(tmp_path, monkeypatch):
+    lg = AsyncSmartLogger("rot_no_dupes")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    events = []
+
+    def fake_put_nowait(item):
+        events.append(item)
+
+    monkeypatch.setattr(lg._AsyncSmartLogger__queue, "put_nowait", fake_put_nowait)
+
+    # Trigger twice
+    handler.rotation_callback(handler)
+    handler.rotation_callback(handler)
+
+    await asyncio.sleep(0.05)
+
+    # Only one rotation event should have been enqueued
+    assert sum(1 for e in events if e.op is AsyncOp.ROTATE) == 1
+
+    await lg.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_rotation_callback_before_worker_started(tmp_path):
+    lg = AsyncSmartLogger("rot_before_worker", level=logging.INFO)
+    lg._AsyncSmartLogger__worker_tasks = None  # simulate no worker yet
+
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    handler.rotation_callback(handler)
+
+    await asyncio.sleep(0.05)
+    assert lg._AsyncSmartLogger__worker_tasks is not None
+
+    # Prevent dangling tasks
+    await lg.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_rotation_occurs_under_concurrency(tmp_path):
+    lg = AsyncSmartLogger("rot_concurrency")
+    logic = RotationLogic(maxBytes=50, backupCount=3)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    async def spam():
+        for _ in range(200):
+            await lg.a_info("x" * 200)
+
+    await asyncio.gather(*(spam() for _ in range(5)))
+    await lg.flush()
+
+    rotated = list(tmp_path.glob("rot.log.*"))
+    assert len(rotated) >= 1
+
+
+@pytest.mark.asyncio
+async def test_enqueue_log_backpressure_retries(monkeypatch):
+    lg = AsyncSmartLogger("bp_log")
+
+    class AlwaysFull:
+        def __init__(self):
+            self.calls = 0
+        def boom(self, *a, **kw):
+            self.calls += 1
+            raise asyncio.QueueFull
+
+    full = AlwaysFull()
+    monkeypatch.setattr(lg._AsyncSmartLogger__queue, "put_nowait", full.boom)
+
+    await lg.a_info("hello")
+
+    # Should have attempted retries
+    assert full.calls >= 3
+
+
+@pytest.mark.asyncio
+async def test_flush_waits_for_rotation(tmp_path):
+    lg = AsyncSmartLogger("flush_rot")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
+
+    # Force rotation
+    for _ in range(10):
+        await lg.a_info("x" * 100)
+
+    await lg.flush()
+
+    rotated = list(tmp_path.glob("rot.log.*"))
+    assert len(rotated) >= 1
