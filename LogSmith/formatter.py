@@ -266,7 +266,7 @@ class StructuredPlainFormatter:
     def __init__(self, details: LogRecordDetails) -> None:
         if details is None:
             details = LogRecordDetails()
-        self._details = details
+        self._details = details or LogRecordDetails()
 
     @staticmethod
     def __format_exc_info(record: logging.LogRecord) -> str:
@@ -604,10 +604,13 @@ class AuditFormatter(logging.Formatter):
     originating logger's name.
     """
 
-    def __init__(self, details: LogRecordDetails):
+    def __init__(self, details: LogRecordDetails | None = None, NDJSON_output: bool = False):
         super().__init__()
-        self.details = details
-        self.structured = StructuredPlainFormatter(details)
+        self.details = details or LogRecordDetails()
+        if NDJSON_output:
+            self.structured = StructuredNDJSONFormatter(self.details)
+        else:
+            self.structured = StructuredPlainFormatter(self.details)
 
     def format(self, record: logging.LogRecord) -> str:
         prefix = f"[{record.name}]: "

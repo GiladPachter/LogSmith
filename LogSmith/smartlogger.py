@@ -943,6 +943,7 @@ class SmartLogger:
         logfile_name: str,
         rotation_logic: RotationLogic | None = None,
         details: LogRecordDetails | None = None,
+        NDJSON_output: bool = False,
     ) -> None:
         """
         Enable global auditing of all SmartLogger instances.
@@ -963,6 +964,8 @@ class SmartLogger:
         details : LogRecordDetails | None
             Formatting details for audit entries. If None, defaults to
             SmartLogger's global default LogRecordDetails.
+        NDJSON_output : bool | None
+            Optional formatting style of audited log entries.
         """
         if rotation_logic is not None and not isinstance(rotation_logic, RotationLogic):
             raise ValueError("rotation_logic must be a RotationLogic instance or None")
@@ -982,7 +985,7 @@ class SmartLogger:
         if details is None:
             details = LogRecordDetails()
 
-        handler.setFormatter(AuditFormatter(details))
+        handler.setFormatter(AuditFormatter(details, NDJSON_output))
 
         # Attach to root logger
         root = logging.getLogger()

@@ -1192,7 +1192,30 @@ class AsyncSmartLogger:
         logfile_name: str,
         rotation_logic: Optional[RotationLogic] = None,
         details: Optional[LogRecordDetails] = None,
+        NDJSON_output: bool = False,
     ) -> None:
+        """
+        Enable global auditing of all SmartLogger instances.
+
+        All log records emitted by any SmartLogger will be duplicated into
+        a single audit log file. The audit handler uses AuditFormatter,
+        which preserves ANSI and formats records using the provided
+        LogRecordDetails.
+
+        Parameters
+        ----------
+        log_dir : str
+            Directory where the audit log file will be created.
+        logfile_name : str
+            Name of the audit log file.
+        rotation_logic : RotationLogic | None
+            Optional rotation configuration.
+        details : LogRecordDetails | None
+            Formatting details for audit entries. If None, defaults to
+            SmartLogger's global default LogRecordDetails.
+        NDJSON_output : bool | None
+            Optional formatting style of audited log entries.
+        """
         if cls.__audit_enabled and cls.__audit_logger is not None:
             loop = cls.__audit_logger.__loop
             if loop is None or loop.is_closed():
@@ -1210,7 +1233,7 @@ class AsyncSmartLogger:
         if details is None:
             details = LogRecordDetails()
 
-        formatter = AuditFormatter(details)
+        formatter = AuditFormatter(details, NDJSON_output)
 
         audit_logger.add_file(
             log_dir=log_dir,
