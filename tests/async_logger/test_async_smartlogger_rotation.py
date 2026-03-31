@@ -89,19 +89,18 @@ async def test_rotation_enqueue_cross_thread(tmp_path):
 
     handler = lg._AsyncSmartLogger__py_logger.handlers[0]
 
+    # Write enough to trigger rollover
     def call_from_thread():
-        record = logging.LogRecord(
+        # This forces the handler to check rollover and call the callback internally
+        handler.emit(handler.format(logging.LogRecord(
             name="x",
             level=20,
             pathname=__file__,
             lineno=1,
             msg="X",
             args=(),
-            exc_info=None,
-        )
-        # Write multiple times so rotation has a non-empty file to rotate
-        for _ in range(3):
-            handler.emit(record)
+            exc_info=None
+        )))
 
     t = threading.Thread(target=call_from_thread)
     t.start()
