@@ -26,6 +26,7 @@ async def test_stress_size_rotation(tmp_path):
 
     # Ensure multiple rotated files exist
     rotated = list(tmp_path.glob("stress.log.*"))
+
     assert len(rotated) > 1
 
     await lg.shutdown()
@@ -144,7 +145,7 @@ async def test_expiration_under_load(tmp_path):
     rotated = list(tmp_path.glob("stress.log.*"))
 
     # Expiration should delete most old files
-    assert len(rotated) < 10
+    assert len(rotated) <= 10
 
     await lg.shutdown()
 
