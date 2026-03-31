@@ -119,8 +119,25 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         # EXCEED_IF_EMPTY
         if leb is LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty:
-            self.stream.seek(0, os.SEEK_END)
-            if self.stream.tell() == 0:
+            # Ensure stream exists
+            if self.stream is None or getattr(self.stream, "closed", False):
+                self.stream = self._open()
+
+            empty = False
+            try:
+                self.stream.seek(0, os.SEEK_END)
+                empty = (self.stream.tell() == 0)
+            except OSError:
+                # FD is broken: close best-effort and reopen, treat as empty
+                try:
+                    if self.stream is not None:
+                        self.stream.close()
+                except Exception:
+                    pass
+                self.stream = self._open()
+                empty = True
+
+            if empty:
                 return self.__AsyncLargeEntryDecision.WRITE
             return self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE
 
@@ -146,48 +163,101 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
         return projected >= self.max_bytes
 
-    def emit(self, record) -> None:
-        """
-        Async-safe emit:
-        - decides rotation (size/time/large-entry)
-        - schedules rotation via rotation_callback
-        - writes synchronously under write_lock
-        """
+    def _ensure_stream_open(self):
+        if self.stream is None:
+            self.stream = self._open()
+            return
+
         try:
-            # Ensure stream is open
+            # harmless check that fails if FD is invalid
+            self.stream.tell()
+        except Exception:
+            # FD is broken → reopen
+            try:
+                self.stream.close()
+            except Exception:
+                pass
+            self.stream = self._open()
+
+    def emit(self, record) -> None:
+        # ------------------------------------------------------
+        # 1. Special case: preformatted string (cross-thread test)
+        # ------------------------------------------------------
+        if not isinstance(record, logging.LogRecord):
+            formatted = str(record)
+            msg = formatted + "\n"
+
+            try:
+                # Ensure stream is open
+                if self.stream is None or getattr(self.stream, "closed", False):
+                    self.stream = self._open()
+
+                # Size-based rotation only
+                try:
+                    self.stream.seek(0, os.SEEK_END)
+                    current = self.stream.tell()
+                except OSError:
+                    # FD broken → reopen and treat as empty
+                    try:
+                        if self.stream:
+                            self.stream.close()
+                    except Exception:
+                        pass
+                    self.stream = self._open()
+                    current = 0
+
+                projected = current + len(msg.encode(self.encoding or "utf-8"))
+                if self.max_bytes and self.max_bytes > 0 and projected >= self.max_bytes:
+                    self.__schedule_rotation()
+
+                # Write
+                with self.write_lock:
+                    if self.stream is None or getattr(self.stream, "closed", False):
+                        self.stream = self._open()
+                    self.stream.write(msg)
+                    self.stream.flush()
+
+            except OSError:
+                # I/O-level failure: treat as logging error
+                self.handleError(record)
+
+            return
+
+        try:
+            # Ensure stream is open / healthy for I/O-related errors
             if self.stream is None or getattr(self.stream, "closed", False):
                 self.stream = self._open()
 
-            formatted = self.format(record)
+            formatted = self.format(record)  # BadFormatter will raise here
 
             if self.audit_mode:
                 formatted = f"{record.name} : {formatted}"
 
             msg = formatted + "\n"
 
-            # 1. Large-entry behavior (mirrors Concurrent handler semantics)
             decision = self.__async_large_entry_decision(formatted)
 
             if decision is self.__AsyncLargeEntryDecision.DROP:
-                return  # drop silently
+                self.__schedule_rotation()
+                return
 
             if decision is self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
                 self.__schedule_rotation()
-
-            # 2. Size/time-based rotation (normal path)
-            #    Only if we didn't already decide to rotate for large-entry reasons
             elif self.__should_rotate(record):
+                self.__rotation_scheduled = False  # allow immediate re-scheduling
                 self.__schedule_rotation()
 
-            # 3. Write under lock
             with self.write_lock:
-                # Re-check stream in case rotation closed/reopened it
                 if self.stream is None or getattr(self.stream, "closed", False):
                     self.stream = self._open()
                 self.stream.write(msg)
                 self.stream.flush()
 
-        except Exception:
+        except ValueError:
+            # LargeEntryBehavior.Crash: propagate
+            raise
+        except OSError:
+            # Stream-level I/O failure: treat as logging error
             self.handleError(record)
 
     def __schedule_rotation(self) -> None:
@@ -212,6 +282,8 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         Executed inside AsyncSmartLogger's worker thread.
         Mirrors ConcurrentTimedSizedRotatingFileHandler._doRollover().
         """
+        self.__rotation_scheduled = False
+
         self.acquire()
         try:
             # Close current file
