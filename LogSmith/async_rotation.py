@@ -242,7 +242,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
                 return
 
             if decision is self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
-                self.__schedule_rotation()
+                self.perform_rotation()
             elif self.__should_rotate(record):
                 self.__rotation_scheduled = False  # allow immediate re-scheduling
                 self.__schedule_rotation()
