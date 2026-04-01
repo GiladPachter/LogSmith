@@ -260,8 +260,17 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         except ValueError:
             # LargeEntryBehavior.Crash: propagate
             raise
+
         except OSError:
-            # Stream-level I/O failure: treat as logging error
+            # If rotation was triggered by size, propagate the failure
+            if self.max_bytes and self.max_bytes > 0:
+                raise
+
+            # If RotateFirst triggered rotation, propagate the failure
+            if self.large_entry_behavior == LargeLogEntryBehavior.RotateFirst:
+                raise
+
+            # Otherwise treat as logging error
             self.handleError(record)
 
     def __schedule_rotation(self) -> None:
@@ -286,6 +295,10 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         Executed inside AsyncSmartLogger's worker thread.
         Mirrors ConcurrentTimedSizedRotatingFileHandler._doRollover().
         """
+        # Before rotation, ensure the base file exists
+        if not os.path.exists(self.baseFilename):
+            open(self.baseFilename, "w").close()
+
         self.__rotation_scheduled = False
 
         self.acquire()
