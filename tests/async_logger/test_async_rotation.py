@@ -106,12 +106,21 @@ def test_large_entry_rotate_first(tmp_path):
         large_entry_behavior=LargeLogEntryBehavior.RotateFirst,
     )
 
+    handler.setFormatter(logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)s %(message)s"))
+
     cb = Mock()
     handler.rotation_callback = cb
 
     write(handler, "X" * 100)
 
-    cb.assert_called_once()
+    # RotateFirst rotates synchronously → callback is NOT used
+    cb.assert_not_called()
+
+    # The rotated file must exist
+    rotated = tmp_path / "test.log.1"
+    assert rotated.exists()
+
+    # The new file must contain the entry
     assert file.read_text() != ""
 
 

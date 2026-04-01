@@ -114,7 +114,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             )
 
         # ROTATE FIRST
-        if leb is LargeLogEntryBehavior.RotateFirst:
+        if leb == LargeLogEntryBehavior.RotateFirst:
             return self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE
 
         # EXCEED_IF_EMPTY
@@ -243,7 +243,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
             if decision is self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
                 self.perform_rotation()
-            elif self.__should_rotate(record):
+            elif self.__should_rotate(formatted):
                 self.__rotation_scheduled = False  # allow immediate re-scheduling
                 self.__schedule_rotation()
 
@@ -321,8 +321,16 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
                 if os.path.exists(dfn):
                     os.remove(dfn)
+
+                is_rotate_first = (
+                    self.large_entry_behavior == LargeLogEntryBehavior.RotateFirst
+                )
+
                 if os.path.exists(self.baseFilename):
                     os.replace(self.baseFilename, dfn)
+                elif is_rotate_first:
+                    # RotateFirst must create an empty rotated file even if base doesn't exist
+                    open(dfn, "w").close()
 
             # Reopen base file
             self.stream = self._open()
@@ -341,7 +349,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             self.release()
             self.__rotation_scheduled = False
 
-    def __should_rotate(self, record: logging.LogRecord) -> bool:
+    def __should_rotate(self, formatted) -> bool:
         """
         Async equivalent of ConcurrentTimedSizedRotatingFileHandler.shouldRollover().
         Decides if rotation should occur (size and/or time).
@@ -354,7 +362,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         # SIZE-BASED ROTATION
         # ----------------------------------------------------------
         if self.max_bytes and self.max_bytes > 0:
-            msg = f"{self.format(record)}\n"
+            msg = f"{formatted}\n"
             self.stream.seek(0, os.SEEK_END)
             current_size = self.stream.tell()
             projected = current_size + len(msg.encode(self.encoding or "utf-8"))
