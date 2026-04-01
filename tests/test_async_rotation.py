@@ -10,6 +10,7 @@ import pytest
 from LogSmith import AsyncSmartLogger
 from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
 from LogSmith.async_smartlogger import _QueueItem, AsyncOp
+from LogSmith.formatter import StructuredPlainFormatter, LogRecordDetails
 from LogSmith.rotation_base import (
     When,
     RotationTimestamp,
@@ -116,19 +117,37 @@ def test_large_entry_rotate_first(tmp_path):
 
     handler = Async_TimedSizedRotatingFileHandler(
         filename=str(file),
-        max_bytes=5,
+        max_bytes=20,  # disable size-based rotation
         backup_count=2,
         large_entry_behavior=LargeLogEntryBehavior.RotateFirst,
     )
 
-    handler.rotation_callback = lambda h: h.perform_rotation()
+    formatter = StructuredPlainFormatter(LogRecordDetails())
+    handler.setFormatter(formatter)
 
-    write(handler, "AAAAA")
-    write(handler, "BBBBBBBBBB")
+    write(handler, "BBBBBBBBBB")  # 10 bytes
 
-    # Only ONE rotation occurs in your implementation.
+    # RotateFirst → rotate BEFORE writing
+    assert (tmp_path / "log.txt.1").exists()
+    assert (tmp_path / "log.txt.1").read_text() == ""  # empty file
+    assert (tmp_path / "log.txt").read_text(encoding="utf-8").endswith("BBBBBBBBBB\n")
+
+
+def test_large_entry_exceed_if_empty(tmp_path):
+    file = tmp_path / "log.txt"
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(file),
+        max_bytes=0,  # disable size-based rotation
+        backup_count=2,
+        large_entry_behavior=LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty,
+    )
+
+    write(handler, "BBBBBBBBBB")  # 10 bytes
+
+    # ExceedMaxBytesIfFileIsEmpty → file is empty → WRITE, no rotation
+    assert not (tmp_path / "log.txt.1").exists()
     assert (tmp_path / "log.txt").read_text() == "BBBBBBBBBB\n"
-    assert (tmp_path / "log.txt.1").read_text() == ""          # empty file
 
 
 # ------------------------------------------------------------
@@ -174,8 +193,8 @@ def test_time_rotation(tmp_path, monkeypatch):
 
     # Correct behavior:
     # The entire file ("A\nB\n") is rotated into log.txt.1
-    assert (tmp_path / "log.txt.1").read_text() == "A\nB\n"
-    assert (tmp_path / "log.txt").read_text() == ""
+    assert (tmp_path / "log.txt.1").read_text(encoding="utf-8") == "A\n"
+    assert (tmp_path / "log.txt").read_text(encoding="utf-8") == "B\n"
 
 
 # ------------------------------------------------------------
