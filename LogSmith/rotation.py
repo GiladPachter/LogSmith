@@ -117,6 +117,10 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
             except Exception:   # pragma: no cover
                 pass    # pragma: no cover
 
+    def handleError(self, record):
+        # Silence internal logging errors
+        pass
+
     def __rollover_interval_seconds(self) -> float:
         if self.when == When.SECOND:
             return self.interval

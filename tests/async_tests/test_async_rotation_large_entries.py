@@ -73,7 +73,11 @@ async def test_large_entry_crash(tmp_path):
 @pytest.mark.asyncio
 async def test_large_entry_rotate_first(tmp_path):
     cb = DummyCallback()
-    handler, log_file = make_handler(tmp_path, LargeLogEntryBehavior.RotateFirst, max_bytes=5)
+    handler, log_file = make_handler(
+        tmp_path,
+        LargeLogEntryBehavior.RotateFirst,
+        max_bytes=5,
+    )
     handler.rotation_callback = cb
 
     record = logging.LogRecord(
@@ -88,9 +92,14 @@ async def test_large_entry_rotate_first(tmp_path):
 
     handler.emit(record)
 
-    # Rotation was scheduled
-    assert cb.called_with == [handler]
-    # And the entry was still written (after rotation)
+    # RotateFirst rotates synchronously → callback is NOT used
+    assert cb.called_with == []
+
+    # The rotated file must exist
+    rotated = tmp_path / "large_entry.log.1"
+    assert rotated.exists()
+
+    # And the entry was written to the new base file
     assert log_file.exists()
     assert "123456789" in log_file.read_text()
 

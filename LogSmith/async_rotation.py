@@ -86,6 +86,10 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         if self.when is not None:
             self.__rollover_at = self.__compute_initial_rollover()
 
+    def handleError(self, record):
+        # Silence internal logging errors
+        pass
+
     # ------------------------------------------------------------------
     #  EMIT (detect rotation, schedule async rotation)
     # ------------------------------------------------------------------
