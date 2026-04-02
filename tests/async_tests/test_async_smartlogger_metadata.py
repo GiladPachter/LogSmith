@@ -54,6 +54,10 @@ async def test_metadata_audit_prefix(tmp_path):
     assert "app_logger" in text
     assert "hello audit" in text
 
+    logger.destroy()
+
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_metadata_preserve_colors_in_file(tmp_path):

@@ -257,6 +257,8 @@ async def test_retire_blocks_logging(tmp_path):
     assert "before" in text
     assert "after" not in text
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_shutdown_stops_worker(tmp_path):
@@ -273,6 +275,8 @@ async def test_shutdown_stops_worker(tmp_path):
 
     # Handlers remain — shutdown does NOT remove them
     assert len(logger.handler_info) == 1
+
+    logger.destroy()
 
 
 @pytest.mark.asyncio
@@ -480,6 +484,8 @@ async def test_handler_exception_swallowed():
 
     assert good.records == ["oops"]
 
+    logger.destroy()
+
 
 # 4. __process_raw writes to console handler (StreamHandler)
 @pytest.mark.asyncio
@@ -605,6 +611,7 @@ async def test_shutdown_prevents_enqueue():
     # Call the real shutdown (async) if present
     if hasattr(logger, "shutdown"):
         await logger.shutdown()
+        logger.destroy()
     else:
         # Fallback: mark stopped flag directly if shutdown is named differently
         logger._AsyncSmartLogger__stopped = True
@@ -622,3 +629,5 @@ async def test_shutdown_prevents_enqueue():
             lineno=2,
             func_name="test_shutdown_prevents_enqueue",
         )
+
+    logger.destroy()

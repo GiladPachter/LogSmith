@@ -25,6 +25,8 @@ def clean_sync_logger():
         except Exception:
             pass
 
+    del logging.Logger.manager.loggerDict[name]
+
     logger = SmartLogger(name)
     yield logger
 

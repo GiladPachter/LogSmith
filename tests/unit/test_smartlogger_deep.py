@@ -29,6 +29,8 @@ def test_caller_resolution(tmp_path):
 
     assert "hello from helper" in out
 
+    logger.destroy()
+
 
 # ----------------------------------------------------------------------
 # 2. ANSI bleaching (322–325, 341–347)
@@ -111,6 +113,8 @@ def test_audit_logging(tmp_path):
     text = (tmp_path / "audit.log").read_text()
     assert "audit me" in text
 
+    logger.destroy()
+
 
 # ----------------------------------------------------------------------
 # 5. Duplicate file handler detection (495, 499)
@@ -123,6 +127,9 @@ def test_duplicate_file_handler(tmp_path):
 
     with pytest.raises(ValueError):
         logger2.add_file(str(tmp_path), "dup.log")
+
+    logger1.destroy()
+    logger2.destroy()
 
 
 # ----------------------------------------------------------------------
@@ -137,6 +144,8 @@ def test_handler_metadata(tmp_path):
     assert len(info) == 2
     assert info[0]["kind"] == "console"
     assert info[1]["kind"] == "file"
+
+    logger.destroy()
 
 
 # ----------------------------------------------------------------------
@@ -213,6 +222,8 @@ def test_retire_logic(tmp_path):
     with pytest.raises(RuntimeError):
         logger.add_console()
 
+    logger.destroy()
+
 
 # ----------------------------------------------------------------------
 # 10. Audit handler info (879, 899)
@@ -244,6 +255,8 @@ def test_shutdown_logic(tmp_path):
 
     assert (tmp_path / "shut.log").exists()
 
+    logger.destroy()
+
 
 # ----------------------------------------------------------------------
 # 12. Dynamic level registration (972, 978–981, 986–989)
@@ -259,6 +272,8 @@ def test_dynamic_level_registration(tmp_path):
     text = (tmp_path / "dyn.log").read_text()
 
     assert "dynamic works" in text
+
+    logger.destroy()
 
 
 # ----------------------------------------------------------------------
@@ -299,6 +314,8 @@ def test_output_targets(tmp_path):
     targets = logger.output_targets
     assert "console" in targets
     assert any(t.endswith("t.log") for t in targets)
+
+    logger.destroy()
 
 
 # ----------------------------------------------------------------------

@@ -41,6 +41,8 @@ async def test_worker_survives_handler_exception(clean_async_logger, tmp_path):
     content = (tmp_path / "x.log").read_text()
     assert "world" in content
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_worker_survives_formatter_exception(clean_async_logger, tmp_path, monkeypatch):
@@ -69,6 +71,8 @@ async def test_worker_survives_formatter_exception(clean_async_logger, tmp_path,
 
     assert after == before + 1
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_worker_preserves_message_order(clean_async_logger, tmp_path):
@@ -90,6 +94,8 @@ async def test_worker_preserves_message_order(clean_async_logger, tmp_path):
 
     assert bodies == [f"msg-{i}" for i in range(5)]
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_worker_drains_queue(clean_async_logger, tmp_path):
@@ -105,6 +111,8 @@ async def test_worker_drains_queue(clean_async_logger, tmp_path):
 
     assert logger.queue_size == 0
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_worker_handles_raw_write(clean_async_logger, tmp_path):
@@ -118,6 +126,8 @@ async def test_worker_handles_raw_write(clean_async_logger, tmp_path):
 
     content = (tmp_path / "x.log").read_text()
     assert "raw-text" in content
+
+    logger.destroy()
 
 
 @pytest.mark.asyncio
@@ -157,6 +167,8 @@ async def test_worker_survives_raw_write_exception(clean_async_logger, tmp_path)
     # Normal logs ARE counted
     assert after_success == before + 1
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_worker_handles_large_queue(clean_async_logger, tmp_path):
@@ -171,6 +183,8 @@ async def test_worker_handles_large_queue(clean_async_logger, tmp_path):
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     assert logger.messages_processed() >= 2000
+
+    logger.destroy()
 
 
 @pytest.mark.asyncio
@@ -192,3 +206,5 @@ async def test_worker_stays_alive(clean_async_logger, tmp_path):
     after = logger.messages_processed()
 
     assert after == before + 1
+
+    logger.destroy()

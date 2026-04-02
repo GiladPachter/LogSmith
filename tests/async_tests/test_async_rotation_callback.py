@@ -10,7 +10,7 @@ def test_async_rotation_happens(tmp_path: Path):
         log_dir.mkdir()
 
         rotation = RotationLogic(maxBytes=30, backupCount=2)
-        logger = AsyncSmartLogger("async.rotate", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("async_rotate", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(
             log_dir=str(log_dir),
             logfile_name="app.log",
@@ -30,5 +30,7 @@ def test_async_rotation_happens(tmp_path: Path):
         ]
 
         assert len(rotated) >= 1
+
+        logger.destroy()
 
     asyncio.run(main())

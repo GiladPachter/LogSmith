@@ -79,3 +79,5 @@ async def test_async_stream_reopen_json_when_stream_none(tmp_path):
     # basic sanity: JSON line with our field present
     assert "hello" in text
     assert "foo" in text
+
+    logger.destroy()

@@ -10,6 +10,8 @@ def test_logger_created_outside_loop():
     assert lg._AsyncSmartLogger__loop is None
     assert lg._AsyncSmartLogger__worker_tasks is None  # placeholder list
 
+    lg.destroy()
+
 
 @pytest.mark.asyncio
 async def test_worker_starts_on_first_log(tmp_path):
@@ -25,6 +27,8 @@ async def test_worker_starts_on_first_log(tmp_path):
     await lg.flush()
 
     assert (tmp_path / "x.log").read_text().strip().endswith("hello")
+
+    lg.destroy()
 
 
 @pytest.mark.asyncio

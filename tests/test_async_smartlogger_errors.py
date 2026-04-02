@@ -113,6 +113,8 @@ async def test_rotation_callback_failure_is_swallowed(tmp_path):
     await logger.a_info("X" * 100)
     await logger.flush()
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 5. RAW write failure path
@@ -179,6 +181,8 @@ async def test_find_caller_nested(tmp_path):
     text = (tmp_path / "caller.log").read_text()
     assert "nested" in text
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 8. Profiling mode branches
@@ -227,6 +231,8 @@ async def test_audit_mode_error_paths(tmp_path):
 
     await AsyncSmartLogger.terminate_auditing()
     assert AsyncSmartLogger.audit_handler_info() is None
+
+    logger.destroy()
 
 
 # ------------------------------------------------------------
@@ -291,3 +297,5 @@ async def test_queue_backpressure_branch(tmp_path):
         )
 
     await logger.flush()
+
+    logger.destroy()

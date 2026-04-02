@@ -23,7 +23,7 @@ def cleanup():
 # ============================================================
 
 def test_bleach_interleaved_colors(capsys):
-    logger = isolated_logger("bleach.test")
+    logger = isolated_logger("bleach_test")
     logger.add_console()
 
     msg = "plain \x1b[31mred\x1b[0m plain"
@@ -39,7 +39,7 @@ def test_bleach_interleaved_colors(capsys):
 # ============================================================
 
 def test_raw_skips_handler_with_no_stream():
-    logger = isolated_logger("raw.skip")
+    logger = isolated_logger("raw_skip")
 
     class Dummy(logging.Handler):
         stream = None
@@ -56,7 +56,7 @@ def test_raw_skips_handler_with_no_stream():
 # ============================================================
 
 def test_retire_destroy_reentrant(tmp_path):
-    logger = isolated_logger("life.test")
+    logger = isolated_logger("life_test")
     logger.add_console()
 
     logger.retire()
@@ -84,7 +84,7 @@ def test_retire_destroy_reentrant(tmp_path):
 # ============================================================
 
 def test_remove_console_cleanup():
-    logger = isolated_logger("rm.console")
+    logger = isolated_logger("rm_console")
     logger.add_console()
     assert logger.console_handler is not None
 
@@ -93,7 +93,7 @@ def test_remove_console_cleanup():
 
 
 def test_remove_file_handler_cleanup(tmp_path):
-    logger = isolated_logger("rm.file")
+    logger = isolated_logger("rm_file")
     log_dir = tmp_path / "rm"
     log_dir.mkdir()
 
@@ -102,6 +102,8 @@ def test_remove_file_handler_cleanup(tmp_path):
 
     logger.remove_file_handler("x.log", str(log_dir))
     assert len(logger.file_handlers) == 0
+
+    logger.destroy()
 
 
 # ============================================================
@@ -115,7 +117,7 @@ def test_get_record_exc_and_stack():
         rec = SmartLogger.get_record()
         assert rec.exc_info is not None
 
-    lg = SmartLogger("stack.test")
+    lg = SmartLogger("stack_test")
     lg.add_console()
     lg.debug("stack", stack_info=True)
     rec2 = SmartLogger.get_record()
@@ -151,7 +153,7 @@ def test_audit_handler_info_edges(tmp_path):
 # ============================================================
 
 def test_handler_metadata(tmp_path):
-    logger = isolated_logger("meta.test")
+    logger = isolated_logger("meta_test")
 
     logger.add_console()
     assert logger.console_handler["kind"] == "console"
@@ -164,6 +166,8 @@ def test_handler_metadata(tmp_path):
     assert "console" in logger.output_targets
     assert any("x.log" in p for p in logger.output_targets)
 
+    logger.destroy()
+
 
 # ============================================================
 # 8. ROTATION LOGIC RARE BRANCHES
@@ -173,7 +177,7 @@ def test_rotation_logic_timestamp(tmp_path):
     import datetime
     from LogSmith.rotation_base import RotationTimestamp
 
-    logger = isolated_logger("rot.ts")
+    logger = isolated_logger("rot_ts")
     log_dir = tmp_path / "ts"
     log_dir.mkdir()
 
@@ -200,9 +204,11 @@ def test_rotation_logic_timestamp(tmp_path):
     assert info["interval"] is None
     assert info["maxBytes"] is None
 
+    logger.destroy()
+
 
 def test_rotation_logic_expiration(tmp_path):
-    logger = isolated_logger("rot.exp")
+    logger = isolated_logger("rot_exp")
     log_dir = tmp_path / "exp"
     log_dir.mkdir()
 
@@ -212,9 +218,11 @@ def test_rotation_logic_expiration(tmp_path):
     info = logger.file_handlers[0]["rotation"]
     assert info["backupCount"] == 5  # default
 
+    logger.destroy()
+
 
 def test_rotation_logic_large_entry(tmp_path):
-    logger = isolated_logger("rot.large")
+    logger = isolated_logger("rot_large")
     log_dir = tmp_path / "large"
     log_dir.mkdir()
 
@@ -223,6 +231,8 @@ def test_rotation_logic_large_entry(tmp_path):
 
     info = logger.file_handlers[0]["rotation"]
     assert info["maxBytes"] is None
+
+    logger.destroy()
 
 
 # ============================================================

@@ -38,6 +38,9 @@ async def test_duplicate_file_handler(tmp_path):
     await logger1.shutdown()
     await logger2.shutdown()
 
+    logger1.destroy()
+    logger2.destroy()
+
 
 # ------------------------------------------------------------
 # 3. Worker exception swallowing (507)
@@ -76,6 +79,8 @@ async def test_shutdown_sends_sentinel():
 
     for t in tasks:
         assert t.done()
+
+    logger.destroy()
 
 
 # ------------------------------------------------------------

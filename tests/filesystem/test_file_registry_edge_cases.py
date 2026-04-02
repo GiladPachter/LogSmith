@@ -74,6 +74,8 @@ async def test_rotation_handler_survives(tmp_path, monkeypatch):
 
     await logger.shutdown()
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 4. Shutdown closes all handlers
@@ -91,6 +93,8 @@ async def test_shutdown_closes_handlers(tmp_path):
 
     for h in handlers:
         assert h.stream is None or h.stream.closed
+
+    logger.destroy()
 
 
 # ------------------------------------------------------------
@@ -131,6 +135,9 @@ async def test_no_global_state_leak(tmp_path):
 
     await logger1.shutdown()
     await logger2.shutdown()
+
+    logger1.destroy()
+    logger2.destroy()
 
 
 # ------------------------------------------------------------

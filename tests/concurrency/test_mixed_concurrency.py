@@ -10,7 +10,7 @@ def test_mixed_concurrency(tmp_path: Path):
         log_dir = tmp_path / "logs"
         log_dir.mkdir()
 
-        logger = AsyncSmartLogger("mixed.concurrent", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("mixed_concurrent", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(str(log_dir), "app.log")
 
         loop = asyncio.get_running_loop()

@@ -10,7 +10,7 @@ def test_async_no_lock_file(tmp_path: Path):
         log_dir.mkdir()
 
         rotation = RotationLogic(maxBytes=50, backupCount=2)
-        logger = AsyncSmartLogger("async.nolock", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("async_nolock", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(
             log_dir=str(log_dir),
             logfile_name="app.log",

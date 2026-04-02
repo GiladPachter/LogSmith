@@ -11,7 +11,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, ClassVar, Optional, List
+from typing import Any, ClassVar, Optional, List, Dict
 import os
 import threading
 import time
@@ -38,6 +38,12 @@ it has the same effect, only it synchronizes with console logs
 """
 import io
 import contextlib
+
+
+# ===========================================================================
+# Suppress behind-the-scenes logging errors (handle all errors intentionally)
+# ===========================================================================
+logging.raiseExceptions = False
 
 
 class AsyncOp(Enum):
@@ -70,6 +76,8 @@ class AsyncSmartLogger:
     • Supports TRACE and dynamically registered levels
     """
 
+    __AsyncSmartLogger_registry: ClassVar[Dict[str, AsyncSmartLogger]] = {}
+
     __default_level: ClassVar[int] = TRACE
 
     __worker_init_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
@@ -92,10 +100,56 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # INIT
     # ------------------------------------------------------------------
+    @staticmethod
+    def __check_ancestors(name: str):
+        if '.' not in name:
+            return
+
+        parts = name.split(".")
+        for i in range(1, len(parts)):
+            ancestor_name = ".".join(parts[:i])
+
+            # existing = logging.Logger.manager.loggerDict.get(ancestor_name)
+            # if existing is None:
+            #     raise RuntimeError(
+            #         f"Cannot create logger {name!r} because ancestor {ancestor_name!r} does not exist. "
+            #         f"Create ancestors explicitly first."
+            #     )
+            # elif not isinstance(existing, AsyncSmartLogger):
+            #     raise RuntimeError(
+            #         f"Cannot create logger {name!r} because potential ancestor {ancestor_name!r} "
+            #         f"is not an instance of AsyncSmartLogger. This will result in an unexpected behavior and therefore rejected"
+            #     )
+
+            if ancestor_name not in AsyncSmartLogger.__SmartLogger_registry:
+                if ancestor_name in logging.Logger.manager.loggerDict:
+                    raise RuntimeError(
+                        f"Cannot create logger {name!r} because potential ancestor {ancestor_name!r} "
+                        f"is a logger of a different type than AsyncSmartLogger. This will result in an unexpected behavior and therefore rejected"
+                    )
+                else:
+                    raise RuntimeError(
+                        f"Cannot create logger {name!r} because ancestor {ancestor_name!r} does not exist. "
+                        f"Using logger hierarchy syntax without an already existing AsyncSmartLogger parent causes unwanted side effects. "
+                        f"Create any and all ancestors explicitly first."
+                    )
+
     def __init__(self, name: str, level: int = TRACE) -> None:
+
+        existing = logging.Logger.manager.loggerDict.get(name)
+        if existing is not None:
+            raise RuntimeError(
+                f"Logger name {name!r} is already in use. "
+                f"Call AsyncSmartLogger.destroy() or choose a different name."
+            )
+
+        AsyncSmartLogger.__check_ancestors(name)
+
         self.__name = name
 
         self.__py_logger = logging.getLogger(name)
+        self.__AsyncSmartLogger_registry[name] = self
+
         self.__py_logger.propagate = False
         self.__py_logger.setLevel(level)
 
@@ -152,11 +206,12 @@ class AsyncSmartLogger:
     def _on_queue_put(self, item: _QueueItem) -> None:
         # Ensure loop is captured if not already
         if self.__loop is None:
-            try:
-                self.__loop = asyncio.get_running_loop()
-                self.__loop_thread = threading.current_thread()
-            except RuntimeError:
-                return  # still no loop, cannot start worker yet
+            # try:
+            #     self.__loop = asyncio.get_running_loop()
+            #     self.__loop_thread = threading.current_thread()
+            # except RuntimeError:
+            #     return  # still no loop, cannot start worker yet
+            return
 
         # Only same-thread auto-start
         if threading.current_thread() is not self.__loop_thread:
@@ -1168,7 +1223,7 @@ class AsyncSmartLogger:
         while True:
             try:
                 self.__queue.get_nowait()
-                self.__queue.task_done()
+                # self.__queue.task_done()
             except asyncio.QueueEmpty:
                 break
 
@@ -1267,6 +1322,9 @@ class AsyncSmartLogger:
                 cls.__audit_logger.__py_logger.removeHandler(cls.__audit_handler)
             except Exception:   # pragma: no cover
                 pass
+
+        if cls.__audit_logger:
+            cls.__audit_logger.destroy()
 
         cls.__audit_logger = None
         cls.__audit_handler = None
@@ -1393,6 +1451,10 @@ class AsyncSmartLogger:
         self.__py_logger.handlers.clear()
         self.__handlers.clear()
         self.__retired = True
+
+        if self.name in logging.Logger.manager.loggerDict:
+            del logging.Logger.manager.loggerDict[self.name]
+            del self.__AsyncSmartLogger_registry[self.name]
 
 
 # ======================================================================

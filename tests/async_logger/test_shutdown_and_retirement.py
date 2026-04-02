@@ -42,6 +42,8 @@ async def test_retired_logger_rejects_handler_additions(tmp_path):
     with pytest.raises(RuntimeError):
         logger.add_file(str(tmp_path), "x.log")
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_worker_drains_queue_before_exit(tmp_path):

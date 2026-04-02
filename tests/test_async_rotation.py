@@ -320,3 +320,5 @@ async def test_handler_exception_swallowed():
     await drain(logger)
 
     assert good.records == ["oops"]
+
+    logger.destroy()

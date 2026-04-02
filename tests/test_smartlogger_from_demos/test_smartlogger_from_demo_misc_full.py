@@ -20,7 +20,7 @@ def cleanup_global_state():
 
 
 def test_get_record_exc_and_stack():
-    logger = isolated_logger("misc.get")
+    logger = isolated_logger("misc_get")
 
     # exc_info
     try:
@@ -36,7 +36,7 @@ def test_get_record_exc_and_stack():
 
 
 def test_retire_and_destroy_full(tmp_path):
-    logger = isolated_logger("misc.lifecycle")
+    logger = isolated_logger("misc_lifecycle")
     logger.add_console()
 
     # retire
@@ -84,10 +84,12 @@ def test_invalid_message_parts_order():
 
 
 def test_invalid_log_dir():
-    logger = isolated_logger("misc.logdir")
+    logger = isolated_logger("misc_logdir")
 
     with pytest.raises(Exception):
         logger.add_file(log_dir="relative/path", logfile_name="x.log")
+
+    logger.destroy()
 
 
 def test_invalid_rotation_logic():

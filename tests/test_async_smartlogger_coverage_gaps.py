@@ -23,6 +23,8 @@ async def test_worker_stops_on_sentinel():
     # At least one worker task should be done
     assert any(t.done() for t in lg._AsyncSmartLogger__worker_tasks)
 
+    lg.destroy()
+
 
 # ------------------------------------------------------------
 # 2. Worker swallows handler exceptions

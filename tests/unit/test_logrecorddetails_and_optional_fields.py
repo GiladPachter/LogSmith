@@ -55,7 +55,7 @@ def test_optionalrecordfields_toggles():
 
 def test_logrecorddetails_used_by_console_output(capsys):
     levels = SmartLogger.levels()
-    logger = SmartLogger("details.console", level=levels["TRACE"])
+    logger = SmartLogger("details_console", level=levels["TRACE"])
 
     details = LogRecordDetails(
         datefmt="%H:%M:%S",
@@ -86,7 +86,7 @@ def test_logrecorddetails_used_by_console_output(capsys):
 
     # basic structural expectations
     assert "INFO" in out
-    assert "details.console" in out
+    assert "details_console" in out
     assert "User login" in out
     assert "username = 'Gilad'" in out
     assert "|" in out

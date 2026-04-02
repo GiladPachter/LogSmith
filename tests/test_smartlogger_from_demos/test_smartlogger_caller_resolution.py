@@ -17,7 +17,7 @@ def cleanup_global_state():
 
 
 def test_caller_resolution_deep_stack():
-    logger = isolated_logger("caller.test")
+    logger = isolated_logger("caller_test")
 
     captured = {}
 

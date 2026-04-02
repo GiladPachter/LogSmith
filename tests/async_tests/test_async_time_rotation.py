@@ -15,7 +15,7 @@ def test_async_time_rotation(tmp_path: Path):
             backupCount=3,
         )
 
-        logger = AsyncSmartLogger("async.time", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("async_time", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(
             log_dir=str(log_dir),
             logfile_name="app.log",

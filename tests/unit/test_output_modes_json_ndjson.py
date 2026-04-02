@@ -6,7 +6,7 @@ from LogSmith import SmartLogger, OutputMode, LogRecordDetails, OptionalRecordFi
 
 def test_console_json_output_structure(capsys):
     levels = SmartLogger.levels()
-    logger = SmartLogger("json.console", level=levels["TRACE"])
+    logger = SmartLogger("json_console", level=levels["TRACE"])
 
     details = LogRecordDetails(
         optional_record_fields=OptionalRecordFields(
@@ -32,7 +32,7 @@ def test_console_json_output_structure(capsys):
     data = json.loads(out)
 
     assert data["level"] == "INFO"
-    assert data["logger"] == "json.console"
+    assert data["logger"] == "json_console"
     assert data["message"] == "User login"
     assert data["named_args"]["username"] == "Gilad"
     assert data["named_args"]["action"] == "login"
@@ -42,7 +42,7 @@ def test_console_json_output_structure(capsys):
 
 def test_file_ndjson_output(tmp_path: Path):
     levels = SmartLogger.levels()
-    logger = SmartLogger("ndjson.file", level=levels["TRACE"])
+    logger = SmartLogger("ndjson_file", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)

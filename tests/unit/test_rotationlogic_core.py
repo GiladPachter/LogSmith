@@ -42,7 +42,7 @@ def test_expiration_rule_configuration():
 
 def test_size_based_rotation_triggers(tmp_path: Path):
     levels = SmartLogger.levels()
-    logger = SmartLogger("rotation.size", level=levels["TRACE"])
+    logger = SmartLogger("rotation_size", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -71,7 +71,7 @@ def test_size_based_rotation_triggers(tmp_path: Path):
 
 def test_time_based_rotation_triggers(tmp_path: Path):
     levels = SmartLogger.levels()
-    logger = SmartLogger("rotation.time", level=levels["TRACE"])
+    logger = SmartLogger("rotation_time", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)

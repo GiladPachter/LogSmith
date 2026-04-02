@@ -40,7 +40,7 @@ def test_get_record_basic_fields():
 
 
 def test_exc_info_and_stack_info_capture(tmp_path):
-    logger = SmartLogger("misc.exc", level=logging.DEBUG)
+    logger = SmartLogger("misc_exc", level=logging.DEBUG)
     logger.add_console()
 
     try:
@@ -54,7 +54,7 @@ def test_exc_info_and_stack_info_capture(tmp_path):
 
 
 def test_retire_and_destroy_behavior():
-    logger = SmartLogger("misc.retire", level=logging.INFO)
+    logger = SmartLogger("misc_retire", level=logging.INFO)
     logger.add_console()
 
     logger.info("before retire")
@@ -80,11 +80,13 @@ def test_invalid_message_parts_order():
 
 
 def test_invalid_log_dir():
-    logger = SmartLogger("misc.invalid_logdir", level=logging.INFO)
+    logger = SmartLogger("misc_invalid_logdir", level=logging.INFO)
 
     # Relative paths are forbidden
     with pytest.raises(Exception):
         logger.add_file(log_dir="relative/path/not/allowed", logfile_name="x.log")
+
+    logger.destroy()
 
 
 def test_invalid_rotation_logic():

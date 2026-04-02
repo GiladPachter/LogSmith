@@ -7,9 +7,9 @@ def test_logger_hierarchy_inheritance_and_override(capsys):
     root = SmartLogger("myapp", level=levels["INFO"])
     root.add_console()
 
-    api = SmartLogger("myapp.api", level=levels["NOTSET"])
+    api = SmartLogger("myapp_api", level=levels["NOTSET"])
     api.add_console()
-    users = SmartLogger("myapp.api.users", level=levels["DEBUG"])
+    users = SmartLogger("myapp_api.users", level=levels["DEBUG"])
     users.add_console()
 
     # api inherits INFO, users overrides to DEBUG
@@ -25,12 +25,14 @@ def test_logger_hierarchy_inheritance_and_override(capsys):
     assert "users debug" in out
     assert "users info" in out
 
+    api.destroy()
+
 
 def test_handlers_do_not_propagate_without_auditing(tmp_path):
     levels = SmartLogger.levels()
 
-    root = SmartLogger("root.noaudit", level=levels["TRACE"])
-    api = SmartLogger("root.noaudit.api", level=levels["TRACE"])
+    root = SmartLogger("root_noaudit", level=levels["TRACE"])
+    api = SmartLogger("root_noaudit.api", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -49,7 +51,7 @@ def test_handlers_do_not_propagate_without_auditing(tmp_path):
 
 def test_retire_and_destroy_logger(tmp_path):
     levels = SmartLogger.levels()
-    logger = SmartLogger("lifecycle.test", level=levels["TRACE"])
+    logger = SmartLogger("lifecycle_test", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -74,7 +76,7 @@ def test_retire_and_destroy_logger(tmp_path):
 
     logger.destroy()
     # recreating with same name should be clean
-    logger2 = SmartLogger("lifecycle.test", level=levels["INFO"])
+    logger2 = SmartLogger("lifecycle_test", level=levels["INFO"])
     logger2.add_file(log_dir=str(log_dir), logfile_name="life2.log")
     logger2.info("new logger")
 

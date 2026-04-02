@@ -34,6 +34,8 @@ async def test_async_logger_basic_logging(tmp_path):
     content = Path(tmp_path / file).read_text()
     assert "hello world" in content
 
+    lg.destroy()
+
 
 # ------------------------------------------------------------
 # 2. Rotation scheduling (size-based)
@@ -55,6 +57,8 @@ async def test_async_logger_rotation(tmp_path):
     rotated = [f for f in os.listdir(log_dir) if f.startswith("rot.log.") and f.endswith(".1")]
     assert rotated, "Rotation did not occur"
 
+    lg.destroy()
+
 
 # ------------------------------------------------------------
 # 3. RAW logging (console + file)
@@ -72,6 +76,8 @@ async def test_async_logger_raw(tmp_path):
 
     content = Path(tmp_path / file).read_text()
     assert "RAW-LINE" in content
+
+    lg.destroy()
 
 
 # ------------------------------------------------------------
@@ -123,6 +129,8 @@ async def test_async_logger_retire(tmp_path):
     with pytest.raises(RuntimeError):
         await lg.a_info("should fail")
 
+    lg.destroy()
+
 
 # ------------------------------------------------------------
 # 7. Shutdown behavior
@@ -141,6 +149,8 @@ async def test_async_logger_shutdown(tmp_path):
     # After shutdown, logging must fail
     with pytest.raises(RuntimeError):
         await lg.a_info("after shutdown")
+
+    lg.destroy()
 
 
 # ------------------------------------------------------------

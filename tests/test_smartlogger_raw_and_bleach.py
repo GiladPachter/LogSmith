@@ -34,6 +34,8 @@ def test_smartlogger_raw(tmp_path):
     log.raw("hello", end="")
     assert (tmp_path / "x.log").read_text() == "hello"
 
+    log.destroy()
+
 
 @pytest.mark.asyncio
 async def test_async_raw(tmp_path):
@@ -45,3 +47,5 @@ async def test_async_raw(tmp_path):
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
     assert (tmp_path / "x.log").read_text() == "hello"
+
+    logger.destroy()

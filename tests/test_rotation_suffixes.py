@@ -74,6 +74,8 @@ def test_smartlogger_rotation_suffixes(tmp_path, pid, ts):
     pattern = _pattern_for_rotated(base, pid, ts)
     assert pattern.match(rotated[0]), rotated[0]
 
+    logger.destroy()
+
 
 @pytest.mark.parametrize("pid, ts",
                          [(False, False),

@@ -15,7 +15,7 @@ def test_time_rotation(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(time, "time", fake_now)
 
     rotation = RotationLogic(when=When.SECOND, interval=1)
-    logger = SmartLogger("fs.time", level=SmartLogger.levels()["INFO"])
+    logger = SmartLogger("fs_time", level=SmartLogger.levels()["INFO"])
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     logger.info("first")

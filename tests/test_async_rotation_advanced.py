@@ -36,7 +36,7 @@ import asyncio
 
 @pytest.mark.asyncio
 async def test_async_rotation_size_based(tmp_path):
-    logger = AsyncSmartLogger("async.rot.size")
+    logger = AsyncSmartLogger("async_rot_size")
     logger.add_file(
         log_dir=str(tmp_path),
         logfile_name="app.log",
@@ -57,7 +57,7 @@ async def test_async_rotation_size_based(tmp_path):
 
 @pytest.mark.asyncio
 async def test_async_rotation_time_based(tmp_path, monkeypatch):
-    logger = AsyncSmartLogger("async.rot.time")
+    logger = AsyncSmartLogger("async_rot_time")
 
     # Time-based rotation every second
     from LogSmith.rotation_base import RotationLogic
@@ -82,7 +82,7 @@ async def test_async_rotation_time_based(tmp_path, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_async_rotation_expiration(tmp_path, monkeypatch):
-    logger = AsyncSmartLogger("async.rot.expire")
+    logger = AsyncSmartLogger("async_rot_expire")
 
     from LogSmith.rotation_base import RotationLogic, ExpirationRule, ExpirationScale
 

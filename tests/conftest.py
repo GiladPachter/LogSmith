@@ -145,6 +145,9 @@ async def clean_async_logger():
         except Exception:
             pass
 
+    py_logger.handlers.clear()
+    del logging.Logger.manager.loggerDict[unique_name]
+
     # Create logger inside running event loop
     logger = AsyncSmartLogger(unique_name)
 
@@ -157,3 +160,5 @@ async def clean_async_logger():
             h.close()
         except Exception:
             pass
+
+    logger.destroy()

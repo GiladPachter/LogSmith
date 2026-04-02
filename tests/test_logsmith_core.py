@@ -146,7 +146,7 @@ def test_structured_json_formatter_respects_optional_fields():
 # =========================
 
 def test_smartlogger_add_console_once():
-    logger = SmartLogger("smartlogger.console.test")
+    logger = SmartLogger("smartlogger_console_test")
     logger.add_console()
     assert logger.console_handler is not None
     with pytest.raises(RuntimeError):
@@ -154,7 +154,7 @@ def test_smartlogger_add_console_once():
 
 
 def test_smartlogger_add_file_uses_normalized_dir(tmp_path):
-    logger = SmartLogger("smartlogger.file.test")
+    logger = SmartLogger("smartlogger_file_test")
     log_dir = str(tmp_path)
     logger.add_file(log_dir=log_dir, logfile_name="app.log")
     files = logger.file_handlers
@@ -163,7 +163,7 @@ def test_smartlogger_add_file_uses_normalized_dir(tmp_path):
 
 
 def test_smartlogger_add_file_rejects_non_normalized(tmp_path):
-    logger = SmartLogger("smartlogger.file.norm.test")
+    logger = SmartLogger("smartlogger_file_norm_test")
     # introduce a trailing slash difference
     log_dir = str(tmp_path)
     non_normalized = log_dir + os.sep + "."
@@ -172,7 +172,7 @@ def test_smartlogger_add_file_rejects_non_normalized(tmp_path):
 
 
 def test_smartlogger_raw_sanitizes_file_and_colors_console(tmp_path, capsys):
-    logger = SmartLogger("smartlogger.raw.test")
+    logger = SmartLogger("smartlogger_raw_test")
     # console
     logger.add_console()
     # file
@@ -198,7 +198,7 @@ def test_smartlogger_raw_sanitizes_file_and_colors_console(tmp_path, capsys):
 
 @pytest.mark.asyncio
 async def test_asyncsmartlogger_add_console_deduplicates():
-    logger = AsyncSmartLogger("async.console.test")
+    logger = AsyncSmartLogger("async_console_test")
     logger.add_console()
     # second call should be a no-op, not an error
     logger.add_console()
@@ -208,7 +208,7 @@ async def test_asyncsmartlogger_add_console_deduplicates():
 
 @pytest.mark.asyncio
 async def test_asyncsmartlogger_add_file_and_log_to_file(tmp_path):
-    logger = AsyncSmartLogger("async.file.test")
+    logger = AsyncSmartLogger("async_file_test")
     log_dir = str(tmp_path)
     logger.add_file(log_dir=log_dir, logfile_name="async.log")
 
@@ -225,7 +225,7 @@ async def test_asyncsmartlogger_add_file_and_log_to_file(tmp_path):
 
 @pytest.mark.asyncio
 async def test_asyncsmartlogger_add_file_requires_normalized(tmp_path):
-    logger = AsyncSmartLogger("async.file.norm.test")
+    logger = AsyncSmartLogger("async_file_norm_test")
     log_dir = str(tmp_path)
     non_normalized = log_dir + os.sep + "."
     with pytest.raises(ValueError):
@@ -234,7 +234,7 @@ async def test_asyncsmartlogger_add_file_requires_normalized(tmp_path):
 
 @pytest.mark.asyncio
 async def test_asyncsmartlogger_raw_respects_sanitization(tmp_path):
-    logger = AsyncSmartLogger("async.raw.test")
+    logger = AsyncSmartLogger("async_raw_test")
     logger.add_file(
         log_dir=str(tmp_path),
         logfile_name="raw_async.log",

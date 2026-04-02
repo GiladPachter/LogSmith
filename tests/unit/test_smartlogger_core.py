@@ -6,7 +6,7 @@ from LogSmith import SmartLogger, OutputMode, LogRecordDetails, OptionalRecordFi
 
 def test_basic_console_logging(capsys):
     levels = SmartLogger.levels()
-    logger = SmartLogger("core.console", level=levels["TRACE"])
+    logger = SmartLogger("core_console", level=levels["TRACE"])
     logger.add_console()
 
     logger.trace("trace message")
@@ -21,7 +21,7 @@ def test_basic_console_logging(capsys):
 
 def test_file_logging_plain(tmp_path: Path):
     levels = SmartLogger.levels()
-    logger = SmartLogger("core.file", level=levels["TRACE"])
+    logger = SmartLogger("core_file", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -44,7 +44,7 @@ def test_file_logging_plain(tmp_path: Path):
 
 def test_raw_output_bypasses_formatting(capsys):
     levels = SmartLogger.levels()
-    logger = SmartLogger("core.raw", level=levels["TRACE"])
+    logger = SmartLogger("core_raw", level=levels["TRACE"])
     logger.add_console()
 
     logger.raw("RAW LINE")
@@ -64,7 +64,7 @@ def test_raw_output_bypasses_formatting(capsys):
 
 def test_structured_fields_in_console_and_file(tmp_path, capsys):
     levels = SmartLogger.levels()
-    logger = SmartLogger("core.struct", level=levels["TRACE"])
+    logger = SmartLogger("core_struct", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -97,7 +97,7 @@ def test_structured_fields_in_console_and_file(tmp_path, capsys):
 
 def test_custom_logrecorddetails_for_file(tmp_path: Path):
     levels = SmartLogger.levels()
-    logger = SmartLogger("core.details.file", level=levels["TRACE"])
+    logger = SmartLogger("core_details_file", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -126,6 +126,6 @@ def test_custom_logrecorddetails_for_file(tmp_path: Path):
     logger.info("hello", x = 1)
 
     content = (log_dir / "details.log").read_text(encoding="utf-8")
-    assert "core.details.file" in content
+    assert "core_details_file" in content
     assert "hello" in content
     assert "x=1" in content

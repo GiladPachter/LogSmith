@@ -21,6 +21,8 @@ def test_caller_resolution(tmp_path):
     text = (tmp_path / "caller.log").read_text(encoding="utf-8")
     assert "hell" in text
 
+    logger.destroy()
+
 
 # ---------------------------------------------------------------------------
 # 2. BLEACH NON-COLORED TEXT (console raw)
@@ -68,6 +70,8 @@ def test_audit_logging(tmp_path):
     text = (tmp_path / "audit.log").read_text()
     assert "audit-test" in text
 
+    logger.destroy()
+
 
 # ---------------------------------------------------------------------------
 # 5. DUPLICATE FILE HANDLER DETECTION
@@ -79,6 +83,9 @@ def test_duplicate_file_handler(tmp_path):
     l1.add_file(str(tmp_path), "x.log")
     with pytest.raises(ValueError):
         l2.add_file(str(tmp_path), "x.log")
+
+    l1.destroy()
+    l2.destroy()
 
 
 # ---------------------------------------------------------------------------
@@ -93,6 +100,8 @@ def test_handler_metadata(tmp_path):
     assert len(info) == 2
     assert logger.console_handler is not None
     assert len(logger.file_handlers) == 1
+
+    logger.destroy()
 
 
 # ---------------------------------------------------------------------------
@@ -143,6 +152,8 @@ def test_retire_logic(tmp_path):
     with pytest.raises(RuntimeError):
         logger.add_console()
 
+    logger.destroy()
+
 
 # ---------------------------------------------------------------------------
 # 10. DESTROY LOGIC
@@ -170,6 +181,8 @@ def test_dynamic_level_registration(tmp_path):
     logger.notice("hello")
     assert "hello" in (tmp_path / "dyn.log").read_text()
 
+    logger.destroy()
+
 
 # ---------------------------------------------------------------------------
 # 12. GET_RECORD
@@ -194,6 +207,8 @@ def test_output_targets(tmp_path):
     assert "console" in targets
     assert any("t.log" in t for t in targets)
 
+    logger.destroy()
+
 
 # ---------------------------------------------------------------------------
 # 14. ROTATING FILE HANDLER METADATA
@@ -210,3 +225,5 @@ def test_rotating_file_metadata(tmp_path):
     handlers = logger.file_handlers
     assert handlers[0]["rotation"]["maxBytes"] == 1
     assert handlers[0]["rotation"]["backupCount"] == 1
+
+    logger.destroy()

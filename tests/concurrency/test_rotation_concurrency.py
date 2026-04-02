@@ -1,5 +1,6 @@
 
 import asyncio
+import logging
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
 from LogSmith.rotation_base import RotationLogic
@@ -13,7 +14,7 @@ def test_rotation_concurrency(tmp_path: Path):
 
         rotation = RotationLogic(maxBytes=2000, backupCount=5)
 
-        logger = AsyncSmartLogger("rotate.concurrent", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("rotate_concurrent", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(str(log_dir), "app.log", rotation_logic=rotation)
 
         await async_task_flooder(logger, "rotation test", tasks=10, messages_per_task=1000)
@@ -26,5 +27,7 @@ def test_rotation_concurrency(tmp_path: Path):
         assert base_exists
         assert len(rotated) >= 1
         assert numbers == sorted(numbers)
+
+        logger.destroy()
 
     asyncio.run(main())

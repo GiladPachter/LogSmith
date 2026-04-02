@@ -13,7 +13,7 @@ def test_smartlogger_init_creates_parent_for_dotted_name():
     # Ensure parent logger is not pre-created
     logging.Logger.manager.loggerDict.pop("myapp", None)
 
-    logger = SmartLogger("myapp.api")
+    logger = SmartLogger("myapp_api")
 
     py_logger = logger._SmartLogger__py_logger
     parent = py_logger.parent
@@ -21,12 +21,14 @@ def test_smartlogger_init_creates_parent_for_dotted_name():
     # Parent must be a Logger named "myapp"
     assert isinstance(parent, logging.Logger)
 
+    logger.destroy()
+
 
 def test_smartlogger_one_liner_methods_call___log(monkeypatch):
     from LogSmith.smartlogger import SmartLogger
     import logging
 
-    logger = SmartLogger("one.liners")
+    logger = SmartLogger("one_liners")
 
     called = []
 
@@ -55,7 +57,7 @@ def test_one_liner_wrappers(monkeypatch):
     from LogSmith.smartlogger import SmartLogger
     import logging
 
-    logger = SmartLogger("x.y")
+    logger = SmartLogger("x_y")
 
     calls = []
 
@@ -84,17 +86,17 @@ def test_add_file_duplicate_detection(tmp_path):
     logdir = tmp_path / "logs"
     logdir.mkdir()
 
-    logger1 = SmartLogger("dup.test")
+    logger1 = SmartLogger("dup_test")
     logger1.add_file(str(logdir), "x.log")
 
-    logger2 = SmartLogger("dup.test2")
+    logger2 = SmartLogger("dup_test2")
     with pytest.raises(ValueError):
         logger2.add_file(str(logdir), "x.log")
 
 
 def test_get_record_skip_logic():
     from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("skip.test")
+    logger = SmartLogger("skip_test")
 
     rec = logger.get_record()
     # If skip=3 was applied, func_name should be the test function, not get_record
@@ -108,12 +110,16 @@ def test_get_record_parts_requires_fields():
     with pytest.raises(ValueError):
         logger.get_record_parts()
 
+    logger.destroy()
+
 
 def test_get_record_parts_task_name_sync():
     from LogSmith.smartlogger import SmartLogger
     logger = SmartLogger("x")
     rec = logger.get_record_parts(task_name=True)
     assert rec.task_name is None
+
+    logger.destroy()
 
 
 import asyncio
@@ -123,6 +129,8 @@ async def test_get_record_parts_task_name_async():
     logger = SmartLogger("x")
     rec = logger.get_record_parts(task_name=True)
     assert rec.task_name == asyncio.current_task().get_name()
+
+    logger.destroy()
 
 
 def test_get_record_parts_exc_info():
@@ -137,6 +145,8 @@ def test_get_record_parts_exc_info():
     assert rec.exc_info["exc_parts"]["err_type_name"] == "RuntimeError"
     assert "boom" in rec.exc_info["full_trace_text"]
 
+    logger.destroy()
+
 
 def test_get_record_parts_stack_info():
     from LogSmith.smartlogger import SmartLogger
@@ -145,6 +155,8 @@ def test_get_record_parts_stack_info():
     rec = logger.get_record_parts(stack_info=True)
     assert "test_get_record_parts_stack_info" in rec.stack_info
 
+    logger.destroy()
+
 
 def test_get_record_parts_process_name():
     from LogSmith.smartlogger import SmartLogger
@@ -152,6 +164,8 @@ def test_get_record_parts_process_name():
 
     rec = logger.get_record_parts(process_name=True)
     assert rec.process_name is not None
+
+    logger.destroy()
 
 
 def test_get_record_parts_timestamp():
@@ -162,6 +176,8 @@ def test_get_record_parts_timestamp():
     assert " " in rec.timestamp  # space instead of T
     assert len(rec.timestamp) >= 23  # yyyy-mm-dd hh:mm:ss.mmm
 
+    logger.destroy()
+
 
 def test_get_record_parts_relative_created():
     from LogSmith.smartlogger import SmartLogger
@@ -169,6 +185,8 @@ def test_get_record_parts_relative_created():
 
     rec = logger.get_record_parts(relative_created=True)
     assert rec.relative_created >= 0
+
+    logger.destroy()
 
 
 def test_get_record_parts_file_info():
@@ -182,6 +200,8 @@ def test_get_record_parts_file_info():
     assert isinstance(rec.lineno, int)
     assert rec.func_name.startswith("test_")
 
+    logger.destroy()
+
 
 def test_get_record_parts_thread_process():
     from LogSmith.smartlogger import SmartLogger
@@ -193,10 +213,12 @@ def test_get_record_parts_thread_process():
     assert rec.thread_name == threading.current_thread().name
     assert rec.process_id == os.getpid()
 
+    logger.destroy()
+
 
 def test_retire_closes_and_clears_handlers(tmp_path):
     from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("life.retire")
+    logger = SmartLogger("life_retire")
     logger.add_console()
     logger.add_file(str(tmp_path), "x.log")
 
@@ -213,8 +235,8 @@ def test_destroy_removes_logger_and_reparents_children():
     from LogSmith.smartlogger import SmartLogger
     import logging
 
-    parent = SmartLogger("life.parent")
-    child = SmartLogger("life.parent.child")
+    parent = SmartLogger("life_parent")
+    child = SmartLogger("life_parent.child")
 
     assert child._SmartLogger__py_logger.parent is parent._SmartLogger__py_logger
 
@@ -234,7 +256,7 @@ def test_destroy_removes_logger_and_reparents_children():
 def test_destroy_is_idempotent():
     from LogSmith.smartlogger import SmartLogger
 
-    logger = SmartLogger("life.idempotent")
+    logger = SmartLogger("life_idempotent")
     logger.destroy()
     logger.destroy()  # should not raise
     assert logger.retired is True
@@ -243,7 +265,7 @@ def test_destroy_is_idempotent():
 def test_dynamic_level_method_calls___log(monkeypatch):
     from LogSmith.smartlogger import SmartLogger, LEVELS
 
-    logger = SmartLogger("dyn.level")
+    logger = SmartLogger("dyn_level")
     LEVELS.register("CUSTOM", 35, None)
 
     called = {}
@@ -261,7 +283,7 @@ def test_dynamic_level_method_calls___log(monkeypatch):
 
 def test_get_record_parts_process_name_non_empty():
     from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("proc.name")
+    logger = SmartLogger("proc_name")
 
     rec = logger.get_record_parts(process_name=True)
     assert rec.process_name is None or isinstance(rec.process_name, str)

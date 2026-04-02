@@ -12,7 +12,7 @@ def test_expiration(tmp_path):
     rotation = RotationLogic(maxBytes=50, backupCount=10,
                              expiration_rule=ExpirationRule(scale=ExpirationScale.Seconds, interval=1))
 
-    logger = SmartLogger("fs.expire", level=SmartLogger.levels()["INFO"])
+    logger = SmartLogger("fs_expire", level=SmartLogger.levels()["INFO"])
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     # First rotation

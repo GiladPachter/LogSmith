@@ -46,6 +46,8 @@ async def test_audit_receives_logs(tmp_path):
     assert "hello audit" in text
     assert "app_logger" in text  # audit prefix
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 3. Audit formatter (995–997)

@@ -28,6 +28,8 @@ async def test_worker_survives_handler_exception(tmp_path, monkeypatch):
 
     await logger.shutdown()
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 2. Worker survives exceptions inside rotation
@@ -57,6 +59,8 @@ async def test_worker_survives_rotation_exception(tmp_path, monkeypatch):
 
     await logger.shutdown()
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 3. Queue backpressure: worker must drain queue
@@ -75,6 +79,8 @@ async def test_queue_backpressure(tmp_path):
 
     await logger.shutdown()
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 4. Rotation scheduled after shutdown is ignored
@@ -92,6 +98,8 @@ async def test_rotation_after_shutdown_ignored(tmp_path):
 
     # This should not crash
     logger._AsyncSmartLogger__enqueue_rotation(handler)
+
+    logger.destroy()
 
 
 # ------------------------------------------------------------
@@ -113,6 +121,8 @@ async def test_rotation_after_loop_closed(tmp_path, monkeypatch):
     logger._AsyncSmartLogger__enqueue_rotation(handler)
 
     await logger.shutdown()
+
+    logger.destroy()
 
 
 # ------------------------------------------------------------
@@ -155,6 +165,8 @@ async def test_lazy_worker_start(tmp_path, monkeypatch):
 
     await lg.shutdown()
 
+    lg.destroy()
+
 
 # ------------------------------------------------------------
 # 7. Worker survives exceptions inside __process_raw
@@ -176,3 +188,5 @@ async def test_worker_survives_raw_exception(tmp_path, monkeypatch):
     await logger.flush()
 
     await logger.shutdown()
+
+    logger.destroy()

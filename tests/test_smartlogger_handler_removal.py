@@ -16,3 +16,5 @@ def test_remove_file_handler(tmp_path):
     assert len(logger.file_handlers) == 1
     logger.remove_file_handler("x.log", str(tmp_path))
     assert len(logger.file_handlers) == 0
+
+    logger.destroy()

@@ -18,7 +18,7 @@ def cleanup_global_state():
 
 
 def test_rotation_metadata_size_only(tmp_path):
-    logger = isolated_logger("rot.size")
+    logger = isolated_logger("rot_size")
     log_dir = tmp_path / "size_only"
     log_dir.mkdir()
 
@@ -40,7 +40,7 @@ def test_rotation_metadata_size_only(tmp_path):
 
 
 def test_rotation_metadata_time_only(tmp_path):
-    logger = isolated_logger("rot.time")
+    logger = isolated_logger("rot_time")
     log_dir = tmp_path / "time_only"
     log_dir.mkdir()
 
@@ -62,7 +62,7 @@ def test_rotation_metadata_time_only(tmp_path):
 
 
 def test_rotation_metadata_combined(tmp_path):
-    logger = isolated_logger("rot.combo")
+    logger = isolated_logger("rot_combo")
     log_dir = tmp_path / "combo"
     log_dir.mkdir()
 
@@ -89,7 +89,7 @@ def test_rotation_metadata_combined(tmp_path):
 
 
 def test_rotation_metadata_default_logic(tmp_path):
-    logger = isolated_logger("rot.default")
+    logger = isolated_logger("rot_default")
     log_dir = tmp_path / "default"
     log_dir.mkdir()
 
@@ -109,8 +109,8 @@ def test_rotation_metadata_default_logic(tmp_path):
 
 
 def test_duplicate_file_handler_detection(tmp_path):
-    logger1 = isolated_logger("rot.dup1")
-    logger2 = isolated_logger("rot.dup2")
+    logger1 = isolated_logger("rot_dup1")
+    logger2 = isolated_logger("rot_dup2")
 
     log_dir = tmp_path / "dup"
     log_dir.mkdir()

@@ -9,7 +9,7 @@ from LogSmith import AsyncSmartLogger, OutputMode
 @pytest.mark.asyncio
 async def test_async_console_logging(capsys):
     levels = AsyncSmartLogger.levels()
-    logger = AsyncSmartLogger("async.console", level=levels["TRACE"])
+    logger = AsyncSmartLogger("async_console", level=levels["TRACE"])
     logger.add_console()
 
     await logger.a_trace("trace message")
@@ -28,7 +28,7 @@ async def test_async_console_logging(capsys):
 @pytest.mark.asyncio
 async def test_async_file_logging_ndjson(tmp_path: Path):
     levels = AsyncSmartLogger.levels()
-    logger = AsyncSmartLogger("async.file", level=levels["TRACE"])
+    logger = AsyncSmartLogger("async_file", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -63,7 +63,7 @@ async def test_async_file_logging_ndjson(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_async_ordering_guarantee(tmp_path: Path):
     levels = AsyncSmartLogger.levels()
-    logger = AsyncSmartLogger("async.order", level=levels["TRACE"])
+    logger = AsyncSmartLogger("async_order", level=levels["TRACE"])
 
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)

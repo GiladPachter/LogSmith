@@ -18,3 +18,5 @@ async def test_caller_resolution(tmp_path):
 
     # JSON logs do not include caller info unless LogRecordDetails requests it
     assert "hello" in text
+
+    logger.destroy()

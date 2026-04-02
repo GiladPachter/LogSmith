@@ -8,7 +8,7 @@ def test_json_output(tmp_path: Path):
     log_dir.mkdir()
 
     details = LogRecordDetails()
-    logger = SmartLogger("fs.json", level=SmartLogger.levels()["INFO"])
+    logger = SmartLogger("fs_json", level=SmartLogger.levels()["INFO"])
     logger.add_file(log_dir=str(log_dir),
                     logfile_name="app.json",
                     log_record_details = details,

@@ -7,7 +7,7 @@ def test_suffixes(tmp_path: Path):
     log_dir.mkdir()
 
     rotation = RotationLogic(maxBytes=50, append_filename_pid=True, append_filename_timestamp=True)
-    logger = SmartLogger("fs.suffix", level=SmartLogger.levels()["INFO"])
+    logger = SmartLogger("fs_suffix", level=SmartLogger.levels()["INFO"])
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     logger.info("hello")

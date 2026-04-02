@@ -15,7 +15,7 @@ def test_async_expiration(tmp_path: Path):
             expiration_rule=ExpirationRule(ExpirationScale.Seconds, interval=0),
         )
 
-        logger = AsyncSmartLogger("async.expire", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("async_expire", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(
             log_dir=str(log_dir),
             logfile_name="app.log",

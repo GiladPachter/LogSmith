@@ -13,7 +13,7 @@ def test_queue_pressure(tmp_path: Path):
         log_dir = tmp_path / "logs"
         log_dir.mkdir()
 
-        logger = AsyncSmartLogger("queue.pressure", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("queue_pressure", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(str(log_dir), "app.log")
 
         await queue_pressure_tester(logger, messages=15000)
@@ -44,5 +44,7 @@ async def test_backpressure_large_queue(tmp_path):
     # spot-check some messages
     assert "bp-0" in text
     assert "bp-19999" in text
+
+    logger.destroy()
 
 

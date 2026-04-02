@@ -14,3 +14,5 @@ def test_rotation_failure_does_not_crash(tmp_path):
 
     # Should not crash; file should exist
     assert (tmp_path / "r.log").exists()
+
+    logger.destroy()

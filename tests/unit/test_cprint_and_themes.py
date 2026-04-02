@@ -24,7 +24,7 @@ def test_cprint_gradient_length_preserved():
 
 def test_apply_color_theme_changes_level_style(capsys):
     levels = SmartLogger.levels()
-    logger = SmartLogger("theme.test", level=levels["TRACE"])
+    logger = SmartLogger("theme_test", level=levels["TRACE"])
 
     SmartLogger.apply_color_theme(DARK_THEME)
     logger.add_console()
@@ -45,7 +45,7 @@ def test_custom_theme_for_dynamic_level(capsys):
     SmartLogger.apply_color_theme(MY_THEME)
 
     levels = SmartLogger.levels()
-    logger = SmartLogger("theme.dynamic", level=levels["TRACE"])
+    logger = SmartLogger("theme_dynamic", level=levels["TRACE"])
     logger.add_console()
 
     logger.notice("Notice message")

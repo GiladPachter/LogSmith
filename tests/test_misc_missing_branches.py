@@ -8,7 +8,7 @@ from LogSmith.level_registry import LEVELS
 
 
 async def test_async_smartlogger_no_parent():
-    logger = AsyncSmartLogger("app.UI")
+    logger = AsyncSmartLogger("app_UI")
     assert isinstance(logger._AsyncSmartLogger__py_logger.parent, logging.Logger)
 
 
@@ -33,6 +33,8 @@ async def test_use_logger_properties():
 
     a_logger.level = logging.ERROR
     assert a_logger._AsyncSmartLogger__py_logger.level == logging.ERROR
+
+    logger.destroy()
 
 
 async def test_colored_raw(tmp_path):
@@ -65,6 +67,9 @@ async def test_colored_raw(tmp_path):
     assert "rocks" in text
     assert "multiple" in a_text
 
+    logger.destroy()
+    a_logger.destroy()
+
 
 async def test_smartlogger_console_with_NDJSON():
     logger = SmartLogger("logger")
@@ -79,6 +84,8 @@ async def test_smartlogger_console_with_NDJSON():
     with pytest.raises(Exception):
         logger.add_console(output_mode=OutputMode.COLOR)
 
+    logger.destroy()
+
 
 def test_smartlogger_blocks_multiple_console_handlers(tmp_path):
     logger = SmartLogger("logger")
@@ -88,6 +95,8 @@ def test_smartlogger_blocks_multiple_console_handlers(tmp_path):
 
     assert len(logger.handler_info) == 0
     assert logger.console_handler is None
+
+    logger.destroy()
 
 
 def test_illegal_register_level(tmp_path):
@@ -99,9 +108,13 @@ def test_illegal_register_level(tmp_path):
     with pytest.raises(Exception):
         logger.register_level("ADD_CONSOLE", 25, LevelStyle())
 
+    logger.destroy()
+
 
 def reset_levels_for_tests():
+    # noinspection PyProtectedMember
     LEVELS._LevelRegistry__init_builtin_levels()
+    # noinspection PyProtectedMember
     LEVELS._LevelRegistry__cache.clear()
 
 async def test_theme():

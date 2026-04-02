@@ -24,7 +24,7 @@ def test_audit_enable_disable_reenable(tmp_path):
     audit_dir.mkdir()
 
     # Create a logger with a console handler
-    lg = SmartLogger("audit.demo", level=logging.INFO)
+    lg = SmartLogger("audit_demo", level=logging.INFO)
     lg.add_console(level=logging.INFO)
 
     # Enable auditing

@@ -11,7 +11,7 @@ def test_async_thread_safety(tmp_path: Path):
         log_dir.mkdir()
 
         rotation = RotationLogic(maxBytes=200, backupCount=3)
-        logger = AsyncSmartLogger("async.threads", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("async_threads", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(
             log_dir=str(log_dir),
             logfile_name="app.log",

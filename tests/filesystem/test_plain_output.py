@@ -6,7 +6,7 @@ def test_plain_output(tmp_path: Path):
     log_dir = tmp_path / "logs"
     log_dir.mkdir()
 
-    logger = SmartLogger("fs.plain", level=SmartLogger.levels()["INFO"])
+    logger = SmartLogger("fs_plain", level=SmartLogger.levels()["INFO"])
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=RotationLogic())
 
     logger.info("hello", user="gilad")

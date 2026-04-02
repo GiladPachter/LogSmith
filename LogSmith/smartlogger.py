@@ -35,6 +35,12 @@ import io
 import contextlib
 
 
+# ===========================================================================
+# Suppress behind-the-scenes logging errors (handle all errors intentionally)
+# ===========================================================================
+logging.raiseExceptions = False
+
+
 class _SmartLoggerState:
     """
     Internal state holder for SmartLogger-specific data.
@@ -201,18 +207,67 @@ class SmartLogger:
     visually expressive logging.
     """
 
+    __SmartLogger_registry: ClassVar[Dict[str, SmartLogger]] = {}
+
     __audit_handler: ClassVar[Optional[logging.Handler]] = None
     __audit_enabled: bool = False
     __audit_details: LogRecordDetails | None = None
 
     __file_handler_lock = threading.RLock()
 
+    @staticmethod
+    def __check_ancestors(name: str):
+        if '.' not in name:
+            return
+
+        parts = name.split(".")
+        for i in range(1, len(parts)):
+            ancestor_name = ".".join(parts[:i])
+
+            # existing = logging.Logger.manager.loggerDict.get(ancestor_name)
+            # if existing is None:
+            #     raise RuntimeError(
+            #         f"Cannot create logger {name!r} because ancestor {ancestor_name!r} does not exist. "
+            #         f"Using logger hierarchy syntax without an already existing parent logger causes unwanted side effects. "
+            #         f"Create any and all ancestors explicitly first."
+            #     )
+            # elif not isinstance(existing, SmartLogger):
+            #     raise RuntimeError(
+            #         f"Cannot create logger {name!r} because potential ancestor {ancestor_name!r} "
+            #         f"is not an instance of SmartLogger. This will result in an unexpected behavior and therefore rejected"
+            #     )
+
+            if ancestor_name not in SmartLogger.__SmartLogger_registry:
+                if ancestor_name in logging.Logger.manager.loggerDict:
+                    raise RuntimeError(
+                        f"Cannot create logger {name!r} because potential ancestor {ancestor_name!r} "
+                        f"is a logger of a different type than SmartLogger. This will result in an unexpected behavior and therefore rejected"
+                    )
+                else:
+                    raise RuntimeError(
+                        f"Cannot create logger {name!r} because ancestor {ancestor_name!r} does not exist. "
+                        f"Using logger hierarchy syntax without an already existing SmartLogger parent causes unwanted side effects. "
+                        f"Create any and all ancestors explicitly first."
+                    )
+
     def __init__(self, name: str, level: int = TRACE) -> None:
-        self.__smart_state = _SmartLoggerState()
+
+        existing = logging.Logger.manager.loggerDict.get(name)
+        if existing is not None:
+            raise RuntimeError(
+                f"Logger name {name!r} is already in use. "
+                f"Call AsyncSmartLogger.destroy() or choose a different name."
+            )
+
+        SmartLogger.__check_ancestors(name)
 
         self.__name = name
 
+        self.__smart_state = _SmartLoggerState()
+
         self.__py_logger = logging.getLogger(name)
+        self.__SmartLogger_registry[name] = self
+
         self.__py_logger.propagate = False
         self.__py_logger.setLevel(level)
 
@@ -910,6 +965,10 @@ class SmartLogger:
         # 6. Mark as destroyed (optional but useful)
         self.__smart_state.retired = True
 
+        if self.name in logging.Logger.manager.loggerDict:
+            del logging.Logger.manager.loggerDict[self.name]
+            del self.__SmartLogger_registry[self.name]
+
     # ------------------------------------------------------------------
     #  DYNAMIC LEVELS VIA __getattr__
     # ------------------------------------------------------------------
@@ -1028,6 +1087,8 @@ class SmartLogger:
         for logger in logging.Logger.manager.loggerDict.values():
             if isinstance(logger, SmartLogger):
                 logger.propagate = False
+
+            # logger.destroy()
 
     @staticmethod
     def get_record():

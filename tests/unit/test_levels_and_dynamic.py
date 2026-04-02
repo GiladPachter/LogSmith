@@ -20,7 +20,7 @@ def test_register_dynamic_level_creates_method_and_value_unique():
     assert "NOTICE" in levels_after
     assert levels_after["NOTICE"] == 25
 
-    logger = SmartLogger("dynamic.level.test", level=levels_after["TRACE"])
+    logger = SmartLogger("dynamic_level_test", level=levels_after["TRACE"])
     logger.add_console()
 
     # dynamic method should exist
@@ -40,7 +40,7 @@ def test_register_dynamic_level_with_style_and_theme_integration():
     levels = SmartLogger.levels()
     assert "SECURITY" in levels
 
-    logger = SmartLogger("security.logger", level=levels["TRACE"])
+    logger = SmartLogger("security_logger", level=levels["TRACE"])
     logger.add_console()
 
     # method exists
@@ -54,9 +54,11 @@ async def test_async_dynamic_level_registration_and_method():
     levels = AsyncSmartLogger.levels()
     assert "SUCCESS" in levels
 
-    logger = AsyncSmartLogger("async.dynamic", level=levels["TRACE"])
+    logger = AsyncSmartLogger("async_dynamic", level=levels["TRACE"])
     logger.add_console()
 
     assert hasattr(logger, "a_success")
     await logger.a_success("async success")
     await logger.flush()
+
+    logger.destroy()

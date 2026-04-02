@@ -12,6 +12,8 @@ async def test_async_logger_retired_raises(tmp_path):
     with pytest.raises(RuntimeError):
         await logger.a_info("should fail")
 
+    logger.destroy()
+
 @pytest.mark.asyncio
 async def test_async_logger_stopped_raises(tmp_path):
     logger = AsyncSmartLogger("stopped", logging.INFO)
@@ -21,3 +23,5 @@ async def test_async_logger_stopped_raises(tmp_path):
     logger._AsyncSmartLogger__stopped = True
     with pytest.raises(RuntimeError):
         await logger.a_raw("raw fail")
+
+    logger.destroy()

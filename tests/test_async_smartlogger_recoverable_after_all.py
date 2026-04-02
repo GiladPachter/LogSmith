@@ -6,7 +6,7 @@ from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
 
 @pytest.mark.asyncio
 async def test_async_basic_logging(tmp_path):
-    logger = AsyncSmartLogger("async.basic")
+    logger = AsyncSmartLogger("async_basic")
     logger.add_file(str(tmp_path), "out.log")
 
     await logger.a_info("hello async")
@@ -15,10 +15,12 @@ async def test_async_basic_logging(tmp_path):
     text = (tmp_path / "out.log").read_text()
     assert "hello async" in text
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_async_caller_resolution():
-    logger = AsyncSmartLogger("async.caller")
+    logger = AsyncSmartLogger("async_caller")
 
     async def inner():
         rec = AsyncSmartLogger.get_record()
@@ -30,7 +32,7 @@ async def test_async_caller_resolution():
 
 @pytest.mark.asyncio
 async def test_async_raw_logging(tmp_path):
-    logger = AsyncSmartLogger("async.raw")
+    logger = AsyncSmartLogger("async_raw")
     logger.add_file(str(tmp_path), "raw.log")
 
     await logger.a_raw("RAW-LINE", end="")
@@ -38,10 +40,12 @@ async def test_async_raw_logging(tmp_path):
 
     assert "RAW-LINE" in (tmp_path / "raw.log").read_text()
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_async_rotation(tmp_path):
-    logger = AsyncSmartLogger("async.rotate")
+    logger = AsyncSmartLogger("async_rotate")
     logic = RotationLogic(maxBytes=20)
     logger.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
 
@@ -53,6 +57,8 @@ async def test_async_rotation(tmp_path):
     files = {p.name for p in tmp_path.iterdir()}
     assert any(name.startswith("rot.log.") for name in files)
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_async_audit(tmp_path):
@@ -61,7 +67,7 @@ async def test_async_audit(tmp_path):
         logfile_name="audit.log",
     )
 
-    logger = AsyncSmartLogger("async.audit")
+    logger = AsyncSmartLogger("async_audit")
     await logger.a_info("audit me")
     await logger.flush()
 
@@ -74,7 +80,7 @@ async def test_async_audit(tmp_path):
 
 @pytest.mark.asyncio
 async def test_async_dynamic_levels(tmp_path):
-    logger = AsyncSmartLogger("async.dynamic")
+    logger = AsyncSmartLogger("async_dynamic")
     logger.add_file(str(tmp_path), "dyn.log")
 
     await logger.a_info("info msg")
@@ -85,6 +91,8 @@ async def test_async_dynamic_levels(tmp_path):
     text = (tmp_path / "dyn.log").read_text()
     assert "info msg" in text
     assert "debug msg" in text
+
+    logger.destroy()
 
 
 @pytest.mark.asyncio
@@ -100,7 +108,7 @@ async def test_async_get_record_metadata():
 
 @pytest.mark.asyncio
 async def test_async_flush(tmp_path):
-    logger = AsyncSmartLogger("async.flush")
+    logger = AsyncSmartLogger("async_flush")
     logger.add_file(str(tmp_path), "flush.log")
 
     await logger.a_info("x")
@@ -111,7 +119,7 @@ async def test_async_flush(tmp_path):
 
 @pytest.mark.asyncio
 async def test_async_shutdown(tmp_path):
-    logger = AsyncSmartLogger("async.shutdown")
+    logger = AsyncSmartLogger("async_shutdown")
     logger.add_file(str(tmp_path), "shut.log")
 
     await logger.a_info("bye")
@@ -119,14 +127,18 @@ async def test_async_shutdown(tmp_path):
 
     assert logger._AsyncSmartLogger__py_logger.handlers == []
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_async_retire():
-    logger = AsyncSmartLogger("async.retire")
+    logger = AsyncSmartLogger("async_retire")
     logger.retire()
 
     with pytest.raises(RuntimeError):
         await logger.a_info("nope")
+
+    logger.destroy()
 
 
 @pytest.mark.asyncio
@@ -141,7 +153,7 @@ async def test_async_stdout(capsys):
 async def test_async_enqueue_raw_no_errors(tmp_path):
     from LogSmith.async_smartlogger import AsyncSmartLogger
 
-    logger = AsyncSmartLogger("async.raw.enqueue")
+    logger = AsyncSmartLogger("async_raw_enqueue")
     logger.add_file(str(tmp_path), "raw2.log")
 
     # This hits the enqueue path where put_nowait succeeds immediately
@@ -156,7 +168,7 @@ async def test_async_rotation_enqueue_inside_loop(tmp_path):
     from LogSmith.async_smartlogger import AsyncSmartLogger
     from LogSmith.rotation_base import RotationLogic
 
-    logger = AsyncSmartLogger("async.rotate.enqueue")
+    logger = AsyncSmartLogger("async_rotate_enqueue")
     logic = RotationLogic(maxBytes=1)
     logger.add_file(str(tmp_path), "rot2.log", rotation_logic=logic)
 
@@ -174,7 +186,7 @@ async def test_async_rotation_profiling(tmp_path):
     from LogSmith.async_smartlogger import AsyncSmartLogger
     from LogSmith.rotation_base import RotationLogic
 
-    logger = AsyncSmartLogger("async.rotate.profile")
+    logger = AsyncSmartLogger("async_rotate_profile")
     logger.enable_profiling(True)
 
     logic = RotationLogic(maxBytes=1)
@@ -191,7 +203,7 @@ async def test_async_rotation_profiling(tmp_path):
 async def test_async_dynamic_level_caching(tmp_path):
     from LogSmith.async_smartlogger import AsyncSmartLogger
 
-    logger = AsyncSmartLogger("async.dynamic.cache")
+    logger = AsyncSmartLogger("async_dynamic_cache")
     logger.add_file(str(tmp_path), "dyn2.log")
 
     # First call creates the dynamic method
@@ -224,7 +236,7 @@ def test_async_apply_color_theme_errors():
 async def test_async_flush_calls_handler_flush(tmp_path, monkeypatch):
     from LogSmith.async_smartlogger import AsyncSmartLogger
 
-    logger = AsyncSmartLogger("async.flush.handler")
+    logger = AsyncSmartLogger("async_flush_handler")
     logger.add_file(str(tmp_path), "flush2.log")
 
     called = {}

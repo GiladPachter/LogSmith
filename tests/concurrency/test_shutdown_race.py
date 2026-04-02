@@ -9,7 +9,7 @@ def test_shutdown_race(tmp_path: Path):
         log_dir = tmp_path / "logs"
         log_dir.mkdir()
 
-        logger = AsyncSmartLogger("shutdown.race", level=AsyncSmartLogger.levels()["INFO"])
+        logger = AsyncSmartLogger("shutdown_race", level=AsyncSmartLogger.levels()["INFO"])
         logger.add_file(str(log_dir), "app.log")
 
         await shutdown_race_tester(logger)
@@ -17,5 +17,7 @@ def test_shutdown_race(tmp_path: Path):
         # shutdown_race_tester already calls shutdown()
 
         assert (log_dir / "app.log").exists()
+
+        logger.destroy()
 
     asyncio.run(main())

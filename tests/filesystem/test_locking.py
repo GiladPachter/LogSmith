@@ -4,7 +4,7 @@ from LogSmith.smartlogger import SmartLogger
 from LogSmith.rotation_base import RotationLogic
 
 def worker(log_dir):
-    logger = SmartLogger("fs.lock", level=SmartLogger.levels()["INFO"])
+    logger = SmartLogger("fs_lock", level=SmartLogger.levels()["INFO"])
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=RotationLogic(maxBytes=200))
     for i in range(200):
         logger.info("hello from worker", index=i)

@@ -27,3 +27,5 @@ async def test_async_handler_reopen(tmp_path):
 
     # handler should have reopened stream
     assert handler.stream and not handler.stream.closed
+
+    logger.destroy()

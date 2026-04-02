@@ -15,7 +15,7 @@ def test_large_entry_default_empty_file(tmp_path):
     log_dir = tmp_path
     rotation = RotationLogic(maxBytes=10, backupCount=5)
 
-    logger = SmartLogger("test.default.empty")
+    logger = SmartLogger("test_default_empty")
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     # Oversized entry (len > 10)
@@ -33,7 +33,7 @@ def test_large_entry_default_nonempty_file(tmp_path):
     log_dir = tmp_path
     rotation = RotationLogic(maxBytes=100, backupCount=5)
 
-    logger = SmartLogger("test.default.nonempty")
+    logger = SmartLogger("test_default_nonempty")
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     # First write a small entry that does NOT exceed maxBytes when formatted
@@ -63,7 +63,7 @@ def test_large_entry_rotate_first(tmp_path):
         log_entry_larger_than_maxBytes_behavior=LargeLogEntryBehavior.RotateFirst,
     )
 
-    logger = SmartLogger("test.rotatefirst")
+    logger = SmartLogger("test_rotatefirst")
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     logger.info("X" * 20)
@@ -86,7 +86,7 @@ def test_large_entry_dump_silently(tmp_path):
         log_entry_larger_than_maxBytes_behavior=LargeLogEntryBehavior.DumpSilently,
     )
 
-    logger = SmartLogger("test.dumpsilently")
+    logger = SmartLogger("test_dumpsilently")
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     logger.info("X" * 20)
@@ -105,7 +105,7 @@ def test_large_entry_crash(tmp_path):
         log_entry_larger_than_maxBytes_behavior=LargeLogEntryBehavior.Crash,
     )
 
-    logger = SmartLogger("test.crash")
+    logger = SmartLogger("test_crash")
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     with pytest.raises(ValueError):
@@ -120,7 +120,7 @@ def test_backup_count(tmp_path):
     log_dir.mkdir()
 
     rotation = RotationLogic(maxBytes=50, backupCount=2)
-    logger = SmartLogger("fs.backup")
+    logger = SmartLogger("fs_backup")
     logger.add_file(log_dir=str(log_dir), logfile_name="app.log", rotation_logic=rotation)
 
     for i in range(50):
@@ -132,6 +132,8 @@ def test_backup_count(tmp_path):
     ]
 
     assert len(rotated) <= 2
+
+    logger.destroy()
 
 
 def test_sync_large_entry_exceed_if_empty(tmp_path):
@@ -194,8 +196,6 @@ def test_async_large_entry_dump_silently(tmp_path):
     h.emit(logging.makeLogRecord({"msg": "123456"}))
     assert path.read_text() == ""  # dropped
 
-
-import pytest
 
 def test_async_large_entry_crash(tmp_path):
     path = tmp_path / "x.log"
@@ -275,6 +275,7 @@ async def test_async_worker_survives_handler_exception(tmp_path):
     # No successful writes → no increment
     assert after == before
 
+    logger.destroy()
 
 
 def test_smartlogger_add_remove_console():
@@ -284,14 +285,16 @@ def test_smartlogger_add_remove_console():
     log.remove_console()
     assert log.console_handler is None
 
+    log.destroy()
+
 
 @pytest.mark.asyncio
 async def test_async_logger_raw(tmp_path):
-    logger = AsyncSmartLogger("x")
-    logger.add_file(str(tmp_path), "x.log")
+    logger = AsyncSmartLogger("y")
+    logger.add_file(str(tmp_path), "y.log")
 
     await logger.a_raw("hello")
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
-    assert (tmp_path / "x.log").read_text().strip() == "hello"
+    assert (tmp_path / "y.log").read_text().strip() == "hello"
