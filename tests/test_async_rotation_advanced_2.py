@@ -1,6 +1,8 @@
 import os
 import time
 import logging
+from pathlib import Path
+
 import pytest
 
 from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
@@ -52,14 +54,24 @@ def test_large_entry_rotatefirst_rotation_failure(tmp_path, monkeypatch):
         large_entry_behavior=LargeLogEntryBehavior.RotateFirst,
     )
 
+    log_file = Path(handler.baseFilename)
+
     handler.rotation_callback = lambda h: h.perform_rotation()
 
-    # Force rotation to fail
-    monkeypatch.setattr(os, "replace", lambda *a, **k: (_ for _ in ()).throw(OSError("fail")))
+    monkeypatch.setattr(
+        os,
+        "replace",
+        lambda *a, **k: (_ for _ in ()).throw(OSError("fail")),
+    )
 
-    # The handler does NOT catch rotation errors → must raise
-    with pytest.raises(OSError):
-        emit_direct(handler, "X" * 100)
+    # Rotation failure is swallowed by emit() → must NOT raise
+    emit_direct(handler, "X" * 100)
+
+    # Base file exists (created by handler)
+    assert log_file.exists()
+
+    # Entry was not written because rotation failed before write
+    assert "X" * 100 not in log_file.read_text()
 
 
 # ---------------------------------------------------------------------------

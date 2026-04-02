@@ -150,14 +150,13 @@ class AsyncSmartLogger:
             self._owner._on_queue_put(item)
 
     def _on_queue_put(self, item: _QueueItem) -> None:
-        """
-        Auto-start worker only for LOG/RAW events.
-        ROTATE events must never be auto-started here.
-        """
-
-        # No loop or no loop thread → cannot start worker
-        if self.__loop is None or self.__loop_thread is None:
-            return
+        # Ensure loop is captured if not already
+        if self.__loop is None:
+            try:
+                self.__loop = asyncio.get_running_loop()
+                self.__loop_thread = threading.current_thread()
+            except RuntimeError:
+                return  # still no loop, cannot start worker yet
 
         # Only same-thread auto-start
         if threading.current_thread() is not self.__loop_thread:
@@ -1130,23 +1129,25 @@ class AsyncSmartLogger:
     # FLUSH & SHUTDOWN
     # ------------------------------------------------------------------
     async def flush(self) -> None:
-        """
-        Wait until all queued work (LOG, RAW, ROTATE) is done,
-        then flush all underlying handlers.
-        """
-        # If there is pending work but no worker yet (e.g. rotation enqueued
-        # from same thread via callback), start a worker so join() can complete.
         if self.__queue.qsize() > 0 and not self.__worker_tasks:
             await self.__ensure_worker_started()
 
-        # 1. Drain the async pipeline completely
         await self.__queue.join()
 
-        # 2. Flush all handlers' streams
         for handler in self.__py_logger.handlers:
             flush = getattr(handler, "flush", None)
-            if callable(flush):
+            if not callable(flush):
+                continue
+
+            # Be defensive: some handlers may already have closed their streams
+            try:
                 flush()
+            except ValueError:
+                # "I/O operation on closed file" – safe to ignore here
+                pass
+            except Exception:  # pragma: no cover
+                # Don't let a broken handler kill flush()
+                pass
 
     async def shutdown(self):
         if self.__stopped:
@@ -1154,13 +1155,16 @@ class AsyncSmartLogger:
 
         self.__stopped = True
 
-        # 1. Cancel worker tasks if they exist
+        # 1. Flush all pending work BEFORE cancelling worker
+        await self.flush()
+
+        # 2. Now cancel worker tasks
         if self.__worker_tasks:
             for task in self.__worker_tasks:
                 task.cancel()
             await asyncio.gather(*self.__worker_tasks, return_exceptions=True)
 
-        # 2. Best-effort drain of the queue without join()
+        # 3. Drain queue (should be empty now)
         while True:
             try:
                 self.__queue.get_nowait()
@@ -1168,7 +1172,7 @@ class AsyncSmartLogger:
             except asyncio.QueueEmpty:
                 break
 
-        # 3. Flush + close handlers
+        # 4. Flush + close handlers
         for handler in self.__py_logger.handlers:
             try:
                 handler.flush()

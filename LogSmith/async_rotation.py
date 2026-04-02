@@ -248,8 +248,8 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             if decision is self.__AsyncLargeEntryDecision.ROTATE_THEN_WRITE:
                 self.perform_rotation()
             elif self.__should_rotate(formatted):
-                self.__rotation_scheduled = False  # allow immediate re-scheduling
-                self.__schedule_rotation()
+                if not self.__rotation_scheduled:
+                    self.__schedule_rotation()
 
             with self.write_lock:
                 if self.stream is None or getattr(self.stream, "closed", False):
@@ -262,12 +262,13 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             raise
 
         except OSError:
-            # If rotation was triggered by size, propagate the failure
-            if self.max_bytes and self.max_bytes > 0:
-                raise
-
             # If RotateFirst triggered rotation, propagate the failure
             if self.large_entry_behavior == LargeLogEntryBehavior.RotateFirst:
+                self.handleError(record)
+                return
+
+            # If rotation was triggered by size, propagate the failure
+            if self.max_bytes and self.max_bytes > 0:
                 raise
 
             # Otherwise treat as logging error
