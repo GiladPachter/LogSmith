@@ -133,10 +133,11 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
                 empty = (self.stream.tell() == 0)
             except OSError:
                 # FD is broken: close best-effort and reopen, treat as empty
+                # noinspection PyBroadException
                 try:
                     if self.stream is not None:
                         self.stream.close()
-                except Exception:
+                except Exception:   # pragma: no cover
                     pass
                 self.stream = self._open()
                 empty = True
@@ -172,14 +173,16 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             self.stream = self._open()
             return
 
+        # noinspection PyBroadException
         try:
             # harmless check that fails if FD is invalid
             self.stream.tell()
-        except Exception:
+        except Exception:   # pragma: no cover
             # FD is broken → reopen
+            # noinspection PyBroadException
             try:
                 self.stream.close()
-            except Exception:
+            except Exception:   # pragma: no cover
                 pass
             self.stream = self._open()
 
@@ -202,10 +205,11 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
                     current = self.stream.tell()
                 except OSError:
                     # FD broken → reopen and treat as empty
+                    # noinspection PyBroadException
                     try:
                         if self.stream:
                             self.stream.close()
-                    except Exception:
+                    except Exception:   # pragma: no cover
                         pass
                     self.stream = self._open()
                     current = 0

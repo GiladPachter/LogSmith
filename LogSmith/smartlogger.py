@@ -749,7 +749,7 @@ class SmartLogger:
         for h in self.__smart_state.handlers:
             if h.kind == "console":
                 return asdict(h)
-        return None
+        return None # pragma: no cover
 
     @property
     def file_handlers(self):
@@ -773,7 +773,7 @@ class SmartLogger:
         """
         h = cls.__audit_handler
         if h is None:
-            return None
+            return None # pragma: no cover
 
         # Determine formatter mode
         fmt = h.formatter

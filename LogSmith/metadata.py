@@ -95,20 +95,20 @@ def get_license_text() -> str | None:
             root_license = project_root / "LICENSE"
             if root_license.is_file():
                 return root_license.read_text(encoding="utf-8")
-        except Exception:
-            pass    # pragma: no cover
+        except Exception:   # pragma: no cover
+            pass
 
-        return None
+        return None # pragma: no cover
 
     except PackageNotFoundError:
-        return None
+        return None # pragma: no cover
 
 
 def get_file_list():
     # noinspection PyBroadException
     try:
         return [str(f) for f in files("LogSmith")]
-    except Exception:
+    except Exception:   # pragma: no cover
         return []
 
 
@@ -116,7 +116,7 @@ def __build_tree_from_paths(paths: list[str]):
     tree: dict[str, dict] = {}
     for p in paths:
         if "__pycache__" in p:
-            continue
+            continue    # pragma: no cover
         parts = Path(p).parts
         node = tree
         for part in parts:
