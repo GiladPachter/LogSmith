@@ -280,13 +280,12 @@ class AsyncSmartLogger:
 
     async def __worker(self) -> None:
         while True:
+            # Exit immediately if worker_tasks was cleared
+            if self._AsyncSmartLogger__worker_tasks is None:
+                return
+
             item = await self.__queue.get()
             try:
-                # If worker_tasks was explicitly set to None,
-                # treat that as "no workers should be running".
-                if self._AsyncSmartLogger__worker_tasks is None:
-                    return
-
                 # noinspection PyBroadException
                 try:
                     if item.op is AsyncOp.SENTINEL:
@@ -294,19 +293,12 @@ class AsyncSmartLogger:
 
                     if item.op is AsyncOp.LOG:
                         await self.__process_log(item.payload)
-
                     elif item.op is AsyncOp.RAW:
                         await self.__process_raw(item.payload)
-
                     elif item.op is AsyncOp.ROTATE:
                         await self.__process_rotate(item.payload)
 
-                except Exception as e:   # pragma: no cover
-                    # import traceback, sys
-                    # print("AsyncSmartLogger worker error:", e, file=sys.stderr)
-                    # traceback.print_exc()
-                    # swallow ANY error inside the worker
-                    # this prevents the worker from dying
+                except Exception:  # pragma: no cover
                     pass
 
             finally:
@@ -1244,10 +1236,12 @@ class AsyncSmartLogger:
 
         # 4. Flush + close handlers
         for handler in self.__py_logger.handlers:
+            # noinspection PyBroadException
             try:
                 handler.flush()
             except Exception:  # pragma: no cover
                 pass
+            # noinspection PyBroadException
             try:
                 handler.close()
             except Exception:  # pragma: no cover

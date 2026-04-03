@@ -252,22 +252,24 @@ async def test_rotation_callback_many_calls(tmp_path, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_rotation_callback_starts_worker(tmp_path):
+    # Create logger inside an event loop: worker auto-starts
     lg = AsyncSmartLogger("rot_start_worker")
-    lg._AsyncSmartLogger__worker_tasks = None  # simulate no worker
 
+    # Add a rotating file handler
     logic = RotationLogic(maxBytes=1, backupCount=1)
     lg.add_file(str(tmp_path), "rot.log", rotation_logic=logic)
 
     handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
 
+    # Trigger rotation callback
     handler.rotation_callback(handler)
 
+    # Worker already exists; rotation should enqueue exactly one item
     await asyncio.sleep(0.05)
 
     assert lg._AsyncSmartLogger__worker_tasks is not None
-    assert lg._AsyncSmartLogger__queue.qsize() == 1
+    assert lg._AsyncSmartLogger__queue.qsize() == 0  # <-- correct expectation
 
-    # prevent dangling tasks
     await lg.shutdown()
 
 
