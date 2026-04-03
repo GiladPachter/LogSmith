@@ -1,7 +1,5 @@
 import pytest
-import asyncio
 from pathlib import Path
-import logging
 
 from LogSmith.smartlogger import SmartLogger
 from LogSmith.async_smartlogger import AsyncSmartLogger

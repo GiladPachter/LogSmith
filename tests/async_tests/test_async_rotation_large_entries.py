@@ -1,10 +1,7 @@
-import logging
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import pytest
 
-from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
 from LogSmith.rotation_base import LargeLogEntryBehavior
 
 

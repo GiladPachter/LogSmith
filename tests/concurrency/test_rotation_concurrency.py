@@ -1,6 +1,5 @@
 
 import asyncio
-import logging
 from pathlib import Path
 from LogSmith import AsyncSmartLogger
 from LogSmith.rotation_base import RotationLogic

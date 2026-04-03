@@ -1,12 +1,10 @@
 import asyncio
-import logging
 import os
 from pathlib import Path
 import pytest
 
-from LogSmith import SmartLogger, AsyncSmartLogger, OptionalRecordFields, LogRecordDetails
+from LogSmith import AsyncSmartLogger, OptionalRecordFields, LogRecordDetails
 from LogSmith.rotation_base import RotationLogic
-from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
 
 
 # ------------------------------------------------------------

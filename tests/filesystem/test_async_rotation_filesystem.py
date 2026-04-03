@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from LogSmith import AsyncSmartLogger
-from LogSmith.rotation_base import RotationLogic, When
+from LogSmith.rotation_base import RotationLogic
 
 
 async def test_async_rotation(tmp_path: Path):

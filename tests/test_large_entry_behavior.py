@@ -8,7 +8,6 @@ from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
 from LogSmith.file_registry import FileHandlerRegistry
 from LogSmith.formatter import StructuredNDJSONFormatter, LogRecordDetails
 from LogSmith.rotation import LargeLogEntryBehavior, ConcurrentTimedSizedRotatingFileHandler
-from LogSmith.rotation_base import BaseTimedSizedRotatingFileHandler
 
 
 def test_large_entry_default_empty_file(tmp_path):

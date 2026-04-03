@@ -4,7 +4,6 @@ import logging
 import uuid
 import json
 import pytest
-from pathlib import Path
 
 from LogSmith import LogRecordDetails, OptionalRecordFields
 from LogSmith.smartlogger import SmartLogger
