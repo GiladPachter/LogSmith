@@ -486,6 +486,9 @@ class AsyncSmartLogger:
             self.__profile_stats["rotation_time"] += time.perf_counter() - t0
             self.__profile_stats["rotation_count"] += 1
 
+        # Clear per-handler debounce flag
+        setattr(handler, "_async_rotation_pending", False)
+
     # ------------------------------------------------------------------
     # CALLER RESOLUTION
     # ------------------------------------------------------------------
@@ -972,6 +975,11 @@ class AsyncSmartLogger:
             if real is None:
                 return  # nothing to rotate
             handler = real
+
+        # Per-handler debounce: at most one pending ROTATE per handler
+        if getattr(handler, "_async_rotation_pending", False):
+            return
+        setattr(handler, "_async_rotation_pending", True)
 
         # Ensure we know the loop and its thread if we're in a running loop
         if self.__loop is None:
