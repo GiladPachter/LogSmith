@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from LogSmith import AsyncSmartLogger, SmartLogger, CPrint, OutputMode, LevelStyle, NEON_THEME, PASTEL_THEME, \
+from LogSmith import AsyncSmartLogger, SmartLogger, CPrint, OutputMode, LevelStyle, PASTEL_THEME, \
     LIGHT_THEME
 from LogSmith.level_registry import LEVELS
 
@@ -35,6 +35,7 @@ async def test_use_logger_properties():
     assert a_logger._AsyncSmartLogger__py_logger.level == logging.ERROR
 
     logger.destroy()
+    a_logger.destroy()
 
 
 async def test_colored_raw(tmp_path):

@@ -73,7 +73,7 @@ async def test_async_audit(tmp_path):
 
     text = (tmp_path / "audit.log").read_text()
     assert "audit me" in text
-    assert "async.audit" in text
+    assert "async_audit" in text
 
     await AsyncSmartLogger.terminate_auditing()
 
