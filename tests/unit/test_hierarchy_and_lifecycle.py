@@ -7,9 +7,10 @@ def test_logger_hierarchy_inheritance_and_override(capsys):
     root = SmartLogger("myapp", level=levels["INFO"])
     root.add_console()
 
-    api = SmartLogger("myapp_api", level=levels["NOTSET"])
+    api = SmartLogger("myapp.api", level=levels["NOTSET"])
     api.add_console()
-    users = SmartLogger("myapp_api.users", level=levels["DEBUG"])
+
+    users = SmartLogger("myapp.api.users", level=levels["DEBUG"])
     users.add_console()
 
     # api inherits INFO, users overrides to DEBUG
