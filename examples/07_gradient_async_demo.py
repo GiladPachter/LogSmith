@@ -37,7 +37,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     await a_stdout("\nCreating async logger 'gradient.demo.async'...")
 
-    lg = AsyncSmartLogger("gradient.demo.async", level=levels["TRACE"])
+    lg = AsyncSmartLogger("gradient_demo_async", level=levels["TRACE"])
     lg.add_console(level=levels["TRACE"])
 
     # ------------------------------------------------------------------------------------------------------

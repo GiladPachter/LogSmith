@@ -61,7 +61,7 @@ async def main():
         color_all_log_record_fields=True
     )
 
-    logger = AsyncSmartLogger("misc.async", level=levels["TRACE"])
+    logger = AsyncSmartLogger("misc_async", level=levels["TRACE"])
     logger.add_console(level=levels["TRACE"], log_record_details=details)
 
     # ======================================================================================================
@@ -99,7 +99,7 @@ async def main():
     # ======================================================================================================
     await a_stdout("\nDemonstrating retire() and destroy()...")
 
-    temp_logger = AsyncSmartLogger("temp_logger.async", level=levels["INFO"])
+    temp_logger = AsyncSmartLogger("temp_logger_async", level=levels["INFO"])
     temp_logger.add_console(level=levels["INFO"])
 
     await temp_logger.a_info("This logger will be retired.")

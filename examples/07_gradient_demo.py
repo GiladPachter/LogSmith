@@ -38,7 +38,7 @@ stdout("\nGradient demo\n=============")
 # ----------------------------------------------------------------------------------------------------------
 stdout("\nCreating logger 'gradient.demo'...")
 
-lg = SmartLogger("gradient.demo", level=levels["TRACE"])
+lg = SmartLogger("gradient_demo", level=levels["TRACE"])
 lg.add_console(level=levels["TRACE"])
 
 # ----------------------------------------------------------------------------------------------------------

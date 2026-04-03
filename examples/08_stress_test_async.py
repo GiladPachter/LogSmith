@@ -50,7 +50,7 @@ async def main():
     # --------------------------------------------------------------
     await a_stdout("\nCreating async logger 'stress.async'...")
 
-    logger = AsyncSmartLogger("stress.async", level=levels["TRACE"])
+    logger = AsyncSmartLogger("stress_async", level=levels["TRACE"])
 
     # --------------------------------------------------------------
     # Rotating file handler

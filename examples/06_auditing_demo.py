@@ -55,12 +55,12 @@ stdout("\nCreating loggers...")
 loggers: Dict[str, SmartLogger] = {}
 
 # 1. console only
-lg1 = SmartLogger("demo.console_only", level=levels["INFO"])
+lg1 = SmartLogger("demo_console_only", level=levels["INFO"])
 lg1.add_console(level=levels["INFO"])
 loggers["console_only"] = lg1
 
 # 2. file only
-lg2 = SmartLogger("demo.file_only", level=levels["INFO"])
+lg2 = SmartLogger("demo_file_only", level=levels["INFO"])
 lg2.add_file(
     log_dir=str(audit_dir / "file_only"),
     logfile_name="file_only.log",
@@ -69,7 +69,7 @@ lg2.add_file(
 loggers["file_only"] = lg2
 
 # 3. console + file
-lg3 = SmartLogger("demo.console_and_file", level=levels["INFO"])
+lg3 = SmartLogger("demo_console_and_file", level=levels["INFO"])
 lg3.add_console(level=levels["INFO"])
 lg3.add_file(
     log_dir=str(audit_dir / "console_and_file"),
@@ -79,7 +79,7 @@ lg3.add_file(
 loggers["console_and_file"] = lg3
 
 # 4. two file handlers
-lg4 = SmartLogger("demo.two_files", level=levels["INFO"])
+lg4 = SmartLogger("demo_two_files", level=levels["INFO"])
 lg4.add_file(
     log_dir=str(audit_dir / "two_files_A"),
     logfile_name="A.log",

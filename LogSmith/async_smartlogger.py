@@ -121,7 +121,7 @@ class AsyncSmartLogger:
             #         f"is not an instance of AsyncSmartLogger. This will result in an unexpected behavior and therefore rejected"
             #     )
 
-            if ancestor_name not in AsyncSmartLogger.__SmartLogger_registry:
+            if ancestor_name not in AsyncSmartLogger.__AsyncSmartLogger_registry:
                 if ancestor_name in logging.Logger.manager.loggerDict:
                     raise RuntimeError(
                         f"Cannot create logger {name!r} because potential ancestor {ancestor_name!r} "
@@ -172,6 +172,8 @@ class AsyncSmartLogger:
         # If we already have a running loop at construction time, start a worker now.
         if self.__loop is not None:
             self.__worker_tasks = [self.__loop.create_task(self.__worker())]
+        else:
+            self.__worker_tasks = None
 
         self.__worker_task: Optional[asyncio.Task[None]] = None
         self.__stopped = False
@@ -280,6 +282,11 @@ class AsyncSmartLogger:
         while True:
             item = await self.__queue.get()
             try:
+                # If worker_tasks was explicitly set to None,
+                # treat that as "no workers should be running".
+                if self._AsyncSmartLogger__worker_tasks is None:
+                    return
+
                 # noinspection PyBroadException
                 try:
                     if item.op is AsyncOp.SENTINEL:

@@ -58,12 +58,12 @@ async def main():
     loggers: Dict[str, AsyncSmartLogger] = {}
 
     # 1. console only
-    lg1 = AsyncSmartLogger("demo.console_only_async", level=levels["INFO"])
+    lg1 = AsyncSmartLogger("demo_console_only_async", level=levels["INFO"])
     lg1.add_console(level=levels["INFO"])
     loggers["console_only"] = lg1
 
     # 2. file only
-    lg2 = AsyncSmartLogger("demo.file_only_async", level=levels["INFO"])
+    lg2 = AsyncSmartLogger("demo_file_only_async", level=levels["INFO"])
     lg2.add_file(
         log_dir=str(audit_dir / "file_only"),
         logfile_name="file_only.log",
@@ -72,7 +72,7 @@ async def main():
     loggers["file_only"] = lg2
 
     # 3. console + file
-    lg3 = AsyncSmartLogger("demo.console_and_file_async", level=levels["INFO"])
+    lg3 = AsyncSmartLogger("demo_console_and_file_async", level=levels["INFO"])
     lg3.add_console(level=levels["INFO"])
     lg3.add_file(
         log_dir=str(audit_dir / "console_and_file"),
@@ -82,7 +82,7 @@ async def main():
     loggers["console_and_file"] = lg3
 
     # 4. two file handlers
-    lg4 = AsyncSmartLogger("demo.two_files_async", level=levels["INFO"])
+    lg4 = AsyncSmartLogger("demo_two_files_async", level=levels["INFO"])
     lg4.add_file(
         log_dir=str(audit_dir / "two_files_A"),
         logfile_name="A.log",
