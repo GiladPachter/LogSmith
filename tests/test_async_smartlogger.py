@@ -2,6 +2,8 @@ import io
 import os
 import asyncio
 import logging
+import threading
+
 import pytest
 
 from pathlib import Path
@@ -336,6 +338,8 @@ async def test_audit_everything_and_terminate(tmp_path):
     await AsyncSmartLogger.terminate_auditing()
     assert AsyncSmartLogger.audit_handler_info() is None
 
+    logger.destroy()
+
 
 @pytest.mark.asyncio
 async def test_dynamic_level_registration_and_call(tmp_path):
@@ -631,3 +635,105 @@ async def test_shutdown_prevents_enqueue():
         )
 
     logger.destroy()
+
+
+def test_rotation_callback_external_thread(tmp_path):
+    lg = AsyncSmartLogger("ext_rot")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "x.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    def trigger():
+        handler.rotation_callback(handler)
+
+    t = threading.Thread(target=trigger)
+    t.start()
+    t.join()
+
+    # Worker should exist
+    assert lg._AsyncSmartLogger__worker_tasks is not None
+
+
+def test_no_loop_queue_put():
+    asyncio.set_event_loop(None)
+    lg = AsyncSmartLogger("no_loop")
+    item = _QueueItem(AsyncOp.LOG, {"level": 20, "msg": "x", "args": (), "extra": {}, "fields": {}, "exc_info": None, "stack_info_flag": False, "pathname": __file__, "lineno": 1, "func_name": "f"})
+    lg._AsyncSmartLogger__queue.put_nowait(item)
+
+    # No worker should start
+    assert lg._AsyncSmartLogger__worker_tasks is None
+
+
+@pytest.mark.asyncio
+async def test_profiling_mode(tmp_path):
+    lg = AsyncSmartLogger("prof")
+    lg.add_console()
+    lg.enable_profiling(True)
+
+    await lg.a_info("hello")
+
+    # Ensure the worker has processed the log
+    await lg.flush()
+
+    out = lg.get_profiling_details()
+
+    assert "Avg" in out
+
+
+@pytest.mark.asyncio
+async def test_audit_mode(tmp_path):
+    await AsyncSmartLogger.audit_everything(log_dir=str(tmp_path), logfile_name="audit.log")
+
+    lg = AsyncSmartLogger("audited")
+    lg.add_console()
+    await lg.a_info("hello")
+
+    await lg.flush()
+
+    await AsyncSmartLogger.terminate_auditing()
+
+    audit_file = tmp_path / "audit.log"
+    assert audit_file.exists()
+    assert "hello" in audit_file.read_text()
+
+
+@pytest.mark.asyncio
+async def test_shutdown_no_worker():
+    lg = AsyncSmartLogger("no_worker_shutdown")
+    lg._AsyncSmartLogger__worker_tasks = None
+    await lg.shutdown()
+
+
+def test_get_record_no_caller():
+    rec = AsyncSmartLogger.get_record()
+    assert rec.timestamp is not None
+
+
+def test_rotation_callback_dict_handler(tmp_path):
+    lg = AsyncSmartLogger("dict_rot")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "x.log", rotation_logic=logic)
+
+    meta = lg.file_handlers[0]
+    lg._AsyncSmartLogger__enqueue_rotation(meta)
+
+    assert lg._AsyncSmartLogger__worker_tasks is not None
+
+
+def test_rotation_queuefull(monkeypatch, tmp_path):
+    lg = AsyncSmartLogger("queuefull")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "x.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    def full(*args, **kwargs):
+        raise asyncio.QueueFull
+
+    monkeypatch.setattr(lg._AsyncSmartLogger__queue, "put_nowait", full)
+
+    # Should not crash
+    handler.rotation_callback(handler)
+
+    lg.destroy()

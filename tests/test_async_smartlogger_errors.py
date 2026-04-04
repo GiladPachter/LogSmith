@@ -160,6 +160,8 @@ async def test_getattr_dynamic_level_fallback(tmp_path):
     text = (tmp_path / "dyn.log").read_text()
     assert "hello" in text
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 7. find_caller edge case (nested call)

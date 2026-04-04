@@ -141,6 +141,111 @@ async def test_queue_full_backpressure(monkeypatch):
     # Should not raise
     await lg.a_info("hello")
 
+    lg.destroy()
+
+
+def test_ancestor_missing():
+    with pytest.raises(RuntimeError):
+        AsyncSmartLogger("a.b.c")  # "a" does not exist
+
+
+def test_name_collision():
+    lg = AsyncSmartLogger("dup")
+    with pytest.raises(RuntimeError):
+        AsyncSmartLogger("dup")
+
+
+@pytest.mark.asyncio
+async def test_queuefull_retry(monkeypatch):
+    lg = AsyncSmartLogger("qfull")
+    lg.add_console()
+
+    calls = {"n": 0}
+
+    def full(item):
+        calls["n"] += 1
+        raise asyncio.QueueFull
+
+    monkeypatch.setattr(lg._AsyncSmartLogger__queue, "put_nowait", full)
+
+    await lg.a_info("hello")
+
+    assert calls["n"] >= 3
+
+
+@pytest.mark.asyncio
+async def test_raw_write_fallback(tmp_path):
+    lg = AsyncSmartLogger("raw")
+    lg.add_file(str(tmp_path), "x.log")
+
+    # Force stream to None to trigger reopen
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+    handler.stream = None
+
+    await lg.a_raw("hello")
+    await lg.flush()
+
+    assert "hello" in (tmp_path / "x.log").read_text()
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_dynamic_level():
+    AsyncSmartLogger.register_level("ALERT", 45)
+    lg = AsyncSmartLogger("dyn")
+    lg.add_console()
+
+    await lg.a_alert("boom")  # dynamic method
+
+    lg.destroy()
+
+
+def test_get_record_fallback():
+    rec = AsyncSmartLogger.get_record()
+    assert rec.timestamp is not None
+
+
+def test_retire():
+    lg = AsyncSmartLogger("ret")
+    lg.retire()
+    with pytest.raises(RuntimeError):
+        lg.add_console()
+
+
+def test_destroy():
+    lg = AsyncSmartLogger("dest")
+    lg.add_console()
+    lg.destroy()
+    assert lg.name not in logging.Logger.manager.loggerDict
+
+
+def test_theme_application():
+    from LogSmith.levels import LevelStyle
+    style = LevelStyle()
+    AsyncSmartLogger.apply_color_theme({logging.INFO: style})
+
+
+@pytest.mark.asyncio
+async def test_audit_ndjson(tmp_path):
+    await AsyncSmartLogger.audit_everything(
+        log_dir=str(tmp_path),
+        logfile_name="audit.ndjson",
+        NDJSON_output=True,
+    )
+
+    lg = AsyncSmartLogger("aud")
+    lg.add_console()
+    await lg.a_info("hello")
+
+    await lg.flush()
+
+    await AsyncSmartLogger.terminate_auditing()
+
+    text = (tmp_path / "audit.ndjson").read_text(encoding="utf-8")
+    assert text.strip().startswith("[")
+    assert text.strip().split(':')[1].lstrip().startswith("{")
+
 
 # ------------------------------------------------------------
 # 8. Audit forwarding edge case

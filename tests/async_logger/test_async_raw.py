@@ -17,3 +17,5 @@ async def test_raw_logging(tmp_path):
 
     text = (tmp_path / "raw.log").read_text()
     assert "HELLO_RAW" in text
+
+    logger.destroy()
