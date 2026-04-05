@@ -18,6 +18,8 @@ async def test_duplicate_console_handler():
 
     await logger.shutdown()
 
+    logger.destroy()
+
 
 # ------------------------------------------------------------
 # 2. Duplicate file handler detection (468–485)

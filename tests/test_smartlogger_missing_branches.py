@@ -363,3 +363,51 @@ def test_audit_double_terminate(tmp_path):
     assert SmartLogger.audit_handler_info() is None
 
 
+def test_add_console_duplicate():
+    from LogSmith.smartlogger import SmartLogger
+
+    lg = SmartLogger("dup_console")
+    lg.add_console()
+
+    with pytest.raises(RuntimeError):
+        lg.add_console()
+
+    lg.destroy()
+
+
+def test_invalid_separator():
+    from LogSmith.formatter import LogRecordDetails
+
+    with pytest.raises(ValueError):
+        LogRecordDetails(separator="A")  # alphanumeric
+
+
+def test_invalid_message_parts_order_timestamp():
+    from LogSmith.formatter import LogRecordDetails, OptionalRecordFields
+
+    orf = OptionalRecordFields(logger_name=True)
+    with pytest.raises(ValueError):
+        LogRecordDetails(optional_record_fields=orf, message_parts_order=["timestamp", "level", "logger_name"])
+
+
+def test_invalid_logger_hierarchy():
+    from LogSmith.smartlogger import SmartLogger
+
+    with pytest.raises(RuntimeError):
+        SmartLogger("parent.child")  # parent does not exist
+
+
+def test_raw_writes_to_file_handler(tmp_path):
+    from LogSmith.smartlogger import SmartLogger
+
+    lg = SmartLogger("raw_file")
+    lg.add_file(str(tmp_path), "x.log")
+
+    lg.raw("\x1b[31mRED\x1b[0m", end="!")
+
+    with open(tmp_path / "x.log", "r") as f:
+        assert f.read() == "RED!"
+
+    lg.destroy()
+
+
