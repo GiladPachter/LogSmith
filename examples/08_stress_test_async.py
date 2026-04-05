@@ -20,7 +20,7 @@ import asyncio
 import time
 from pathlib import Path
 
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
@@ -30,12 +30,12 @@ from project_definitions import ROOT_DIR
 async def main():
     levels = AsyncSmartLogger.levels()
 
-    await a_stdout("\nAsync Stress Test demo\n======================")
+    print("\nAsync Stress Test demo\n======================", flush = True)
 
     # --------------------------------------------------------------
     # Prepare log directory
     # --------------------------------------------------------------
-    await a_stdout("\nPreparing log directory...")
+    print("\nPreparing log directory...", flush = True)
 
     log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "stress_test_async"
     if log_dir.exists():
@@ -43,19 +43,19 @@ async def main():
             if f.is_file():
                 f.unlink()
 
-    await a_stdout("Old stress-test files removed.")
+    print("Old stress-test files removed.", flush = True)
 
     # --------------------------------------------------------------
     # Create logger
     # --------------------------------------------------------------
-    await a_stdout("\nCreating async logger 'stress.async'...")
+    print("\nCreating async logger 'stress.async'...", flush = True)
 
     logger = AsyncSmartLogger("stress_async", level=levels["TRACE"])
 
     # --------------------------------------------------------------
     # Rotating file handler
     # --------------------------------------------------------------
-    await a_stdout("\nAdding rotating file handler...")
+    await logger.a_stdout("\nAdding rotating file handler...")
 
     details = LogRecordDetails(
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -86,7 +86,7 @@ async def main():
         log_record_details=details,
     )
 
-    await a_stdout("Async stress-test logger ready.")
+    await logger.a_stdout("Async stress-test logger ready.")
 
     # --------------------------------------------------------------
     # Stress test parameters
@@ -143,7 +143,7 @@ async def main():
             eta = remaining / rate if rate > 0 else 0
 
             # Display both progress and backlog
-            await a_stdout(
+            await logger.a_stdout(
                 f"\r[{bar}] {pct * 100:5.1f}%  "
                 f"done={processed}/{TOTAL}  "
                 f"produced={produced}  "
@@ -156,12 +156,12 @@ async def main():
             if processed >= TOTAL:
                 break   # pragma: no cover
 
-        await a_stdout()  # newline after finishing
+        await logger.a_stdout()  # newline after finishing
 
     # --------------------------------------------------------------
     # Run workers + monitor
     # --------------------------------------------------------------
-    await a_stdout(f"\nStarting async stress test with {TASK_COUNT} tasks...\n")
+    await logger.a_stdout(f"\nStarting async stress test with {TASK_COUNT} tasks...\n")
 
     logger.enable_profiling(True)
 
@@ -182,10 +182,10 @@ async def main():
     end = time.time()
 
     profiling_details = logger.get_profiling_details()
-    await a_stdout(profiling_details)
+    await logger.a_stdout(profiling_details)
     logger.enable_profiling(False)
 
-    await a_stdout(f"\nStress test completed in {end - start:.2f} seconds\n")
+    await logger.a_stdout(f"\nStress test completed in {end - start:.2f} seconds\n")
 
 
 if __name__ == "__main__":

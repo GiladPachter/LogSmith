@@ -20,7 +20,7 @@ import asyncio
 from pathlib import Path
 from typing import Dict
 
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
@@ -28,7 +28,7 @@ from project_definitions import ROOT_DIR
 
 
 async def main():
-    await a_stdout("\nAsync auditing demo\n===================")
+    print("\nAsync auditing demo\n===================", flush = True)
 
     # ------------------------------------------------------------------------------------------------------
     # 1. Levels (AsyncSmartLogger does not require global init)
@@ -38,7 +38,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 2. Prepare audit directory
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nPreparing audit directory...")
+    print("\nPreparing audit directory...", flush = True)
 
     audit_dir = Path(ROOT_DIR) / "Logs" / "examples" / "auditing_async_demo"
     audit_dir.mkdir(parents=True, exist_ok=True)
@@ -48,12 +48,12 @@ async def main():
         if f.is_file():
             f.unlink()
 
-    await a_stdout("Old audit files removed.")
+    print("Old audit files removed.", flush = True)
 
     # ------------------------------------------------------------------------------------------------------
     # 3. Create several loggers with different handler setups
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nCreating async loggers...")
+    print("\nCreating async loggers...", flush = True)
 
     loggers: Dict[str, AsyncSmartLogger] = {}
 
@@ -95,17 +95,19 @@ async def main():
     )
     loggers["two_files"] = lg4
 
-    await a_stdout("Async loggers created.")
+    await lg1.a_stdout("Async loggers created.")
 
     # ------------------------------------------------------------------------------------------------------
     # 4. Show logger configurations (JSON-safe)
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nOutput Targets by logger \"<NAME>\":")
+    await lg1.a_stdout("\nOutput Targets by logger \"<NAME>\":")
 
     for name, lg in loggers.items():
-        await a_stdout(f"\t\"{lg.name}\": ")
+        await lg.a_stdout(f"\t\"{lg.name}\": ")
         for target in lg.output_targets:
-            await a_stdout(f"\t\t{target}")
+            await lg.a_stdout(f"\t\t{target}")
+
+        await lg.flush()
 
     # ------------------------------------------------------------------------------------------------------
     # 5. Enable auditing
@@ -131,7 +133,7 @@ async def main():
         backupCount=5,
     )
 
-    await a_stdout(f"\nEnabling async auditing of 4 loggers... into '{audit_dir / 'audit.log'}'")
+    await lg1.a_stdout(f"\nEnabling async auditing of 4 loggers... into '{audit_dir / 'audit.log'}'")
 
     await AsyncSmartLogger.audit_everything(
         log_dir=str(audit_dir),
@@ -140,35 +142,43 @@ async def main():
         details=audit_details,
     )
 
-    await a_stdout("Auditing enabled.")
+    await lg1.a_stdout("Auditing enabled.")
+
+    await lg1.flush()
+    # await lg2.flush()
+    # await lg3.flush()
+    # await lg4.flush()
+
 
     # ------------------------------------------------------------------------------------------------------
     # 6. Exercise all loggers
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nLogging from all async loggers...")
+    await lg1.a_stdout("\nLogging from all async loggers...")
 
     for name, lg in loggers.items():
         await lg.a_info(f"[audit] logger '{name}' says hello")
         await lg.a_warning(f"[audit] logger '{name}' warning example")
         await lg.a_error(f"[audit] logger '{name}' error example")
 
+        await lg.flush()
+
     # ------------------------------------------------------------------------------------------------------
     # 7. Disable auditing
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nActive audit_handler_info:")
-    await a_stdout(json.dumps(AsyncSmartLogger.audit_handler_info(), indent=4))
+    await lg1.a_stdout("\nActive audit_handler_info:")
+    await lg1.a_stdout(json.dumps(AsyncSmartLogger.audit_handler_info(), indent=4))
 
-    await a_stdout("\nDisabling auditing...")
+    await lg1.a_stdout("\nDisabling auditing...")
     await AsyncSmartLogger.terminate_auditing()
-    await a_stdout("Auditing disabled.")
+    await lg1.a_stdout("Auditing disabled.")
 
-    await a_stdout("\nDead audit_handler_info:")
-    await a_stdout(json.dumps(AsyncSmartLogger.audit_handler_info(), indent=4))
+    await lg1.a_stdout("\nDead audit_handler_info:")
+    await lg1.a_stdout(json.dumps(AsyncSmartLogger.audit_handler_info(), indent=4))
 
     # ------------------------------------------------------------------------------------------------------
     # 8. Notes
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nNotes:\n"
+    await lg1.a_stdout("\nNotes:\n"
           "- To demonstrate size-only rotation: remove 'when' and 'interval'.\n"
           "- To demonstrate time-only rotation: remove 'maxBytes'.\n"
           "- To demonstrate long-term rotation (daily/weekly):\n"

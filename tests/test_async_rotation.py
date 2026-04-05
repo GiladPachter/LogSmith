@@ -154,7 +154,7 @@ def test_large_entry_exceed_if_empty(tmp_path):
 # 5. ExceedMaxBytesIfFileIsEmpty
 # ------------------------------------------------------------
 
-def test_large_entry_exceed_if_empty(tmp_path):
+def test_large_entry_exceed_if_empty_2(tmp_path):
     file = tmp_path / "log.txt"
 
     handler = Async_TimedSizedRotatingFileHandler(
@@ -322,3 +322,143 @@ async def test_handler_exception_swallowed():
     assert good.records == ["oops"]
 
     logger.destroy()
+
+
+def test_emit_preformatted_broken_fd(tmp_path, monkeypatch):
+    file = tmp_path / "x.log"
+    h = Async_TimedSizedRotatingFileHandler(str(file), max_bytes=100)
+
+    # Force stream to exist but be broken
+    h.stream = open(file, "w")
+    h.stream.close()  # closed FD triggers OSError on tell()
+
+    # Should reopen and write
+    h.emit("hello")
+
+    assert "hello" in file.read_text()
+
+
+def test_emit_logrecord_broken_fd(tmp_path):
+    file = tmp_path / "x.log"
+    h = Async_TimedSizedRotatingFileHandler(str(file))
+
+    rec = logging.LogRecord("x", logging.INFO, __file__, 1, "hello", (), None)
+
+    h.stream = open(file, "w")
+    h.stream.close()  # force broken FD
+
+    h.emit(rec)
+
+    assert "hello" in file.read_text()
+
+
+def test_rotate_then_write(tmp_path):
+    file = tmp_path / "x.log"
+    h = Async_TimedSizedRotatingFileHandler(
+        str(file),
+        max_bytes=1,
+        large_entry_behavior=LargeLogEntryBehavior.RotateFirst,
+        backup_count=1,
+    )
+
+    rec = logging.LogRecord("x", logging.INFO, __file__, 1, "hello", (), None)
+
+    h.emit(rec)
+
+    # After rotation, the new file should contain the message
+    assert "hello" in file.read_text()
+
+
+def test_ensure_stream_open_broken(tmp_path):
+    file = tmp_path / "x.log"
+    h = Async_TimedSizedRotatingFileHandler(str(file))
+
+    h.stream = open(file, "w")
+    h.stream.close()
+
+    h._ensure_stream_open()
+    assert h.stream is not None
+    assert not h.stream.closed
+
+
+def test_should_rotate_size(tmp_path):
+    file = tmp_path / "x.log"
+    h = Async_TimedSizedRotatingFileHandler(str(file), max_bytes=5)
+
+    with open(file, "w") as f:
+        f.write("1234")
+
+    h.stream = open(file, "a")
+    # noinspection PyUnresolvedReferences
+    assert h._Async_TimedSizedRotatingFileHandler__should_rotate("xx")
+
+
+def test_rotation_suffix_empty(tmp_path):
+    h = Async_TimedSizedRotatingFileHandler(str(tmp_path / "x.log"))
+    assert h._rotation_suffix() == ""
+
+
+def test_expiration_seconds(tmp_path):
+    file = tmp_path / "x.log"
+    h = Async_TimedSizedRotatingFileHandler(
+        str(file),
+        expiration_rule=ExpirationRule(ExpirationScale.Seconds, 1),
+    )
+
+    old = tmp_path / "x.log.1"
+    old.write_text("old")
+    os.utime(old, (time.time() - 10, time.time() - 10))
+
+    # noinspection PyUnresolvedReferences
+    h._Async_TimedSizedRotatingFileHandler__apply_expiration_policy()
+    assert not old.exists()
+
+
+def test_list_rotated_files_excludes_lock(tmp_path):
+    (tmp_path / "x.log.1").write_text("a")
+    (tmp_path / "x.log.1.lock").write_text("b")
+
+    h = Async_TimedSizedRotatingFileHandler(str(tmp_path / "x.log"))
+    # noinspection PyUnresolvedReferences
+    lst = h._Async_TimedSizedRotatingFileHandler__list_rotated_files()
+
+    assert len(lst) == 2
+    assert lst[1].endswith("x.log.1")
+
+
+def test_rotate_first_creates_empty_file(tmp_path):
+    file = tmp_path / "x.log"
+    h = Async_TimedSizedRotatingFileHandler(
+        str(file),
+        max_bytes=1,
+        large_entry_behavior=LargeLogEntryBehavior.RotateFirst,
+        backup_count=1,
+    )
+
+    # No base file exists
+    rec = logging.LogRecord("x", logging.INFO, __file__, 1, "hello", (), None)
+    h.emit(rec)
+
+    rotated = list(tmp_path.glob("x.log.1"))
+    assert rotated
+    assert rotated[0].read_text() == "" or rotated[0].read_text() == "hello\n"
+
+
+def test_compute_next_rollover_friday(tmp_path):
+    h = Async_TimedSizedRotatingFileHandler(
+        str(tmp_path / "x.log"),
+        when=When.FRIDAY,
+        timestamp=RotationTimestamp(0, 0, 0),
+    )
+
+    now = time.time()
+    # noinspection PyUnresolvedReferences
+    nxt = h._Async_TimedSizedRotatingFileHandler__compute_next_rollover(now)
+    assert nxt > now
+
+
+def test_expiration_no_rule(tmp_path):
+    h = Async_TimedSizedRotatingFileHandler(str(tmp_path / "x.log"))
+    # Should simply return without error
+    # noinspection PyUnresolvedReferences
+    h._Async_TimedSizedRotatingFileHandler__apply_expiration_policy()

@@ -21,7 +21,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import json
 
-from LogSmith import SmartLogger, stdout, CPrint, LevelStyle
+from LogSmith import SmartLogger, CPrint, LevelStyle
 
 
 # ----------------------------------------------------------------------------------------------------------
@@ -50,20 +50,21 @@ SmartLogger.register_level(
 
 levels = SmartLogger.levels()
 
-stdout("\nBuiltin logger levels:")
-stdout(json.dumps(levels, indent = 4))
+print("\nBuiltin logger levels:", flush=True)
+print(json.dumps(levels, indent = 4), flush=True)
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create a logger and attach a console handler
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nCreating logger 'basic'...\n")
+print("\nCreating logger 'basic'...\n", flush=True)
+
 logger = SmartLogger("basic", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Basic log messages
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nBasic log messages:\n-------------------")
+logger.stdout("\nBasic log messages:\n-------------------")
 
 logger.trace("trace message")
 logger.debug("debug message")
@@ -75,7 +76,7 @@ logger.critical("critical message")
 # ----------------------------------------------------------------------------------------------------------
 # 4. Named arguments (structured message parameters)
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nMessages with named arguments:\n------------------------------")
+logger.stdout("\nMessages with named arguments:\n------------------------------")
 
 logger.info("User login event", username="Gilad", action="login")
 logger.warning("Suspicious activity detected", reason="multiple failed attempts")
@@ -83,37 +84,20 @@ logger.warning("Suspicious activity detected", reason="multiple failed attempts"
 # ----------------------------------------------------------------------------------------------------------
 # 5. Dynamic level registration
 # ----------------------------------------------------------------------------------------------------------
-# stdout("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
-stdout("\nShowing logging levels that were added on-the-fly as startup:\n------------------------------------------------------------")
-
-# SmartLogger.register_level(
-#     name="NOTICE",
-#     value=25,
-#     style=LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA, intensity=CPrint.Intensity.BOLD),
-# )
+logger.stdout("\nShowing logging levels that were added on-the-fly as startup:\n------------------------------------------------------------")
 logger.notice("This is a NOTICE-level (a runtime-added level) message")
-
-# SmartLogger.register_level(
-#     name="ALERT",
-#     value=45,
-#     style=LevelStyle(
-#         fg=CPrint.FG.BRIGHT_YELLOW,
-#         bg=CPrint.BG.RED,
-#         intensity=CPrint.Intensity.BOLD,
-#     ),
-# )
 logger.alert("This is an ALERT-level message")
 
-stdout("\nExpanded logger levels:")
+logger.stdout("\nExpanded logger levels:")
 levels = SmartLogger.levels()
 sorted_levels = dict(sorted(levels.items(), key=lambda item: item[1]))
-stdout(json.dumps(sorted_levels, indent = 4))
+logger.stdout(json.dumps(sorted_levels, indent = 4))
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 6. RAW text (plain + colored)
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nRAW text output:\n----------------")
+logger.stdout("\nRAW text output:\n----------------")
 logger.raw("SmartLogger loggers can log raw text (no formatting, no prefix)."
            "\nRAW text syncs perfectly with other logging operations."
            "\nNote: DON'T SPAM !"
@@ -122,7 +106,7 @@ logger.raw("SmartLogger loggers can log raw text (no formatting, no prefix)."
            "\n      Use logger.raw() only in cases where you intentionally..."
            "\n      ...mean for your log file to break the typical structure of   line = log-entry")
 
-stdout("\nRAW colored text:\n------------------")
+logger.stdout("\nRAW colored text:\n------------------")
 
 colored = [
     CPrint.colorize("RAW",      fg=CPrint.FG.BRIGHT_RED),
@@ -138,7 +122,8 @@ logger.raw(" ".join(colored))
 # ----------------------------------------------------------------------------------------------------------
 # 7. Safeguards & validations (informational)
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nSmartLogger safeguards:"
+# stdout("\nSmartLogger safeguards:"
+logger.stdout("\nSmartLogger safeguards:"
       "\n-----------------------\n"
       "- Prevents duplicate handlers\n"
       "- Validates log_dir paths (absolute + normalized)\n"

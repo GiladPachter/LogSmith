@@ -422,6 +422,33 @@ class SmartLogger:
             stream.write(text + end)
             stream.flush()
 
+    def stdout(self, *args, sep=" ", end="\n"):
+        """
+        Console-only output, synchronized with console handler if present.
+        Does NOT go through file handlers.
+        """
+        # write to console handler's stream, if console handler exists
+        for handler in self.__py_logger.handlers:
+            if isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename"):
+                stream = handler.stream
+                if stream is None:
+                    continue
+
+                # Format text exactly like print()
+                buffer = io.StringIO()
+                with contextlib.redirect_stdout(buffer):
+                    print(*args, sep=sep, end=end)
+                text = buffer.getvalue()
+
+                # Write directly to the console handler's stream
+                stream.write(text)
+                # stream.flush()
+                return
+
+        # No console handler → fallback to normal print
+        print(*args, sep=sep, end=end)
+        # sys.stdout.flush()
+
     # ------------------------------------------------------------------
     #  CORE LOGGING BEHAVIOR
     # ------------------------------------------------------------------
@@ -1293,14 +1320,18 @@ class SmartLogger:
 
         if exc_info:
             exc_type, exc_value, exc_tb = exc_val
-            rec.exc_info = {
-                "exc_parts": {
-                    "err_type_name": None if exc_type  is None else exc_type.__name__,
-                    "error_text":    None if exc_value is None else exc_value.__str__(),
-                    "stack_trace":   None if exc_tb    is None else ''.join(traceback.format_tb(exc_tb)),
-                },
-                "full_trace_text":   None if exc_type  is None else ''.join(traceback.format_exception(exc_type, exc_value, exc_tb)),
-            }
+            if exc_value is None:
+                rec.exc_info = None
+            else:
+                rec.exc_info = {
+                    "exc_parts": {
+                        "err_type_name": None if exc_type is None else exc_type.__name__,
+                        "error_text": None if exc_value is None else exc_value.__str__(),
+                        "stack_trace": None if exc_tb is None else ''.join(traceback.format_tb(exc_tb)),
+                    },
+                    "full_trace_text": None if exc_type is None else ''.join(
+                        traceback.format_exception(exc_type, exc_value, exc_tb)),
+                }
 
         if stack_info:
             rec.stack_info = stack_val
@@ -1338,92 +1369,3 @@ class SmartLogger:
             pass    # pragma: no cover
 
         return None # pragma: no cover
-
-
-# # ======================================================================
-# #  REGISTER BUILT-IN LEVELS
-# # ======================================================================
-# LEVELS.register("TRACE", TRACE,
-#     LevelStyle(fg = CPrint.FG.SOFT_PURPLE, intensity = CPrint.Intensity.NORMAL),
-# )
-# LEVELS.register("DEBUG", logging.DEBUG,
-#     LevelStyle(fg = CPrint.FG.CYAN, intensity = CPrint.Intensity.NORMAL),
-# )
-# LEVELS.register("INFO", logging.INFO,
-#     LevelStyle(fg = CPrint.FG.NEON_GREEN, intensity = CPrint.Intensity.NORMAL),
-# )
-# LEVELS.register("WARNING", logging.WARNING,
-#     LevelStyle(fg = CPrint.FG.NEON_YELLOW, intensity = CPrint.Intensity.NORMAL),
-# )
-# LEVELS.register("ERROR", logging.ERROR,
-#     LevelStyle(fg = CPrint.FG.NEON_RED, intensity = CPrint.Intensity.BOLD),
-# )
-# LEVELS.register("CRITICAL", logging.CRITICAL,
-#     LevelStyle(fg = CPrint.FG.NEON_YELLOW, bg = CPrint.BG.NEON_RED, intensity = CPrint.Intensity.BOLD,
-#                styles = (CPrint.Style.UNDERLINE,),
-#     ),
-# )
-
-
-# ======================================================================
-#  PROTOCOL FOR TYPE CHECKING
-# ======================================================================
-class SmartLoggerProtocol(Protocol):
-    def trace(self, msg: str, *args: Any, **kwargs: Any) -> None: ...       # pragma: no cover
-    def debug(self, msg: str, *args: Any, **kwargs: Any) -> None: ...       # pragma: no cover
-    def info(self, msg: str, *args: Any, **kwargs: Any) -> None: ...        # pragma: no cover
-    def warning(self, msg: str, *args: Any, **kwargs: Any) -> None: ...     # pragma: no cover
-    def error(self, msg: str, *args: Any, **kwargs: Any) -> None: ...       # pragma: no cover
-    def critical(self, msg: str, *args: Any, **kwargs: Any) -> None: ...    # pragma: no cover
-
-
-# ======================================================================
-#  Global stdout logger (lazy initialization)
-# ======================================================================
-__stdout_logger = None
-__stdout_lock = threading.Lock()
-
-
-def __get_stdout_logger() -> SmartLogger:
-    """
-    Internal helper that creates a dedicated SmartLogger instance
-    for stdout redirection. It has exactly one console handler and
-    does not propagate or write to files.
-    """
-    global __stdout_logger
-
-    if __stdout_logger is not None:
-        return __stdout_logger
-
-    with __stdout_lock:
-        if __stdout_logger is None:
-            lg = SmartLogger("_stdout", level=logging.INFO)
-            lg.add_console(level=logging.INFO)
-            lg.propagate = False
-            __stdout_logger = lg
-
-    return __stdout_logger
-
-
-def stdout(*args, sep=" ", end="\n"):
-    """
-    A SmartLogger‑synchronized replacement for print().
-
-    Behaves exactly like print(), including handling of sep and end,
-    but routes output through SmartLogger.raw() so console output is
-    perfectly synchronized with all SmartLogger log messages.
-
-    Auto-flushes to guarantee ordering with log messages.
-    """
-    lg = __get_stdout_logger()
-
-    # Capture print() output exactly as Python formats it
-    buffer = io.StringIO()
-    with contextlib.redirect_stdout(buffer):
-        print(*args, sep=sep, end=end)
-
-    text = buffer.getvalue()
-
-    # Forward the fully formatted text to SmartLogger.raw()
-    # raw() already flushes, and we intentionally set end=""
-    lg.raw(text, end="")

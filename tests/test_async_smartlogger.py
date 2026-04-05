@@ -358,22 +358,23 @@ async def test_dynamic_level_registration_and_call(tmp_path):
     assert "NOTICE" in AsyncSmartLogger.levels()
 
 
-def test_apply_color_theme_and_errors():
+@pytest.mark.asyncio
+async def test_apply_color_theme_and_errors():
     # valid theme
     theme = {meta["value"]: LevelStyle() for name, meta in LEVELS.all().items()}
-    AsyncSmartLogger.apply_color_theme(theme)
+    await AsyncSmartLogger.apply_color_theme(theme)
 
     # invalid theme type
     with pytest.raises(TypeError):
-        AsyncSmartLogger.apply_color_theme("not-a-dict")  # type: ignore[arg-type]
+        await AsyncSmartLogger.apply_color_theme("not-a-dict")  # type: ignore[arg-type]
 
     # invalid key type
     with pytest.raises(TypeError):
-        AsyncSmartLogger.apply_color_theme({"x": LevelStyle()})  # type: ignore[arg-type]
+        await AsyncSmartLogger.apply_color_theme({"x": LevelStyle()})  # type: ignore[arg-type]
 
     # invalid value type
     with pytest.raises(TypeError):
-        AsyncSmartLogger.apply_color_theme({10: "not-style"})  # type: ignore[arg-type]
+        await AsyncSmartLogger.apply_color_theme({10: "not-style"})  # type: ignore[arg-type]
 
 
 @pytest.mark.asyncio

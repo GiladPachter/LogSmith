@@ -260,9 +260,7 @@ def test_get_record_minimal():
     # No level because no log record was passed
     assert rec.level is None
 
-    # exc_info is always a dict with empty parts
-    assert isinstance(rec.exc_info, dict)
-    assert rec.exc_info["exc_parts"]["err_type_name"] is None
+    assert rec.exc_info is None # not inside "except:" block
 
     # stack_info is ALWAYS present (SmartLogger forces it)
     assert isinstance(rec.stack_info, str)

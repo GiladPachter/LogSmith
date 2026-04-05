@@ -11,7 +11,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, ClassVar, Optional, List, Dict
+from typing import Any, ClassVar, Optional, Dict
 import os
 import threading
 import time
@@ -433,12 +433,18 @@ class AsyncSmartLogger:
     async def __process_raw(self, payload: dict[str, Any]) -> None:
         message: str = payload["message"]
         end: str = payload["end"]
+        console_only: bool = payload.get("console_only", False)
 
         for handler in self.__py_logger.handlers:
-            # stream = getattr(handler, "stream", None)
+            is_console = isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename")
+
+            # NEW: skip non-console handlers when console_only=True
+            if console_only and not is_console:
+                continue
+
             stream = handler.stream
 
-            # FIX: Reopen file handler stream if needed
+            # Reopen file handler stream if needed
             if stream is None and hasattr(handler, "baseFilename"):
                 try:
                     handler.acquire()
@@ -448,11 +454,8 @@ class AsyncSmartLogger:
                     handler.release()
                 stream = handler.stream
 
-            # Still no stream? Skip
             if stream is None:
                 continue    # pragma: no cover
-
-            is_console = isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename")
 
             if is_console:
                 text = self.__bleach_non_colored_text(message)
@@ -923,7 +926,7 @@ class AsyncSmartLogger:
     def messages_enqueued(self):
         return self.__messages_enqueued
 
-    async def __enqueue_raw(self, message: str, end: str) -> None:
+    async def __enqueue_raw(self, message: str, end: str, console_only: bool = False) -> None:
 
         await self.__ensure_worker_started()
 
@@ -934,7 +937,7 @@ class AsyncSmartLogger:
 
         item = _QueueItem(
             op=AsyncOp.RAW,
-            payload={"message": message, "end": end},
+            payload={"message": message, "end": end, "console_only": console_only},
         )
 
         # --- Minimal exponential backpressure ---
@@ -998,7 +1001,7 @@ class AsyncSmartLogger:
         # External-thread path: use loop.call_soon_threadsafe
         # ------------------------------------------------------------
         if self.__loop is not None and loop_thread is not None and current_thread is not loop_thread:
-            def _start_and_enqueue():
+            def _start_and_enqueue(*_):
                 # Start worker if not yet started
                 if not self.__worker_tasks:
                     self.__worker_tasks = [self.__loop.create_task(self.__worker())]
@@ -1008,7 +1011,7 @@ class AsyncSmartLogger:
                     # Best-effort: drop on full queue in this rare path
                     pass
 
-            self.__loop.call_soon_threadsafe(_start_and_enqueue)
+            self.__loop.call_soon_threadsafe(_start_and_enqueue, None)
             return
 
         # ------------------------------------------------------------
@@ -1107,6 +1110,31 @@ class AsyncSmartLogger:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
         await self.__enqueue_raw(message, end)
 
+    async def a_stdout(self, *args, sep=" ", end="\n"):
+        """
+        Console-only async output, synchronized with AsyncSmartLogger logging
+        *if* a console handler exists. Otherwise falls back to normal print().
+        """
+        # Format text exactly like print()
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            print(*args, sep=sep, end=end)
+        text = buffer.getvalue()
+
+        # Detect whether a console handler exists
+        has_console = any(
+            isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename")
+            for h in self.__py_logger.handlers
+        )
+
+        if not has_console:
+            # No console handler → fallback to normal print
+            print(*args, sep=sep, end=end)
+            return
+
+        # Console handler exists → enqueue console-only RAW
+        await self.__enqueue_raw(text, end="", console_only=True)
+
     # ------------------------------------------------------------------
     # DYNAMIC LEVEL SUPPORT
     # ------------------------------------------------------------------
@@ -1156,7 +1184,22 @@ class AsyncSmartLogger:
     # COLOR THEMES
     # ------------------------------------------------------------------
     @staticmethod
-    def apply_color_theme(theme: dict[int, LevelStyle]) -> None:
+    async def apply_color_theme(theme: dict[int, LevelStyle]) -> None:
+        # flush all log entries before changing theme,
+        #  so that they all output with the theme that was active when they entered the queue
+        values = list(AsyncSmartLogger.__AsyncSmartLogger_registry.values())
+        for lg in values:
+            if lg.__retired or lg.__stopped:
+                continue
+
+            # noinspection PyBroadException
+            try:
+                await lg.flush()
+            except Exception:   # pragma: no cover
+                # Logger may have been destroyed mid‑flush
+                # or its worker may have been shut down
+                pass
+
         if theme is None:
             for name, meta in LEVELS.all().items():
                 meta["style"] = meta["default_style"]
@@ -1191,7 +1234,12 @@ class AsyncSmartLogger:
     # FLUSH & SHUTDOWN
     # ------------------------------------------------------------------
     async def flush(self) -> None:
-        if self.__queue.qsize() > 0 and not self.__worker_tasks:
+        # Ensure a live worker exists before waiting for queue.join()
+        worker_alive = self.__worker_tasks and any(not t.done() and not t.cancelled() for t in self.__worker_tasks)
+        if not worker_alive:
+            self.__worker_tasks = ([t for t in self.__worker_tasks if not t.done() and not t.cancelled()]
+                                   if self.__worker_tasks
+                                   else None)
             await self.__ensure_worker_started()
 
         await self.__queue.join()
@@ -1464,54 +1512,3 @@ class AsyncSmartLogger:
         if self.name in logging.Logger.manager.loggerDict:
             del logging.Logger.manager.loggerDict[self.name]
             del self.__AsyncSmartLogger_registry[self.name]
-
-
-# ======================================================================
-#  Global stdout logger (lazy initialization)
-# ======================================================================
-
-__async_stdout_logger = None
-__async_stdout_lock = threading.Lock()
-
-
-def __get_async_stdout_logger() -> AsyncSmartLogger:
-    global __async_stdout_logger
-
-    if __async_stdout_logger is not None:
-        return __async_stdout_logger
-
-    with __async_stdout_lock:
-        if __async_stdout_logger is None:
-            lg = AsyncSmartLogger("_async_stdout", level=logging.INFO)
-            lg.add_console(level=logging.INFO)
-            # noinspection PyProtectedMember
-            lg._AsyncSmartLogger__py_logger.propagate = False
-            __async_stdout_logger = lg
-
-    return __async_stdout_logger
-
-
-async def a_stdout(*args, sep=" ", end="\n"):
-    """
-    An AsyncSmartLogger‑synchronized replacement for print().
-
-    Behaves exactly like print(), including handling of sep and end,
-    but routes output through AsyncSmartLogger.raw() so console output is
-    perfectly synchronized with all AsyncSmartLogger log messages.
-
-    Auto-flushes to guarantee ordering with async log messages.
-    """
-    lg = __get_async_stdout_logger()
-
-    # Capture print() output exactly as Python formats it
-    buffer = io.StringIO()
-    with contextlib.redirect_stdout(buffer):
-        print(*args, sep=sep, end=end)
-
-    text = buffer.getvalue()
-
-    # Enqueue RAW write
-    await lg.a_raw(text, end="")
-
-    # Force synchronization with all async log messages
-    await lg.flush()

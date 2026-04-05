@@ -23,7 +23,7 @@ import asyncio
 import json
 
 from LogSmith import CPrint, LevelStyle
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 
 
 async def main():
@@ -32,13 +32,13 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     levels = AsyncSmartLogger.levels()
 
-    await a_stdout("\nBuiltin async logger levels:")
-    await a_stdout(json.dumps(levels, indent=4))
+    print("\nBuiltin logger levels:", flush=True)
+    print(json.dumps(levels, indent=4), flush=True)
 
     # ------------------------------------------------------------------------------------------------------
     # 2. Create an async logger and attach a console handler
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nCreating async logger 'basic_async'...\n")
+    print("\nCreating logger 'basic'...\n", flush=True)
 
     logger = AsyncSmartLogger("basic_async", level=levels["TRACE"])
     logger.add_console(level=levels["TRACE"])
@@ -46,7 +46,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 3. Basic async log messages
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nBasic async log messages:\n-------------------------")
+    await logger.a_stdout("\nBasic async log messages:\n-------------------------")
 
     await logger.a_trace("trace message")
     await logger.a_debug("debug message")
@@ -58,7 +58,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 4. Named arguments (structured message parameters)
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nMessages with named arguments:\n------------------------------")
+    await logger.a_stdout("\nMessages with named arguments:\n------------------------------")
 
     await logger.a_info("User login event", username="Gilad", action="login")
     await logger.a_warning("Suspicious activity detected", reason="multiple failed attempts")
@@ -66,7 +66,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 5. Dynamic level registration
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
+    await logger.a_stdout("\nRegistering new logging levels on-the-fly:\n------------------------------------------")
 
     AsyncSmartLogger.register_level(
         name="NOTICE",
@@ -86,15 +86,15 @@ async def main():
     )
     await logger.a_alert("This is an ALERT-level message")
 
-    await a_stdout("\nExpanded logger levels:")
+    await logger.a_stdout("\nExpanded logger levels:")
     levels = AsyncSmartLogger.levels()
     sorted_levels = dict(sorted(levels.items(), key=lambda item: item[1]))
-    await a_stdout(json.dumps(sorted_levels, indent=4))
+    await logger.a_stdout(json.dumps(sorted_levels, indent=4))
 
     # ------------------------------------------------------------------------------------------------------
     # 6. RAW text (plain + colored)
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nRAW text output:\n----------------")
+    await logger.a_stdout("\nRAW text output:\n----------------")
 
     await logger.a_raw(
         "AsyncSmartLogger can log raw text (no formatting, no prefix)."
@@ -105,7 +105,7 @@ async def main():
         "\n      Use logger.a_raw() only when you intentionally break the structured log format."
     )
 
-    await a_stdout("\nRAW colored text:\n------------------")
+    await logger.a_stdout("\nRAW colored text:\n------------------")
 
     colored = [
         CPrint.colorize("RAW",      fg=CPrint.FG.BRIGHT_RED),
@@ -121,7 +121,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 7. Safeguards & validations (informational)
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout(
+    await logger.a_stdout(
         "\nAsyncSmartLogger safeguards:"
         "\n----------------------------\n"
         "- Prevents duplicate handlers\n"

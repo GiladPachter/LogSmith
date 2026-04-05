@@ -12,14 +12,14 @@ import asyncio
 import logging
 from pathlib import Path
 
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 from LogSmith import LogRecordDetails
 from LogSmith import OutputMode
 from project_definitions import ROOT_DIR
 
 
 async def main():
-    await a_stdout("\nAsync JSON / NDJSON logging demo\n")
+    print("\nAsync JSON / NDJSON logging demo\n", flush = True)
 
     levels = AsyncSmartLogger.levels()
 

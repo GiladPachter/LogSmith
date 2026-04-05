@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
-from LogSmith import SmartLogger, stdout
+from LogSmith import SmartLogger
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 # ----------------------------------------------------------------------------------------------------------
@@ -25,12 +25,12 @@ from LogSmith import LogRecordDetails, OptionalRecordFields
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
 
-stdout("\nGranular formatting demo\n========================")
+print("\nGranular formatting demo\n========================", flush = True)
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Logger with partial coloring (level + message)
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nCreating logger 'granular_partial' (partial coloring)...")
+print("\nCreating logger 'granular_partial' (partial coloring)...", flush = True)
 
 lg_partial = SmartLogger("granular_partial", level=levels["TRACE"])
 
@@ -63,7 +63,8 @@ foo()
 # ----------------------------------------------------------------------------------------------------------
 # 3. Logger with full-entry coloring
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nCreating logger 'granular_full' (full-entry coloring)...")
+sys.stdout.flush()
+print("\nCreating logger 'granular_full' (full-entry coloring)...", flush = True)
 
 lg_full = SmartLogger("granular_full", level=levels["TRACE"])
 
@@ -92,4 +93,5 @@ def bar():
 lg_full.info("Module-level log (full-entry coloring)")
 bar()
 
-stdout("\nGranular formatting demo complete.\n")
+sys.stdout.flush()
+print("\nGranular formatting demo complete.\n")

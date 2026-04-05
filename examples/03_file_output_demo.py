@@ -20,7 +20,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from pathlib import Path
 
-from LogSmith import SmartLogger, stdout
+from LogSmith import SmartLogger
 from LogSmith import LogRecordDetails, OptionalRecordFields
 from LogSmith import RotationLogic, When
 from LogSmith import CPrint
@@ -32,12 +32,12 @@ from project_definitions import ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
 
-stdout("\nFile output demo\n================")
+print("\nFile output demo\n================", flush = True)
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create logger
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nCreating logger 'file_demo'...")
+print("\nCreating logger 'file_demo'...", flush = True)
 
 logger = SmartLogger("file_demo", level=levels["TRACE"])
 logger.add_console(level=levels["TRACE"])   # console for visibility
@@ -45,7 +45,7 @@ logger.add_console(level=levels["TRACE"])   # console for visibility
 # ----------------------------------------------------------------------------------------------------------
 # 3. Prepare log directory and clean old files
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nPreparing log directory...")
+logger.stdout("\nPreparing log directory...")
 
 log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "file_demo"
 log_dir.mkdir(parents=True, exist_ok=True)
@@ -66,12 +66,12 @@ for fname in files_to_delete:
     if f.exists():
         f.unlink()
 
-stdout("Old demo files removed.")
+logger.stdout("Old demo files removed.")
 
 # ----------------------------------------------------------------------------------------------------------
 # 4. File handler with basic formatting
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nAdding file handler (plain formatting)...")
+logger.stdout("\nAdding file handler (plain formatting)...")
 
 file_details = LogRecordDetails(
     # datefmt="%Y-%m-%d %H:%M:%S",
@@ -101,7 +101,7 @@ logger.info("This message goes to both console and file.")
 # ----------------------------------------------------------------------------------------------------------
 # 5. Demonstrate rotation basics
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nAdding rotating file handler...")
+logger.stdout("\nAdding rotating file handler...")
 
 rotation = RotationLogic(
     when=When.SECOND,   # rotate every second
@@ -117,7 +117,7 @@ logger.add_file(
     rotation_logic=rotation,
 )
 
-stdout(json.dumps(logger.handler_info, indent=4))
+logger.stdout(json.dumps(logger.handler_info, indent=4))
 
 logger.info("Rotation handler attached.")
 
@@ -127,7 +127,7 @@ for i in range(20):
 # ----------------------------------------------------------------------------------------------------------
 # 6. Demonstrate color-preserving file output
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nAdding color-preserving file handler...")
+logger.stdout("\nAdding color-preserving file handler...")
 
 color_file = log_dir / "color_preserved.log"
 
@@ -139,38 +139,38 @@ logger.add_file(
     preserve_colors_in_log_files=True,
 )
 
-stdout("\nWriting colored text via logger.raw():")
+logger.stdout("\nWriting colored text via logger.raw():")
 colored = CPrint.colorize("This text contains ANSI colors", fg=CPrint.FG.BRIGHT_MAGENTA)
 logger.raw(colored)
 
-stdout("\nEscaped version of colored text (for inspection):")
-stdout(CPrint.escape_ansi_for_display(colored))
+logger.stdout("\nEscaped version of colored text (for inspection):")
+logger.stdout(CPrint.escape_ansi_for_display(colored))
 
 # ----------------------------------------------------------------------------------------------------------
 # 7. Read the color-preserved file back
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nReading color-preserved text back from file:")
+logger.stdout("\nReading color-preserved text back from file:")
 
 with open(color_file, "r", encoding="utf-8") as fh:
     file_content = fh.read().rstrip()
 
-stdout("---------------------------------------------")
-stdout(file_content)
-stdout("---------------------------------------------")
+logger.stdout("---------------------------------------------")
+logger.stdout(file_content)
+logger.stdout("---------------------------------------------")
 
-stdout("\nEscaped file content:")
-stdout(CPrint.escape_ansi_for_display(file_content))
+logger.stdout("\nEscaped file content:")
+logger.stdout(CPrint.escape_ansi_for_display(file_content))
 
 # ----------------------------------------------------------------------------------------------------------
 # 8. Show handler_info (JSON-safe)
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nHandlers details:\n-----------------")
-stdout(json.dumps(logger.handler_info, indent=4))
+logger.stdout("\nHandlers details:\n-----------------")
+logger.stdout(json.dumps(logger.handler_info, indent=4))
 
 # ----------------------------------------------------------------------------------------------------------
 # 9. SmartLogger safeguards (contextually relevant here)
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nSmartLogger file-output safeguards:"
+logger.stdout("\nSmartLogger file-output safeguards:"
       "\n-----------------------------------\n"
       "- log_dir must be an absolute, normalized path (prevents accidental use of relative paths)\n"
       "- log_dir created if not exists\n"

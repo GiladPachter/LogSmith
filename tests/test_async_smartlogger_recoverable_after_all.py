@@ -1,7 +1,7 @@
 import pytest
 
 from LogSmith import RotationLogic
-from LogSmith.async_smartlogger import AsyncSmartLogger, a_stdout
+from LogSmith.async_smartlogger import AsyncSmartLogger
 
 
 @pytest.mark.asyncio
@@ -142,14 +142,6 @@ async def test_async_retire():
 
 
 @pytest.mark.asyncio
-async def test_async_stdout(capsys):
-    await a_stdout("hello", "world", sep="-")
-    captured = capsys.readouterr().out
-
-    assert "hello-world" in captured
-
-
-@pytest.mark.asyncio
 async def test_async_enqueue_raw_no_errors(tmp_path):
     from LogSmith.async_smartlogger import AsyncSmartLogger
 
@@ -218,18 +210,19 @@ async def test_async_dynamic_level_caching(tmp_path):
     assert "W1" in text and "W2" in text
 
 
-def test_async_apply_color_theme_errors():
+@pytest.mark.asyncio
+async def test_async_apply_color_theme_errors():
     from LogSmith.async_smartlogger import AsyncSmartLogger
     from LogSmith.levels import LevelStyle
 
     with pytest.raises(TypeError):
-        AsyncSmartLogger.apply_color_theme("not a dict")
+        await AsyncSmartLogger.apply_color_theme("not a dict")
 
     with pytest.raises(TypeError):
-        AsyncSmartLogger.apply_color_theme({ "x": LevelStyle() })
+        await AsyncSmartLogger.apply_color_theme({ "x": LevelStyle() })
 
     with pytest.raises(TypeError):
-        AsyncSmartLogger.apply_color_theme({ 10: "not a style" })
+        await AsyncSmartLogger.apply_color_theme({ 10: "not a style" })
 
 
 @pytest.mark.asyncio

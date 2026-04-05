@@ -23,7 +23,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import json
 
-from LogSmith import SmartLogger, stdout
+from LogSmith import SmartLogger
 from LogSmith import LogRecordDetails, OptionalRecordFields
 from LogSmith import RotationLogic
 
@@ -32,12 +32,12 @@ from LogSmith import RotationLogic
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
 
-stdout("\nMiscellaneous SmartLogger Features\n=================================")
+print("\nMiscellaneous SmartLogger Features\n=================================", flush = True)
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create logger with exc_info + stack_info enabled
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nCreating logger 'misc'...")
+print("\nCreating logger 'misc'...", flush = True)
 
 details = LogRecordDetails(
     # datefmt="%Y-%m-%d %H:%M:%S",
@@ -62,19 +62,19 @@ logger.add_console(level=levels["TRACE"], log_record_details=details)
 # ==========================================================================================================
 # A. get_record()
 # ==========================================================================================================
-stdout("\nDemonstrating get_record()...")
+logger.stdout("\nDemonstrating get_record()...")
 
 logger.info("This is a test message for get_record()")
 record = SmartLogger.get_record()
 if isinstance(record.stack_info, str):
     record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
-stdout("\nRecord contents:")
+logger.stdout("\nRecord contents:")
 logger.raw(json.dumps(record.__dict__, indent=4))
 
 # ==========================================================================================================
 # B. exc_info and stack_info (now visible)
 # ==========================================================================================================
-stdout("\nDemonstrating exc_info and stack_info...\n")
+logger.stdout("\nDemonstrating exc_info and stack_info...\n")
 
 try:
     1 / 0
@@ -91,7 +91,7 @@ logger.debug("Debug with Stack Info", stack_info=True)
 # ==========================================================================================================
 # C. retire() and destroy()
 # ==========================================================================================================
-stdout("\nDemonstrating retire() and destroy()...")
+logger.stdout("\nDemonstrating retire() and destroy()...")
 
 temp_logger = SmartLogger("temp_logger", level=levels["INFO"])
 temp_logger.add_console(level=levels["INFO"])
@@ -99,78 +99,78 @@ temp_logger.add_console(level=levels["INFO"])
 temp_logger.info("This logger will be retired.")
 temp_logger.retire()
 
-stdout("\nLogger retired. Further handler additions will fail.\n")
+logger.stdout("\nLogger retired. Further handler additions will fail.\n")
 
 try:
     temp_logger.add_console()
 except Exception as e:
-    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+    logger.stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 temp_logger.destroy()
-stdout("\n\nLogger destroyed. Further usage will fail.")
+logger.stdout("\nLogger destroyed. Further usage will fail.")
 
 try:
     temp_logger.info("This should fail.")
 except Exception as e:
-    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+    logger.stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # D. Invalid message_parts_order
 # ==========================================================================================================
-stdout("\nTesting invalid message_parts_order...")
+logger.stdout("\nTesting invalid message_parts_order...")
 
 try:
     LogRecordDetails(
         message_parts_order=["timestamp", "message"],  # forbidden
     )
 except Exception as e:
-    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+    logger.stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # E. Invalid log_dir
 # ==========================================================================================================
-stdout("\nTesting invalid log_dir...")
+logger.stdout("\nTesting invalid log_dir...")
 
 try:
     logger.add_file(log_dir="relative/path/not/allowed")
 except Exception as e:
-    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+    logger.stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # F. Invalid rotation logic
 # ==========================================================================================================
-stdout("\nTesting invalid rotation logic...")
+logger.stdout("\nTesting invalid rotation logic...")
 try:
     RotationLogic(maxBytes=-5)  # invalid
 except Exception as e:
-    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+    logger.stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # G. Invalid level registration
 # ==========================================================================================================
-stdout("\nTesting invalid level registration...")
+logger.stdout("\nTesting invalid level registration...")
 
 try:
     SmartLogger.register_level("INFO", 20)  # duplicate
 except Exception as e:
-    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+    logger.stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 try:
     SmartLogger.register_level("BAD LEVEL NAME!", 55)  # invalid name
 except Exception as e:
-    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+    logger.stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # H. Invalid theme registration
 # ==========================================================================================================
-stdout("\nTesting invalid theme registration...")
+logger.stdout("\nTesting invalid theme registration...")
 
 try:
     SmartLogger.apply_color_theme({"INFO": "not a LevelStyle"})
 except Exception as e:
-    stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+    logger.stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
 # ==========================================================================================================
 # I. Summary
 # ==========================================================================================================
-stdout("\nSmartLogger safeguards demonstrated successfully.\n")
+logger.stdout("\nSmartLogger safeguards demonstrated successfully.\n")

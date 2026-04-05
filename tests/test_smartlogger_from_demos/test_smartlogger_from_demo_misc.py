@@ -30,9 +30,7 @@ def test_get_record_basic_fields():
     # Level is None when no record is passed
     assert rec.level is None
 
-    # exc_info always exists as dict
-    assert isinstance(rec.exc_info, dict)
-    assert rec.exc_info["exc_parts"]["err_type_name"] is None
+    assert rec.exc_info is None # not inside "except:" block
 
     # stack_info always present (SmartLogger forces it)
     assert isinstance(rec.stack_info, str)

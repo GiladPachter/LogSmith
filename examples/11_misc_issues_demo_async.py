@@ -26,7 +26,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import asyncio
 import json
 
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 from LogSmith import LogRecordDetails, OptionalRecordFields
 from LogSmith import RotationLogic
 
@@ -37,12 +37,12 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     levels = AsyncSmartLogger.levels()
 
-    await a_stdout("\nMiscellaneous AsyncSmartLogger Features\n=======================================")
+    print("\nMiscellaneous AsyncSmartLogger Features\n=======================================", flush = True)
 
     # ------------------------------------------------------------------------------------------------------
     # 2. Create logger with exc_info + stack_info enabled
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nCreating logger 'misc.async'...")
+    print("\nCreating logger 'misc.async'...", flush = True)
 
     details = LogRecordDetails(
         # datefmt="%Y-%m-%d %H:%M:%S",
@@ -67,7 +67,7 @@ async def main():
     # ======================================================================================================
     # A. get_record()
     # ======================================================================================================
-    await a_stdout("\nDemonstrating get_record()...")
+    await logger.a_stdout("\nDemonstrating get_record()...")
 
     await logger.a_info("This is a test message for get_record()")
     record = logger.get_record(exc_info = True, stack_info = True)
@@ -77,13 +77,13 @@ async def main():
         if isinstance(record.stack_info, str):
             record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
 
-    await a_stdout("\nRecord contents:")
+    await logger.a_stdout("\nRecord contents:")
     await logger.a_raw(json.dumps(record.__dict__, indent=4))
 
     # ======================================================================================================
     # B. exc_info and stack_info
     # ======================================================================================================
-    await a_stdout("\nDemonstrating exc_info and stack_info...\n")
+    await logger.a_stdout("\nDemonstrating exc_info and stack_info...\n")
 
     try:
         1 / 0
@@ -97,89 +97,90 @@ async def main():
     # ======================================================================================================
     # C. retire() and destroy()
     # ======================================================================================================
-    await a_stdout("\nDemonstrating retire() and destroy()...")
+    await logger.a_stdout("\nDemonstrating retire() and destroy()...")
 
     temp_logger = AsyncSmartLogger("temp_logger_async", level=levels["INFO"])
     temp_logger.add_console(level=levels["INFO"])
 
     await temp_logger.a_info("This logger will be retired.")
+    await temp_logger.flush()
     temp_logger.retire()
 
-    await a_stdout("\nLogger retired. Further handler additions will fail.\n")
+    await logger.a_stdout("\nLogger retired. Further handler additions will fail.\n")
 
     try:
         temp_logger.add_console()
     except Exception as e:
-        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     temp_logger.destroy()
-    await a_stdout("\nLogger destroyed. Further usage will fail.")
+    await logger.a_stdout("\nLogger destroyed. Further usage will fail.")
 
     try:
         await temp_logger.a_info("This should fail.")
     except Exception as e:
-        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # D. Invalid message_parts_order
     # ======================================================================================================
-    await a_stdout("\nTesting invalid message_parts_order...")
+    await logger.a_stdout("\nTesting invalid message_parts_order...")
 
     try:
         LogRecordDetails(
             message_parts_order=["timestamp", "message"],  # forbidden
         )
     except Exception as e:
-        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # E. Invalid log_dir
     # ======================================================================================================
-    await a_stdout("\nTesting invalid log_dir...")
+    await logger.a_stdout("\nTesting invalid log_dir...")
 
     try:
         logger.add_file(log_dir="relative/path/not/allowed")
     except Exception as e:
-        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # F. Invalid rotation logic
     # ======================================================================================================
-    await a_stdout("\nTesting invalid rotation logic...")
+    await logger.a_stdout("\nTesting invalid rotation logic...")
     try:
         RotationLogic(maxBytes=-5)
     except Exception as e:
-        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # G. Invalid level registration
     # ======================================================================================================
-    await a_stdout("\nTesting invalid level registration...")
+    await logger.a_stdout("\nTesting invalid level registration...")
 
     try:
         AsyncSmartLogger.register_level("INFO", 20)  # duplicate
     except Exception as e:
-        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     try:
         AsyncSmartLogger.register_level("BAD LEVEL NAME!", 55)  # invalid name
     except Exception as e:
-        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # H. Invalid theme registration
     # ======================================================================================================
-    await a_stdout("\nTesting invalid theme registration...")
+    await logger.a_stdout("\nTesting invalid theme registration...")
 
     try:
-        AsyncSmartLogger.apply_color_theme({"INFO": "not a LevelStyle"})
+        await AsyncSmartLogger.apply_color_theme({"INFO": "not a LevelStyle"})
     except Exception as e:
-        await a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
+        await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
     # ======================================================================================================
     # I. Summary
     # ======================================================================================================
-    await a_stdout("\nAsyncSmartLogger safeguards demonstrated successfully.\n")
+    await logger.a_stdout("\nAsyncSmartLogger safeguards demonstrated successfully.\n")
 
 
 if __name__ == "__main__":

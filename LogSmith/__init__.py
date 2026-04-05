@@ -29,7 +29,7 @@ from .metadata import get_metadata, get_license_text, get_file_tree
 # ----------------------------------------------------------------------
 
 # Core logger
-from .smartlogger import SmartLogger, stdout
+from .smartlogger import SmartLogger
 
 # Formatting
 from .formatter import LogRecordDetails, OptionalRecordFields, OutputMode
@@ -52,13 +52,12 @@ from .levels import LevelStyle
 from .themes import DARK_THEME, LIGHT_THEME, NEON_THEME, PASTEL_THEME, FIRE_THEME, OCEAN_THEME
 
 # async logger
-from .async_smartlogger import AsyncSmartLogger, a_stdout
+from .async_smartlogger import AsyncSmartLogger
 
 
 __all__ = [
     # Core
     "SmartLogger",
-    "stdout",
 
     # Formatting
     "LogRecordDetails",
@@ -93,7 +92,6 @@ __all__ = [
 
     # async
     "AsyncSmartLogger",
-    "a_stdout",
 ]
 
 

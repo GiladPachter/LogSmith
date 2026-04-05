@@ -20,18 +20,18 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import asyncio
 
 from LogSmith import LogRecordDetails, OptionalRecordFields
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 
 
 async def main():
-    await a_stdout("\nGranular async formatting demo\n==============================")
+    print("\nGranular async formatting demo\n==============================", flush = True)
 
     levels = AsyncSmartLogger.levels()
 
     # ------------------------------------------------------------------------------------------------------
     # 2. Logger with partial coloring (level + message)
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nCreating async logger 'granular_partial_async' (partial coloring)...")
+    print("\nCreating async logger 'granular_partial_async' (partial coloring)...", flush = True)
 
     lg_partial = AsyncSmartLogger("granular_partial_async", level=levels["TRACE"])
 
@@ -60,10 +60,12 @@ async def main():
     await lg_partial.a_info("Module-level log (func_name = <module>)")
     await foo()
 
+    await lg_partial.flush()
+
     # ------------------------------------------------------------------------------------------------------
     # 3. Logger with full-entry coloring
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nCreating async logger 'granular_full_async' (full-entry coloring)...")
+    print("\nCreating async logger 'granular_full_async' (full-entry coloring)...", flush = True)
 
     lg_full = AsyncSmartLogger("granular_full_async", level=levels["TRACE"])
 
@@ -93,11 +95,9 @@ async def main():
     await lg_full.a_info("Module-level log (full-entry coloring)")
     await bar()
 
-    await a_stdout("\nGranular async formatting demo complete.\n")
-
-    # Ensure all logs are flushed before exit
-    await lg_partial.flush()
     await lg_full.flush()
+
+    print("\nGranular async formatting demo complete.\n", flush = True)
 
 
 if __name__ == "__main__":

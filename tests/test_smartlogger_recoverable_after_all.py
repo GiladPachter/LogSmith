@@ -287,23 +287,3 @@ def test_get_record_parts_process_name_non_empty():
 
     rec = logger.get_record_parts(process_name=True)
     assert rec.process_name is None or isinstance(rec.process_name, str)
-
-
-def test_stdout_uses_smartlogger_raw(monkeypatch, capsys):
-    from LogSmith.smartlogger import stdout, __get_stdout_logger
-
-    logger = __get_stdout_logger()
-
-    called = {}
-
-    def fake_raw(msg, end="\n"):
-        called["msg"] = msg
-        called["end"] = end
-
-    monkeypatch.setattr(logger, "raw", fake_raw)
-
-    stdout("hello", "world", sep="-", end="!")
-    assert called["msg"] == "hello-world!"
-    assert called["end"] == ""
-
-

@@ -17,12 +17,12 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 
 async def main():
-    await a_stdout("\nAsync hierarchy demo\n====================")
+    print("\nAsync hierarchy demo\n====================", flush = True)
 
     # ------------------------------------------------------------------------------------------------------
     # 1. Levels (AsyncSmartLogger does not require global init)
@@ -32,9 +32,9 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 2. Explain hierarchy rules
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nHierarchy rules:")
+    print("\nHierarchy rules:", flush = True)
 
-    await a_stdout(
+    print(
         "  - Logger names define hierarchy via dot notation\n"
         "      parent\n"
         "      parent.child\n"
@@ -43,13 +43,14 @@ async def main():
         "      • If a logger has its own level → use it\n"
         "      • If level is NOTSET → inherit from parent\n"
         "      • If parent is NOTSET → inherit from grandparent\n"
-        "      • Ultimately falls back to root logger level\n"
+        "      • Ultimately falls back to root logger level\n",
+        flush = True
     )
 
     # ------------------------------------------------------------------------------------------------------
     # 3. Create loggers
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nCreating async loggers...")
+    print("\nCreating async loggers...", flush = True)
 
     parent     = AsyncSmartLogger("myapp",           level=levels["DEBUG"])
     child      = AsyncSmartLogger("myapp.api",       level=levels["NOTSET"])
@@ -87,16 +88,20 @@ async def main():
         await grandchild.a_debug("grandchild DEBUG")
         await grandchild.a_warning("grandchild WARNING")
 
+        await parent.flush()
+        # await child.flush()
+        # await grandchild.flush()
+
     # ------------------------------------------------------------------------------------------------------
     # 4. Demonstrate inheritance
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nInitial behavior (parent = DEBUG, children = NOTSET → inherit DEBUG):")
+    await parent.a_stdout("\nInitial behavior (parent = DEBUG, children = NOTSET → inherit DEBUG):")
     await exercise()
 
     # ------------------------------------------------------------------------------------------------------
     # 5. Change parent level → children inherit new level
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nChanging parent level to INFO...")
+    await parent.a_stdout("\nChanging parent level to INFO...")
 
     parent.level = levels["INFO"]
     await exercise()
@@ -104,7 +109,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 6. Change parent level again
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nChanging parent level to TRACE...")
+    await parent.a_stdout("\nChanging parent level to TRACE...")
 
     parent.level = levels["TRACE"]
     await exercise()
@@ -112,12 +117,12 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 7. Change parent level to WARNING
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nChanging parent level to WARNING...")
+    await parent.a_stdout("\nChanging parent level to WARNING...")
 
     parent.level = levels["WARNING"]
     await exercise()
 
-    await a_stdout("\nAsync hierarchy demo complete.\n")
+    await parent.a_stdout("\nAsync hierarchy demo complete.\n")
 
     # Ensure all logs are flushed before exit
     await parent.flush()

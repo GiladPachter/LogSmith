@@ -22,13 +22,13 @@ from pathlib import Path
 
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 
 from project_definitions import ROOT_DIR
 
 
 async def main():
-    await a_stdout("\nAsync rotation demo\n===================")
+    print("\nAsync rotation demo\n===================", flush = True)
 
     # ------------------------------------------------------------------------------------------------------
     # 1. Levels (AsyncSmartLogger does not require global init)
@@ -38,7 +38,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     # 2. Prepare log directory and clean old files
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nPreparing log directory...")
+    print("\nPreparing log directory...", flush = True)
 
     log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "rotation_async_demo"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -48,12 +48,12 @@ async def main():
         if f.is_file():
             f.unlink()
 
-    await a_stdout("Old rotation files removed.")
+    print("Old rotation files removed.", flush = True)
 
     # ------------------------------------------------------------------------------------------------------
     # 3. Create logger
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nCreating async logger 'rotation_async_demo'...")
+    print("\nCreating async logger 'rotation_async_demo'...", flush = True)
 
     logger = AsyncSmartLogger("rotation_async_demo", level=levels["TRACE"])
     logger.add_console(level=levels["TRACE"])
@@ -78,7 +78,7 @@ async def main():
     # ======================================================================================================
     # SIZE-BASED ROTATION
     # ======================================================================================================
-    await a_stdout("\nSize-based rotation (maxBytes=2000)...")
+    await logger.a_stdout("\nSize-based rotation (maxBytes=2000)...")
 
     logger.add_file(
         log_dir=str(log_dir),
@@ -94,12 +94,12 @@ async def main():
     for i in range(40):
         await logger.a_info(f"[size] message {i}")
 
-    await a_stdout("Size-based rotation complete.")
+    await logger.a_stdout("Size-based rotation complete.")
 
     # ======================================================================================================
     # TIME-BASED ROTATION
     # ======================================================================================================
-    await a_stdout("\nTime-based rotation (rotate every second)...")
+    await logger.a_stdout("\nTime-based rotation (rotate every second)...")
 
     logger.add_file(
         log_dir=str(log_dir),
@@ -119,14 +119,14 @@ async def main():
         await logger.a_debug("[time] rotating...")
         await asyncio.sleep(0.01)  # throttle a bit
 
-    await a_stdout("Time-based rotation complete.")
+    await logger.a_stdout("Time-based rotation complete.")
 
     # ------------------------------------------------------------------------------------------------------
     # NOTE ABOUT DAILY/WEEKLY ROTATION
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nDaily/Weekly rotation behavior:")
+    await logger.a_stdout("\nDaily/Weekly rotation behavior:")
 
-    await a_stdout(
+    await logger.a_stdout(
         "- When=When.EVERYDAY rotates at midnight local time.\n"
         "- When=When.MONDAY ... When.SUNDAY rotate at the start of that weekday.\n"
         "- interval=N means 'every N days' or 'every N weeks'.\n"
@@ -136,7 +136,7 @@ async def main():
     # ======================================================================================================
     # COMBINED ROTATION (size + time)
     # ======================================================================================================
-    await a_stdout("\nCombined rotation (maxBytes + time)...")
+    await logger.a_stdout("\nCombined rotation (maxBytes + time)...")
 
     logger.add_file(
         log_dir=str(log_dir),
@@ -156,20 +156,20 @@ async def main():
         await logger.a_warning("[combined] rotating...")
         await asyncio.sleep(0.01)  # throttle a bit
 
-    await a_stdout("Combined rotation complete.")
+    await logger.a_stdout("Combined rotation complete.")
 
     # ------------------------------------------------------------------------------------------------------
     # 5. Show handler_info (JSON-safe)
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nHandler info:\n-------------")
-    await a_stdout(json.dumps(logger.handler_info, indent=4))
+    await logger.a_stdout("\nHandler info:\n-------------")
+    await logger.a_stdout(json.dumps(logger.handler_info, indent=4))
 
     # ------------------------------------------------------------------------------------------------------
     # 6. AsyncSmartLogger rotation safeguards
     # ------------------------------------------------------------------------------------------------------
-    await a_stdout("\nAsyncSmartLogger rotation safeguards:\n-------------------------------------")
+    await logger.a_stdout("\nAsyncSmartLogger rotation safeguards:\n-------------------------------------")
 
-    await a_stdout(
+    await logger.a_stdout(
         "- Validates rotation parameters\n"
         "- Prevents invalid combinations (e.g., negative sizes)\n"
         "- Ensures backupCount is respected\n"
@@ -177,7 +177,7 @@ async def main():
         "- Ensures size-based rotation triggers immediately when threshold is exceeded\n"
     )
 
-    await a_stdout("\nAsync rotation demo complete.\n")
+    await logger.a_stdout("\nAsync rotation demo complete.\n")
 
     # Ensure all logs are flushed before exit
     await logger.flush()

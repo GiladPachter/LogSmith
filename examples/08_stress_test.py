@@ -20,7 +20,7 @@ import threading
 import time
 from pathlib import Path
 
-from LogSmith import SmartLogger, stdout
+from LogSmith import SmartLogger
 from LogSmith import RotationLogic, When
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
@@ -32,13 +32,13 @@ from project_definitions import ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
 
-stdout("\nStress test demo\n================")
+print("\nStress test demo\n================", flush = True)
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Prepare log directory
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nPreparing log directory...")
+print("\nPreparing log directory...", flush = True)
 
 log_dir = Path(ROOT_DIR) / "Logs" / "examples" / "stress_test"
 
@@ -48,13 +48,13 @@ if log_dir.exists():
         if f.is_file():
             f.unlink()
 
-stdout("Old stress-test files removed.")
+print("Old stress-test files removed.", flush = True)
 
 
 # ----------------------------------------------------------------------------------------------------------
 # 3. Create logger
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nCreating logger 'stress'...")
+print("\nCreating logger 'stress'...", flush = True)
 
 logger = SmartLogger("stress", level=levels["TRACE"])
 # logger.add_console(level=levels["TRACE"])
@@ -63,7 +63,7 @@ logger = SmartLogger("stress", level=levels["TRACE"])
 # ----------------------------------------------------------------------------------------------------------
 # 4. Add rotating file handler
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nAdding rotating file handler...")
+logger.stdout("\nAdding rotating file handler...")
 
 details = LogRecordDetails(
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -131,7 +131,7 @@ def start_progress_monitor(total_messages, progress_dict, lock):
             rate = done / elapsed if elapsed > 0 else 0
             eta = (total_messages - done) / rate if rate > 0 else 0
 
-            stdout(
+            logger.stdout(
                 f"\r[{bar}] {pct*100:5.1f}%  "
                 f"done={done}/{total_messages}  "
                 f"{rate:7.1f} msg/s  "
@@ -142,7 +142,7 @@ def start_progress_monitor(total_messages, progress_dict, lock):
             if done >= total_messages:
                 break
 
-        stdout()  # newline after finishing
+        logger.stdout()  # newline after finishing
 
     t = threading.Thread(target=monitor, daemon=True)
     t.start()
@@ -153,8 +153,8 @@ def start_progress_monitor(total_messages, progress_dict, lock):
 # 7. Stress test runner
 # ----------------------------------------------------------------------------------------------------------
 def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
-    stdout(f"\nStarting stress test with {thread_count} threads and {5000} logs per thread...")
-    stdout(f"(Writing logs to: '{logger.handler_info[0]["path"]}')")
+    logger.stdout(f"\nStarting stress test with {thread_count} threads and {5000} logs per thread...")
+    logger.stdout(f"(Writing logs to: '{logger.handler_info[0]["path"]}')")
 
 
     total_messages = thread_count * iterations_per_thread
@@ -186,7 +186,7 @@ def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
 
     end = time.time()
 
-    stdout(f"\nStress test completed in {end - start:.2f} seconds")
+    logger.stdout(f"\nStress test completed in {end - start:.2f} seconds")
 
 
 # ----------------------------------------------------------------------------------------------------------
@@ -195,4 +195,4 @@ def run_stress_test(thread_count: int = 32, iterations_per_thread: int = 5000):
 if __name__ == "__main__":
     run_stress_test()
 
-    stdout("\nStress test demo complete.\n")
+    logger.stdout("\nStress test demo complete.\n")

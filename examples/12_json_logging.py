@@ -13,11 +13,13 @@ from pathlib import Path
 
 from LogSmith import SmartLogger
 from LogSmith import LogRecordDetails
-from LogSmith import OutputMode  # wherever you placed the enum
+from LogSmith import OutputMode
 from project_definitions import ROOT_DIR
 
 
 def main():
+    print("\nJSON / NDJSON logging demo\n", flush = True)
+
     levels = SmartLogger.levels()
 
     # Create logger

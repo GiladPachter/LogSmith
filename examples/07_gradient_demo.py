@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
-from LogSmith import SmartLogger, stdout
+from LogSmith import SmartLogger
 from LogSmith.colors import (
     CPrint,
     GradientDirection,
@@ -31,12 +31,12 @@ from LogSmith.colors import (
 # ----------------------------------------------------------------------------------------------------------
 levels = SmartLogger.levels()
 
-stdout("\nGradient demo\n=============")
+print("\nGradient demo\n=============", flush = True)
 
 # ----------------------------------------------------------------------------------------------------------
 # 2. Create logger with console handler
 # ----------------------------------------------------------------------------------------------------------
-stdout("\nCreating logger 'gradient.demo'...")
+print("\nCreating logger 'gradient.demo'...", flush = True)
 
 lg = SmartLogger("gradient_demo", level=levels["TRACE"])
 lg.add_console(level=levels["TRACE"])
@@ -45,14 +45,14 @@ lg.add_console(level=levels["TRACE"])
 # Helper: section header
 # ----------------------------------------------------------------------------------------------------------
 def section(title: str):
-    stdout(f"\n{title}\n" + "-" * len(title) + "\n")
+    lg.stdout(f"\n{title}\n" + "-" * len(title) + "\n")
 
 # ----------------------------------------------------------------------------------------------------------
 # Helper: palette preview
 # ----------------------------------------------------------------------------------------------------------
 def preview_palette(name: str, colors: list[int]):
-    stdout(f"{name}:")
-    stdout(CPrint.gradient("█" * 40, fg_codes=colors) + "\n")
+    lg.stdout(f"{name}:")
+    lg.stdout(CPrint.gradient("█" * 40, fg_codes=colors) + "\n")
 
 
 # ==========================================================================================================
@@ -157,12 +157,12 @@ section("9. Blended palette: NEON + FIRE → CyberFire")
 
 cyberfire = blend_palettes(GradientPalette.NEON, GradientPalette.FIRE, steps=12)
 preview_palette("CyberFire (blended)", cyberfire)
-stdout(CPrint.gradient("CyberFire blended gradient", fg_codes=cyberfire))
+lg.stdout(CPrint.gradient("CyberFire blended gradient", fg_codes=cyberfire))
 
 # ==========================================================================================================
 # 10. Done
 # ==========================================================================================================
 section("10. Done")
 
-stdout("All gradient features demonstrated.\n")
-stdout("\nGradient demo complete.")
+lg.stdout("All gradient features demonstrated.\n")
+lg.stdout("\nGradient demo complete.")

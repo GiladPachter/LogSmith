@@ -266,3 +266,142 @@ async def test_audit_logger_does_not_audit_itself(tmp_path):
     text = (tmp_path / "audit.log").read_text()
     # Should contain only one prefix, not recursive
     assert text.count("[_async_audit]:") == 1
+
+
+def test_check_ancestors_no_dot():
+    # Should simply return without error
+    AsyncSmartLogger._AsyncSmartLogger__check_ancestors("root")
+
+
+def test_on_queue_put_no_loop(monkeypatch):
+    lg = AsyncSmartLogger("no_loop_test")
+
+    # Force no loop
+    lg._AsyncSmartLogger__loop = None
+
+    item = _QueueItem(AsyncOp.LOG, {"level": 20})
+    lg._on_queue_put(item)
+
+    # Worker should not start
+    assert lg._AsyncSmartLogger__worker_tasks is None
+
+
+def test_rotation_callback_same_thread_placeholder(tmp_path):
+    lg = AsyncSmartLogger("rot_same")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "x.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    # Force worker_tasks = None to trigger placeholder []
+    lg._AsyncSmartLogger__worker_tasks = None
+
+    handler.rotation_callback(handler)
+
+    assert lg._AsyncSmartLogger__worker_tasks == []
+
+
+def test_rotation_queuefull_retry(monkeypatch, tmp_path):
+    lg = AsyncSmartLogger("rot_qfull")
+    logic = RotationLogic(maxBytes=1, backupCount=1)
+    lg.add_file(str(tmp_path), "x.log", rotation_logic=logic)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    def full(*args, **kwargs):
+        raise asyncio.QueueFull
+
+    monkeypatch.setattr(lg._AsyncSmartLogger__queue, "put_nowait", full)
+
+    handler.rotation_callback(handler)  # Should not crash
+
+
+@pytest.mark.asyncio
+async def test_raw_write_error(tmp_path, monkeypatch):
+    lg = AsyncSmartLogger("raw_err")
+    lg.add_file(str(tmp_path), "x.log")
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
+
+    def bad_write(*args, **kwargs):
+        raise Exception("fail")
+
+    monkeypatch.setattr(handler.stream, "write", bad_write)
+
+    await lg.a_raw("hello")  # Should not crash
+
+
+def test_audit_prefix():
+    out = AsyncSmartLogger._AsyncSmartLogger__audit_prefix("msg", "logger")
+    assert out.startswith("logger :")
+
+
+def test_dynamic_level_method_creation():
+    AsyncSmartLogger.register_level("NOTICE", 25)
+    lg = AsyncSmartLogger("dyn2")
+    assert callable(lg.a_notice)
+
+
+@pytest.mark.asyncio
+async def test_stack_info(tmp_path):
+    lg = AsyncSmartLogger("stack")
+    lg.add_console()
+
+    await lg.a_info("hello", stack_info=True)
+    await lg.flush()
+
+
+@pytest.mark.asyncio
+async def test_audit_metadata(tmp_path):
+    await AsyncSmartLogger.audit_everything(
+        log_dir=str(tmp_path),
+        logfile_name="audit.log",
+    )
+
+    meta = AsyncSmartLogger.audit_handler_info()
+    assert meta["kind"] in ("file", "console")
+
+    await AsyncSmartLogger.terminate_auditing()
+
+
+@pytest.mark.asyncio
+async def test_shutdown_no_worker():
+    lg = AsyncSmartLogger("shutdown_noworker")
+    lg._AsyncSmartLogger__worker_tasks = None
+    await lg.shutdown()
+
+
+def test_retire_destroy():
+    lg = AsyncSmartLogger("ret_dest")
+    lg.retire()
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_theme_validation_errors():
+    with pytest.raises(TypeError):
+        await AsyncSmartLogger.apply_color_theme("bad")
+
+    with pytest.raises(TypeError):
+        await AsyncSmartLogger.apply_color_theme({ "x": 123 })
+
+
+@pytest.mark.asyncio
+async def test_async_logger_basic_usage():
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("test")
+
+    # Attach a dummy handler so logging has somewhere to go
+    import io, logging
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    lg._AsyncSmartLogger__py_logger.addHandler(handler)
+
+    # Basic async logging should not raise
+    await lg.a_info("hello")
+
+    # Ensure the worker processes the queue
+    await lg.flush()
+
+    assert "hello" in stream.getvalue()

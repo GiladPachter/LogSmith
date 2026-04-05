@@ -126,7 +126,7 @@ async def test_theme():
     assert info_meta["style"].fg == LIGHT_THEME[20].fg
 
     reset_levels_for_tests()
-    AsyncSmartLogger.apply_color_theme(PASTEL_THEME)
+    await AsyncSmartLogger.apply_color_theme(PASTEL_THEME)
 
     info_meta = LEVELS.get("INFO")
     assert info_meta["style"].fg == PASTEL_THEME[20].fg
