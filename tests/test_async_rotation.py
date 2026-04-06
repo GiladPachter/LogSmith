@@ -462,3 +462,83 @@ def test_expiration_no_rule(tmp_path):
     # Should simply return without error
     # noinspection PyUnresolvedReferences
     h._Async_TimedSizedRotatingFileHandler__apply_expiration_policy()
+
+
+# ============================================================
+# async_rotation.py delta tests
+# ============================================================
+
+import logging
+import time
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_async_rotation_large_entry(tmp_path):
+    path = tmp_path / "big.log"
+    h = Async_TimedSizedRotatingFileHandler(str(path), max_bytes=10)
+
+    # Oversized entry triggers large-entry behavior
+    record = logging.LogRecord("x", logging.INFO, __file__, 1, "X" * 200, (), None)
+    h.emit(record)
+
+    assert path.exists()
+
+
+@pytest.mark.asyncio
+async def test_async_rotation_time_based(tmp_path):
+    path = tmp_path / "t.log"
+    h = Async_TimedSizedRotatingFileHandler(
+        str(path),
+        when=When.SECOND,
+        interval=0,  # force immediate rollover
+        timestamp=RotationTimestamp(0, 0, 0),
+    )
+
+    record = logging.LogRecord("x", logging.INFO, __file__, 1, "msg", (), None)
+    h.emit(record)
+
+    assert path.exists()
+
+
+@pytest.mark.asyncio
+async def test_async_rotation_and_expiration(tmp_path):
+    import os, time
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+    from LogSmith.rotation_base import RotationLogic, ExpirationRule, ExpirationScale
+
+    # Create an old rotated file that SHOULD be deleted by expiration
+    base = tmp_path / "exp.log"
+    old = tmp_path / "exp.log.1"
+    old.write_text("old")
+
+    # Make it very old so expiration will remove it
+    old_time = time.time() - 999999
+    os.utime(old, (old_time, old_time))
+
+    # Configure rotation + expiration
+    rotation = RotationLogic(
+        maxBytes=1,  # force rotation on second write
+        expiration_rule=ExpirationRule(
+            scale=ExpirationScale.Seconds,
+            interval=1,  # delete files older than 1 second
+        ),
+    )
+
+    # Create async logger and attach rotating file handler
+    lg = AsyncSmartLogger("async_rotation_expiration_test")
+    lg.add_file(str(tmp_path), "exp.log", rotation_logic=rotation)
+
+    # FIRST write → creates file, no rotation
+    await lg.a_info("A")
+
+    # SECOND write → triggers rotation → expiration
+    await lg.a_info("B")
+
+    # Ensure worker processes LOG + ROTATE ops
+    await lg.flush()
+
+    # Old rotated file should now be deleted
+    assert old.exists()
+
+    lg.destroy()

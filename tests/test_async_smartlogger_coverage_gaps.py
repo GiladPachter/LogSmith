@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import threading
+
 import pytest
 from LogSmith.async_smartlogger import AsyncSmartLogger, AsyncOp, _QueueItem
 from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
@@ -46,6 +48,8 @@ async def test_worker_swallows_handler_exceptions():
     # Worker must still be alive
     assert all(not t.done() for t in lg._AsyncSmartLogger__worker_tasks)
 
+    lg.destroy()
+
 
 # ------------------------------------------------------------
 # 3. Deferred worker creation
@@ -59,6 +63,8 @@ def test_deferred_worker_creation():
         assert lg._AsyncSmartLogger__worker_tasks is not None
 
     asyncio.run(use_logger())
+
+    lg.destroy()
 
 
 # ------------------------------------------------------------
@@ -77,6 +83,8 @@ async def test_raw_reopens_file(tmp_path):
 
     text = (tmp_path / "raw.log").read_text()
     assert "hello" in text
+
+    lg.destroy()
 
 
 # ------------------------------------------------------------
@@ -99,6 +107,8 @@ async def test_rotation_callback(tmp_path):
     rotated = list(tmp_path.glob("rot.log.*"))
     assert len(rotated) >= 1
 
+    lg.destroy()
+
 
 # ------------------------------------------------------------
 # 6. Profiling branches
@@ -115,6 +125,8 @@ async def test_profiling_paths(tmp_path):
     text = lg.get_profiling_details()
     assert "Avg total per log" in text
 
+    lg.destroy()
+
 
 @pytest.mark.asyncio
 async def test_profiling_no_data():
@@ -123,6 +135,8 @@ async def test_profiling_no_data():
 
     text = lg.get_profiling_details()
     assert text == "No profiling data collected."
+
+    lg.destroy()
 
 
 # ------------------------------------------------------------
@@ -172,6 +186,8 @@ async def test_queuefull_retry(monkeypatch):
 
     assert calls["n"] >= 3
 
+    lg.destroy()
+
 
 @pytest.mark.asyncio
 async def test_raw_write_fallback(tmp_path):
@@ -212,12 +228,16 @@ def test_retire():
     with pytest.raises(RuntimeError):
         lg.add_console()
 
+    lg.destroy()
+
 
 def test_destroy():
     lg = AsyncSmartLogger("dest")
     lg.add_console()
     lg.destroy()
     assert lg.name not in logging.Logger.manager.loggerDict
+
+    lg.destroy()
 
 
 def test_theme_application():
@@ -246,6 +266,8 @@ async def test_audit_ndjson(tmp_path):
     assert text.strip().startswith("[")
     assert text.strip().split(':')[1].lstrip().startswith("{")
 
+    lg.destroy()
+
 
 # ------------------------------------------------------------
 # 8. Audit forwarding edge case
@@ -267,6 +289,8 @@ async def test_audit_logger_does_not_audit_itself(tmp_path):
     # Should contain only one prefix, not recursive
     assert text.count("[_async_audit]:") == 1
 
+    audit_logger.destroy()
+
 
 def test_check_ancestors_no_dot():
     # Should simply return without error
@@ -285,6 +309,8 @@ def test_on_queue_put_no_loop(monkeypatch):
     # Worker should not start
     assert lg._AsyncSmartLogger__worker_tasks is None
 
+    lg.destroy()
+
 
 def test_rotation_callback_same_thread_placeholder(tmp_path):
     lg = AsyncSmartLogger("rot_same")
@@ -299,6 +325,8 @@ def test_rotation_callback_same_thread_placeholder(tmp_path):
     handler.rotation_callback(handler)
 
     assert lg._AsyncSmartLogger__worker_tasks == []
+
+    lg.destroy()
 
 
 def test_rotation_queuefull_retry(monkeypatch, tmp_path):
@@ -315,6 +343,8 @@ def test_rotation_queuefull_retry(monkeypatch, tmp_path):
 
     handler.rotation_callback(handler)  # Should not crash
 
+    lg.destroy()
+
 
 @pytest.mark.asyncio
 async def test_raw_write_error(tmp_path, monkeypatch):
@@ -330,6 +360,8 @@ async def test_raw_write_error(tmp_path, monkeypatch):
 
     await lg.a_raw("hello")  # Should not crash
 
+    lg.destroy()
+
 
 def test_audit_prefix():
     out = AsyncSmartLogger._AsyncSmartLogger__audit_prefix("msg", "logger")
@@ -341,6 +373,8 @@ def test_dynamic_level_method_creation():
     lg = AsyncSmartLogger("dyn2")
     assert callable(lg.a_notice)
 
+    lg.destroy()
+
 
 @pytest.mark.asyncio
 async def test_stack_info(tmp_path):
@@ -349,6 +383,8 @@ async def test_stack_info(tmp_path):
 
     await lg.a_info("hello", stack_info=True)
     await lg.flush()
+
+    lg.destroy()
 
 
 @pytest.mark.asyncio
@@ -369,6 +405,8 @@ async def test_shutdown_no_worker():
     lg = AsyncSmartLogger("shutdown_noworker")
     lg._AsyncSmartLogger__worker_tasks = None
     await lg.shutdown()
+
+    lg.destroy()
 
 
 def test_retire_destroy():
@@ -405,3 +443,100 @@ async def test_async_logger_basic_usage():
     await lg.flush()
 
     assert "hello" in stream.getvalue()
+
+    lg.destroy()
+
+
+# ============================================================
+# async_smartlogger.py delta tests
+# ============================================================
+
+@pytest.mark.asyncio
+async def test_async_logger_queue_full_retry():
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("delta_queue")
+
+    await lg.a_info("one")
+    await lg.a_info("two")  # triggers retry
+    await lg.flush()
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_async_logger_external_thread_enqueue():
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("delta_thread")
+
+    async def warmup():
+        await lg.a_info("warm")
+
+    await warmup()
+
+    def worker():
+        asyncio.run(lg.a_info("from-thread"))
+
+    t = threading.Thread(target=worker)
+    t.start()
+    t.join()
+
+    await lg.flush()
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_async_logger_retire_edge():
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("delta_retire")
+    await lg.a_info("before")
+    await lg.flush()
+
+    lg.retire()
+
+    with pytest.raises(RuntimeError):
+        await lg.a_info("after")
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_async_logger_destroy_edge():
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+    import logging
+
+    lg = AsyncSmartLogger("delta_destroy")
+    await lg.a_info("x")
+    await lg.flush()
+
+    lg.destroy()
+
+    assert "delta.destroy" not in logging.Logger.manager.loggerDict
+
+
+@pytest.mark.asyncio
+async def test_async_logger_stdout_fallback(capsys):
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("delta_stdout")
+    await lg.a_stdout("hello", "world", sep="-", end="!")
+
+    captured = capsys.readouterr().out
+    assert captured == "hello-world!"
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_async_logger_rotation_debounce(tmp_path):
+    from LogSmith.async_smartlogger import AsyncSmartLogger, RotationLogic
+
+    lg = AsyncSmartLogger("delta_rotate")
+    lg.add_file(str(tmp_path), "r.log", rotation_logic=RotationLogic(maxBytes=1))
+
+    await lg.a_info("x")
+    await lg.a_info("y")  # second rotation request should debounce
+    await lg.flush()
