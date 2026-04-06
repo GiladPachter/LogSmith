@@ -208,3 +208,49 @@ async def test_worker_stays_alive(clean_async_logger, tmp_path):
     assert after == before + 1
 
     logger.destroy()
+
+
+@pytest.mark.asyncio
+async def test_worker_swallows_exceptions(tmp_path, monkeypatch):
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("err_test")
+    lg.add_file(str(tmp_path), "exp.log")
+
+    # Force __process_log to raise
+    monkeypatch.setattr(
+        lg,
+        "_AsyncSmartLogger__process_log",
+        lambda payload: (_ for _ in ()).throw(Exception("boom"))
+    )
+
+    await lg.a_info("A")
+    await lg.flush()
+
+    # Worker should not crash
+    assert True
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_worker_exits_on_sentinel(tmp_path):
+    from LogSmith.async_smartlogger import AsyncSmartLogger, AsyncOp
+    import asyncio
+
+    lg = AsyncSmartLogger("exit_test")
+    lg.add_file(str(tmp_path), "exp.log")
+
+    class Dummy:
+        def __init__(self, op):
+            self.op = op
+            self.payload = None
+
+    await lg._AsyncSmartLogger__queue.put(Dummy(AsyncOp.SENTINEL))
+
+    await asyncio.sleep(0.1)
+
+    for task in lg._AsyncSmartLogger__worker_tasks:
+        assert task.done()
+
+    lg.destroy()

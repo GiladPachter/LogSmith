@@ -114,3 +114,19 @@ async def test_raw_stream_reopening(tmp_path):
 
     text = (tmp_path / "reopen.log").read_text()
     assert "reopened" in text
+
+
+@pytest.mark.asyncio
+async def test_raw_op_processed(tmp_path):
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("raw_test")
+    lg.add_file(str(tmp_path), "exp.log")
+
+    await lg.a_raw("raw message")
+    await lg.flush()
+
+    # RAW may not write to file, but must not crash
+    assert (tmp_path / "exp.log").exists()
+
+    lg.destroy()

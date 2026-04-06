@@ -115,3 +115,28 @@ async def test_asyncsmartlogger_rotation_suffixes(tmp_path, pid, ts):
     assert pattern.match(rotated[0]), rotated[0]
 
     logger.destroy()
+
+
+def test_rotation_with_suffix(tmp_path, monkeypatch):
+    from LogSmith.async_rotation import Async_TimedSizedRotatingFileHandler
+
+    base = tmp_path / "exp.log"
+    base.write_text("x")
+
+    monkeypatch.setattr(
+        Async_TimedSizedRotatingFileHandler,
+        "_rotation_suffix",
+        lambda self: "sfx"
+    )
+
+    handler = Async_TimedSizedRotatingFileHandler(
+        filename=str(base),
+        max_bytes=1,
+        backup_count=3,
+        expiration_rule=None,
+    )
+
+    with handler.write_lock:
+        handler.perform_rotation()
+
+    assert (tmp_path / "exp.log.sfx.1").exists()

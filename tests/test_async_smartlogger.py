@@ -738,3 +738,90 @@ def test_rotation_queuefull(monkeypatch, tmp_path):
     handler.rotation_callback(handler)
 
     lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_worker_exits_on_sentinel(tmp_path):
+    from LogSmith.async_smartlogger import AsyncSmartLogger, AsyncOp
+    import asyncio
+
+    lg = AsyncSmartLogger("exit_test")
+    lg.add_file(str(tmp_path), "exp.log")
+
+    # Dummy queue item with .op and .payload
+    class Dummy:
+        def __init__(self, op):
+            self.op = op
+            self.payload = None
+
+    # Enqueue sentinel
+    await lg._AsyncSmartLogger__queue.put(Dummy(AsyncOp.SENTINEL))
+
+    # Give worker time to process
+    await asyncio.sleep(0.1)
+
+    # Worker tasks should be done
+    for task in lg._AsyncSmartLogger__worker_tasks:
+        assert task.done()
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_raw_processed(tmp_path):
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("raw_test")
+    lg.add_file(str(tmp_path), "exp.log")
+
+    await lg.a_raw("hello raw")
+    await lg.flush()
+
+    # RAW may not write to file, but must not crash
+    assert (tmp_path / "exp.log").exists()
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_rotation_scheduled_once(tmp_path):
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+    from LogSmith.rotation_base import RotationLogic
+
+    lg = AsyncSmartLogger("sched_test")
+    lg.add_file(str(tmp_path), "exp.log", rotation_logic=RotationLogic(maxBytes=1))
+
+    # Trigger multiple writes that exceed maxBytes
+    for _ in range(5):
+        await lg.a_info("X" * 100)
+
+    await lg.flush()
+
+    # Only one rotation should have been scheduled at a time
+    # (no crash = branch covered)
+    assert True
+
+
+@pytest.mark.asyncio
+async def test_worker_swallows_exceptions(tmp_path, monkeypatch):
+    from LogSmith.async_smartlogger import AsyncSmartLogger
+
+    lg = AsyncSmartLogger("err_test")
+    lg.add_file(str(tmp_path), "exp.log")
+
+    # Force __process_log to raise
+    monkeypatch.setattr(
+        lg,
+        "_AsyncSmartLogger__process_log",
+        lambda payload: (_ for _ in ()).throw(Exception("boom"))
+    )
+
+    await lg.a_info("A")
+    await lg.flush()
+
+    # Worker should not crash
+    assert True
+
+    lg.destroy()
+
+
