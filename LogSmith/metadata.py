@@ -32,7 +32,7 @@ def get_metadata():
         author_email_field = meta.get("Author-email")
         author = None
         author_email = None
-        if author_email_field:
+        if author_email_field:  # pragma: no cover
             # Format: "Name <email>"
             if "<" in author_email_field and ">" in author_email_field:
                 name, email = author_email_field.split("<", 1)
@@ -62,8 +62,8 @@ def get_metadata():
             "classifiers": classifiers,
         }
 
-    except PackageNotFoundError:
-        return {}   # pragma: no cover
+    except PackageNotFoundError:    # pragma: no cover
+        return {}
 
 
 def get_license_text() -> str | None:
@@ -100,8 +100,8 @@ def get_license_text() -> str | None:
 
         return None # pragma: no cover
 
-    except PackageNotFoundError:
-        return None # pragma: no cover
+    except PackageNotFoundError:    # pragma: no cover
+        return None
 
 
 def get_file_list():
