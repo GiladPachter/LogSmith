@@ -264,8 +264,6 @@ class StructuredPlainFormatter:
     """
 
     def __init__(self, details: LogRecordDetails) -> None:
-        if details is None:
-            details = LogRecordDetails()
         self._details = details or LogRecordDetails()
 
     @staticmethod
@@ -774,7 +772,7 @@ class StructuredJSONFormatter(logging.Formatter):
         ordered["timestamp"] = data["timestamp"]
 
         # If no optional metadata is enabled and no mpo is provided,
-        # keep a simple canonical order: timestamp, level, message, then the rest.
+        # keep a simple canonical order: timestamp, level, message.
         if not any_optional_enabled and not mpo:
             if "level" in data:
                 ordered["level"] = data["level"]
