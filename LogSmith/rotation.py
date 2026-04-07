@@ -13,14 +13,14 @@ from LogSmith.rotation_base import BaseTimedSizedRotatingFileHandler
 
 try:
     import fcntl  # type: ignore[attr-defined]
-    _HAS_FCNTL = True
+    _HAS_FCNTL = True   # pragma: no cover
 except ImportError:  # Windows
     fcntl = None
     _HAS_FCNTL = False
 
 try:
     import msvcrt  # type: ignore[attr-defined]
-    _HAS_MSVCRT = True
+    _HAS_MSVCRT = True  # pragma: no cover
 except ImportError:
     msvcrt = None
     _HAS_MSVCRT = False
@@ -386,8 +386,8 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
                         orig_mtime = os.path.getmtime(sfn)
                         os.replace(sfn, dfn)
                         os.utime(dfn, (orig_mtime, orig_mtime))
-                    except FileNotFoundError:
-                        pass    # pragma: no cover
+                    except FileNotFoundError:   # pragma: no cover
+                        pass
 
             # dfn = f"{self.baseFilename}.1"
             suffix = self.__rotation_suffix()
