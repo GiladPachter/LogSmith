@@ -224,19 +224,6 @@ class SmartLogger:
         for i in range(1, len(parts)):
             ancestor_name = ".".join(parts[:i])
 
-            # existing = logging.Logger.manager.loggerDict.get(ancestor_name)
-            # if existing is None:
-            #     raise RuntimeError(
-            #         f"Cannot create logger {name!r} because ancestor {ancestor_name!r} does not exist. "
-            #         f"Using logger hierarchy syntax without an already existing parent logger causes unwanted side effects. "
-            #         f"Create any and all ancestors explicitly first."
-            #     )
-            # elif not isinstance(existing, SmartLogger):
-            #     raise RuntimeError(
-            #         f"Cannot create logger {name!r} because potential ancestor {ancestor_name!r} "
-            #         f"is not an instance of SmartLogger. This will result in an unexpected behavior and therefore rejected"
-            #     )
-
             if ancestor_name not in SmartLogger.__SmartLogger_registry:
                 if ancestor_name in logging.Logger.manager.loggerDict:
                     raise RuntimeError(

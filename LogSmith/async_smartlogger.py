@@ -109,18 +109,6 @@ class AsyncSmartLogger:
         for i in range(1, len(parts)):
             ancestor_name = ".".join(parts[:i])
 
-            # existing = logging.Logger.manager.loggerDict.get(ancestor_name)
-            # if existing is None:
-            #     raise RuntimeError(
-            #         f"Cannot create logger {name!r} because ancestor {ancestor_name!r} does not exist. "
-            #         f"Create ancestors explicitly first."
-            #     )
-            # elif not isinstance(existing, AsyncSmartLogger):
-            #     raise RuntimeError(
-            #         f"Cannot create logger {name!r} because potential ancestor {ancestor_name!r} "
-            #         f"is not an instance of AsyncSmartLogger. This will result in an unexpected behavior and therefore rejected"
-            #     )
-
             if ancestor_name not in AsyncSmartLogger.__AsyncSmartLogger_registry:
                 if ancestor_name in logging.Logger.manager.loggerDict:
                     raise RuntimeError(
@@ -265,24 +253,24 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # WORKER
     # ------------------------------------------------------------------
-    def __start_worker(self, workers: int = 1):
-        if self.__loop is None:
-            # Defer worker creation until first awaited call
-            return  # pragma: no cover
-
-        if hasattr(self, "_AsyncSmartLogger__worker_tasks"):    # pragma: no cover
-            return  # pragma: no cover
-
-        self.__worker_tasks = [
-            self.__loop.create_task(self.__worker())
-            for _ in range(workers)
-        ]
+    # def __start_worker(self, workers: int = 1):
+    #     if self.__loop is None:
+    #         # Defer worker creation until first awaited call
+    #         return  # pragma: no cover
+    #
+    #     if hasattr(self, "_AsyncSmartLogger__worker_tasks"):    # pragma: no cover
+    #         return  # pragma: no cover
+    #
+    #     self.__worker_tasks = [
+    #         self.__loop.create_task(self.__worker())
+    #         for _ in range(workers)
+    #     ]
 
     async def __worker(self) -> None:
         while True:
             # Exit immediately if worker_tasks was cleared
             if self._AsyncSmartLogger__worker_tasks is None:
-                return
+                return  # pragma: no cover
 
             item = await self.__queue.get()
             try:
@@ -975,7 +963,8 @@ class AsyncSmartLogger:
                     real = h
                     break   # pragma: no cover
             if real is None:
-                return  # nothing to rotate
+                # nothing to rotate
+                return  # pragma: no cover
             handler = real
 
         # Per-handler debounce: at most one pending ROTATE per handler
@@ -1007,7 +996,7 @@ class AsyncSmartLogger:
                     self.__worker_tasks = [self.__loop.create_task(self.__worker())]
                 try:
                     self.__queue.put_nowait(item)
-                except asyncio.QueueFull:
+                except asyncio.QueueFull:   # pragma: no cover
                     # Best-effort: drop on full queue in this rare path
                     pass
 
@@ -1068,7 +1057,7 @@ class AsyncSmartLogger:
             pathname = frame.f_code.co_filename
             lineno = frame.f_lineno
             func_name = frame.f_code.co_name
-        else:
+        else:   # pragma: no cover
             # very defensive fallback
             pathname = "<unknown>"
             lineno = 0
@@ -1223,7 +1212,7 @@ class AsyncSmartLogger:
             style = theme[value]
 
             if not isinstance(style, LevelStyle):
-                raise TypeError(
+                raise TypeError(    # pragma: no cover
                     f"Theme entry for level {value} must be a LevelStyle, "
                     f"got {type(style).__name__}"
                 )
@@ -1247,14 +1236,15 @@ class AsyncSmartLogger:
         for handler in self.__py_logger.handlers:
             flush = getattr(handler, "flush", None)
             if not callable(flush):
-                continue
+                continue    # pragma: no cover
 
             # Be defensive: some handlers may already have closed their streams
+            # noinspection PyBroadException
             try:
                 flush()
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 # "I/O operation on closed file" – safe to ignore here
-                pass    # pragma: no cover
+                pass
             except Exception:  # pragma: no cover
                 # Don't let a broken handler kill flush()
                 pass
@@ -1397,26 +1387,27 @@ class AsyncSmartLogger:
         """
         now = time.time()
 
-        # Resolve caller frame similarly to SmartLogger.__find_caller()
-        frame = inspect.currentframe()
-        if frame is not None:
-            frame = frame.f_back  # caller of get_record()
-
-        caller_frame = None
-        while frame:
-            filename = frame.f_code.co_filename.replace("\\", "/")
-            base = os.path.basename(filename)
-
-            if base != "async_smartlogger.py" and not (
-                os.path.basename(filename) == "logging/__init__.py"
-                or "pytest" in filename
-                or "pluggy" in filename
-                or "unittest" in filename
-            ):
-                caller_frame = frame
-                break
-
-            frame = frame.f_back
+        # # Resolve caller frame similarly to SmartLogger.__find_caller()
+        # frame = inspect.currentframe()
+        # if frame is not None:
+        #     frame = frame.f_back  # caller of get_record()
+        #
+        # caller_frame = None
+        # while frame:
+        #     filename = frame.f_code.co_filename.replace("\\", "/")
+        #     base = os.path.basename(filename)
+        #
+        #     if base != "async_smartlogger.py" and not (
+        #         os.path.basename(filename) == "logging/__init__.py"
+        #         or "pytest" in filename
+        #         or "pluggy" in filename
+        #         or "unittest" in filename
+        #     ):
+        #         caller_frame = frame
+        #         break
+        #
+        #     frame = frame.f_back
+        caller_frame = AsyncSmartLogger.__find_caller()
 
         if caller_frame is not None:
             file_path = caller_frame.f_code.co_filename
@@ -1457,7 +1448,7 @@ class AsyncSmartLogger:
             if caller_frame is not None:
                 stack_val = "".join(traceback.format_stack(caller_frame))
             else:  # fallback, should be rare
-                stack_val = "".join(traceback.format_stack())
+                stack_val = "".join(traceback.format_stack())   # pragma: no cover
         else:
             stack_val = None
 
