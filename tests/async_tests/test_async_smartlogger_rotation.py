@@ -12,7 +12,7 @@ async def test_size_based_rotation(tmp_path, monkeypatch):
 
     # Force deterministic suffix
     monkeypatch.setattr(
-        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._rotation_suffix",
+        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._Async_TimedSizedRotatingFileHandler__rotation_suffix",
         lambda self: "FIXED"
     )
 
@@ -46,7 +46,7 @@ async def test_time_based_rotation(tmp_path, monkeypatch):
 
     # Deterministic suffix
     monkeypatch.setattr(
-        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._rotation_suffix",
+        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._Async_TimedSizedRotatingFileHandler__rotation_suffix",
         lambda self: "TROT"
     )
 
@@ -90,7 +90,7 @@ async def test_large_entry_rotate_first(tmp_path, monkeypatch):
     log_dir = str(tmp_path)
 
     monkeypatch.setattr(
-        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._rotation_suffix",
+        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._Async_TimedSizedRotatingFileHandler__rotation_suffix",
         lambda self: "LARGE"
     )
 
@@ -123,7 +123,7 @@ async def test_rotation_callback_scheduling(tmp_path, monkeypatch):
     log_dir = str(tmp_path)
 
     monkeypatch.setattr(
-        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._rotation_suffix",
+        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._Async_TimedSizedRotatingFileHandler__rotation_suffix",
         lambda self: "CALLBACK"
     )
 
@@ -192,7 +192,7 @@ async def test_rotation_expiration(tmp_path, monkeypatch):
     log_dir = str(tmp_path)
 
     monkeypatch.setattr(
-        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._rotation_suffix",
+        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._Async_TimedSizedRotatingFileHandler__rotation_suffix",
         lambda self: "EXP"
     )
 

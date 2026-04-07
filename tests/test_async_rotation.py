@@ -369,18 +369,6 @@ def test_rotate_then_write(tmp_path):
     assert "hello" in file.read_text()
 
 
-def test_ensure_stream_open_broken(tmp_path):
-    file = tmp_path / "x.log"
-    h = Async_TimedSizedRotatingFileHandler(str(file))
-
-    h.stream = open(file, "w")
-    h.stream.close()
-
-    h._ensure_stream_open()
-    assert h.stream is not None
-    assert not h.stream.closed
-
-
 def test_should_rotate_size(tmp_path):
     file = tmp_path / "x.log"
     h = Async_TimedSizedRotatingFileHandler(str(file), max_bytes=5)
@@ -395,7 +383,8 @@ def test_should_rotate_size(tmp_path):
 
 def test_rotation_suffix_empty(tmp_path):
     h = Async_TimedSizedRotatingFileHandler(str(tmp_path / "x.log"))
-    assert h._rotation_suffix() == ""
+    # noinspection PyUnresolvedReferences
+    assert h._Async_TimedSizedRotatingFileHandler__rotation_suffix() == ""
 
 
 def test_expiration_seconds(tmp_path):

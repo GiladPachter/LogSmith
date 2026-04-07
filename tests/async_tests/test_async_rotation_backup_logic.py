@@ -55,7 +55,7 @@ def test_backup_rotation_with_suffix(tmp_path, monkeypatch):
 
     # Force a fixed suffix so it doesn't change between calls
     fixed_suffix = "PID.TIMESTAMP"
-    monkeypatch.setattr(handler, "_rotation_suffix", lambda: fixed_suffix)
+    monkeypatch.setattr(handler, "_Async_TimedSizedRotatingFileHandler__rotation_suffix", lambda: fixed_suffix)
 
     # Create rotated files using the SAME suffix pattern
     (tmp_path / f"suffixed.log.{fixed_suffix}.1").write_text("one")

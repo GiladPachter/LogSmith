@@ -345,7 +345,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
     # ------------------------------------------------------------------
     # ROLLOVER IMPLEMENTATION
     # ------------------------------------------------------------------
-    def _rotation_suffix(self) -> str:
+    def __rotation_suffix(self) -> str:
         parts = []
         if self.append_filename_pid:
             parts.append(str(os.getpid()))
@@ -371,7 +371,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
 
                 # sfn = f"{self.baseFilename}.{i}"
                 # dfn = f"{self.baseFilename}.{i + 1}"
-                suffix = self._rotation_suffix()
+                suffix = self.__rotation_suffix()
                 if suffix:
                     sfn = f"{self.baseFilename}.{suffix}.{i}"
                     dfn = f"{self.baseFilename}.{suffix}.{i + 1}"
@@ -390,7 +390,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
                         pass    # pragma: no cover
 
             # dfn = f"{self.baseFilename}.1"
-            suffix = self._rotation_suffix()
+            suffix = self.__rotation_suffix()
             if suffix:
                 dfn = f"{self.baseFilename}.{suffix}.1"
             else:

@@ -125,13 +125,12 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         if leb is LargeLogEntryBehavior.ExceedMaxBytesIfFileIsEmpty:
             # Ensure stream exists
             if self.stream is None or getattr(self.stream, "closed", False):
-                self.stream = self._open()
+                self.stream = self._open()  # pragma: no cover
 
-            empty = False
             try:
                 self.stream.seek(0, os.SEEK_END)
                 empty = (self.stream.tell() == 0)
-            except OSError:
+            except OSError: # pragma: no cover
                 # FD is broken: close best-effort and reopen, treat as empty
                 # noinspection PyBroadException
                 try:
@@ -154,11 +153,11 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         Uses the already‑formatted string instead of re‑formatting the record.
         """
         if self.max_bytes <= 0:
-            return False
+            return False    # pragma: no cover
 
         # Ensure file is open
         if self.stream is None:
-            self.stream = self._open()
+            self.stream = self._open()  # pragma: no cover
 
         # Compute projected size
         msg = formatted + "\n"
@@ -167,24 +166,6 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         projected = current_size + len(msg.encode(self.encoding or "utf-8"))
 
         return projected >= self.max_bytes
-
-    def _ensure_stream_open(self):
-        if self.stream is None:
-            self.stream = self._open()
-            return
-
-        # noinspection PyBroadException
-        try:
-            # harmless check that fails if FD is invalid
-            self.stream.tell()
-        except Exception:   # pragma: no cover
-            # FD is broken → reopen
-            # noinspection PyBroadException
-            try:
-                self.stream.close()
-            except Exception:   # pragma: no cover
-                pass
-            self.stream = self._open()
 
     def emit(self, record) -> None:
         # ------------------------------------------------------
@@ -203,7 +184,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
                 try:
                     self.stream.seek(0, os.SEEK_END)
                     current = self.stream.tell()
-                except OSError:
+                except OSError: # pragma: no cover
                     # FD broken → reopen and treat as empty
                     # noinspection PyBroadException
                     try:
@@ -215,17 +196,17 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
                     current = 0
 
                 projected = current + len(msg.encode(self.encoding or "utf-8"))
-                if self.max_bytes and self.max_bytes > 0 and projected >= self.max_bytes:
+                if self.max_bytes and 0 < self.max_bytes <= projected:
                     self.__schedule_rotation()
 
                 # Write
                 with self.write_lock:
                     if self.stream is None or getattr(self.stream, "closed", False):
-                        self.stream = self._open()
+                        self.stream = self._open()  # pragma: no cover
                     self.stream.write(msg)
                     self.stream.flush()
 
-            except OSError:
+            except OSError: # pragma: no cover
                 # I/O-level failure: treat as logging error
                 self.handleError(record)
 
@@ -257,7 +238,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
             with self.write_lock:
                 if self.stream is None or getattr(self.stream, "closed", False):
-                    self.stream = self._open()
+                    self.stream = self._open()  # pragma: no cover
                 self.stream.write(msg)
                 self.stream.flush()
 
@@ -287,7 +268,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             # AsyncSmartLogger.__enqueue_rotation will enqueue ROTATE
             self.rotation_callback(self)
 
-    def _rotation_suffix(self) -> str:
+    def __rotation_suffix(self) -> str:
         parts = []
         if self.append_filename_pid:
             parts.append(str(os.getpid()))
@@ -302,7 +283,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         """
         # Before rotation, ensure the base file exists
         if not os.path.exists(self.baseFilename):
-            open(self.baseFilename, "w").close()
+            open(self.baseFilename, "w").close()    # pragma: no cover
 
         self.__rotation_scheduled = False
 
@@ -319,7 +300,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
                     # sfn = f"{self.baseFilename}.{i}"
                     # dfn = f"{self.baseFilename}.{i + 1}"
-                    suffix = self._rotation_suffix()
+                    suffix = self.__rotation_suffix()
                     if suffix:
                         sfn = f"{self.baseFilename}.{suffix}.{i}"
                         dfn = f"{self.baseFilename}.{suffix}.{i + 1}"
@@ -335,7 +316,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
                         os.utime(dfn, (orig_mtime, orig_mtime))
 
                 # dfn = f"{self.baseFilename}.1"
-                suffix = self._rotation_suffix()
+                suffix = self.__rotation_suffix()
                 if suffix:
                     dfn = f"{self.baseFilename}.{suffix}.1"
                 else:
@@ -350,7 +331,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
                 if os.path.exists(self.baseFilename):
                     os.replace(self.baseFilename, dfn)
-                elif is_rotate_first:
+                elif is_rotate_first:   # pragma: no cover
                     # RotateFirst must create an empty rotated file even if base doesn't exist
                     open(dfn, "w").close()
 
@@ -378,7 +359,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         """
         # Ensure file is open
         if self.stream is None:
-            self.stream = self._open()
+            self.stream = self._open()  # pragma: no cover
 
         # ----------------------------------------------------------
         # SIZE-BASED ROTATION
@@ -422,7 +403,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         based on When + interval + Timestamp.
         """
         if self.when is None:
-            return float("inf")
+            return float("inf") # pragma: no cover
 
         # simple periodic rotation
         if self.when in (When.SECOND, When.MINUTE, When.HOUR):

@@ -49,7 +49,7 @@ async def test_handlers_independent(tmp_path):
 @pytest.mark.asyncio
 async def test_rotation_handler_survives(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._rotation_suffix",
+        "LogSmith.async_rotation.Async_TimedSizedRotatingFileHandler._Async_TimedSizedRotatingFileHandler__rotation_suffix",
         lambda self: "ROT"
     )
 

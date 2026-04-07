@@ -208,7 +208,7 @@ def test_rotation_with_suffix(tmp_path, monkeypatch):
     # Force a suffix
     monkeypatch.setattr(
         Async_TimedSizedRotatingFileHandler,
-        "_rotation_suffix",
+        "_Async_TimedSizedRotatingFileHandler__rotation_suffix",
         lambda self: "sfx"
     )
 

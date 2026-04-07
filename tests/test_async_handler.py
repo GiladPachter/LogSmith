@@ -17,18 +17,6 @@ def test_emit_preformatted_string(tmp_path):
         assert "hello world" in f.read()
 
 
-def test_ensure_stream_open_reopens_fd(tmp_path):
-    file = tmp_path / "x.log"
-    h = Async_TimedSizedRotatingFileHandler(str(file))
-
-    # Force stream closed
-    h.stream.close()
-    h._ensure_stream_open()
-
-    assert h.stream is not None
-    assert not h.stream.closed
-
-
 def test_large_entry_dump_silently(tmp_path):
     file = tmp_path / "x.log"
     h = Async_TimedSizedRotatingFileHandler(
@@ -111,7 +99,8 @@ def test_rotation_suffix_pid_timestamp(tmp_path, monkeypatch):
         append_filename_timestamp=True,
     )
 
-    suffix = h._rotation_suffix()
+    # noinspection PyUnresolvedReferences
+    suffix = h._Async_TimedSizedRotatingFileHandler__rotation_suffix()
     assert suffix.count(".") == 1  # pid.timestamp
 
 
