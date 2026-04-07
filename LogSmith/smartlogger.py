@@ -863,7 +863,7 @@ class SmartLogger:
             return  # pragma: no cover
 
         # Validate type
-        if not isinstance(theme, dict):
+        if not isinstance(theme, dict): # pragma: no cover
             raise TypeError("Theme must be a dict mapping level numbers to LevelStyle instances")
 
         # Validate keys and values
@@ -882,7 +882,7 @@ class SmartLogger:
 
             style = theme[value]
 
-            if not isinstance(style, LevelStyle):
+            if not isinstance(style, LevelStyle):   # pragma: no cover
                 raise TypeError(
                     f"Theme entry for level {value} must be a LevelStyle, "
                     f"got {type(style).__name__}"
@@ -1100,7 +1100,7 @@ class SmartLogger:
         # Retroactively disable propagation
         for logger in logging.Logger.manager.loggerDict.values():
             if isinstance(logger, SmartLogger):
-                logger.propagate = False
+                logger.propagate = False    # pragma: no cover
 
             # logger.destroy()
 
@@ -1338,7 +1338,7 @@ class SmartLogger:
 
         # Linux / WSL / Android
         # noinspection PyBroadException
-        try:
+        try:    # pragma: no cover
             with open("/proc/self/comm", "r") as f:
                 name = f.read().strip()
                 if name:
@@ -1348,7 +1348,7 @@ class SmartLogger:
 
         # macOS / BSD / fallback
         # noinspection PyBroadException
-        try:
+        try:    # pragma: no cover
             arg0 = os.path.basename(sys.argv[0])
             if arg0:
                 return arg0

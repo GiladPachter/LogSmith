@@ -149,8 +149,6 @@ class AsyncSmartLogger:
             self.__loop = None
             self.__loop_thread = None
 
-        # Unbounded queue
-        # self.__queue: asyncio.Queue[_QueueItem] = asyncio.Queue(maxsize=0)
         # Unbounded queue, with owner callback on put_nowait
         self.__queue: asyncio.Queue[_QueueItem] = AsyncSmartLogger.__LoggerQueue(self, maxsize=0)
 
@@ -253,19 +251,6 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # WORKER
     # ------------------------------------------------------------------
-    # def __start_worker(self, workers: int = 1):
-    #     if self.__loop is None:
-    #         # Defer worker creation until first awaited call
-    #         return  # pragma: no cover
-    #
-    #     if hasattr(self, "_AsyncSmartLogger__worker_tasks"):    # pragma: no cover
-    #         return  # pragma: no cover
-    #
-    #     self.__worker_tasks = [
-    #         self.__loop.create_task(self.__worker())
-    #         for _ in range(workers)
-    #     ]
-
     async def __worker(self) -> None:
         while True:
             # Exit immediately if worker_tasks was cleared
@@ -1387,26 +1372,6 @@ class AsyncSmartLogger:
         """
         now = time.time()
 
-        # # Resolve caller frame similarly to SmartLogger.__find_caller()
-        # frame = inspect.currentframe()
-        # if frame is not None:
-        #     frame = frame.f_back  # caller of get_record()
-        #
-        # caller_frame = None
-        # while frame:
-        #     filename = frame.f_code.co_filename.replace("\\", "/")
-        #     base = os.path.basename(filename)
-        #
-        #     if base != "async_smartlogger.py" and not (
-        #         os.path.basename(filename) == "logging/__init__.py"
-        #         or "pytest" in filename
-        #         or "pluggy" in filename
-        #         or "unittest" in filename
-        #     ):
-        #         caller_frame = frame
-        #         break
-        #
-        #     frame = frame.f_back
         caller_frame = AsyncSmartLogger.__find_caller()
 
         if caller_frame is not None:
