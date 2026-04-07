@@ -1,6 +1,6 @@
+import asyncio
 import os
 import threading
-
 import pytest
 
 from LogSmith.levels import TRACE
@@ -103,119 +103,6 @@ def test_get_record_skip_logic():
     assert rec.func_name.startswith("test_")
 
 
-def test_get_record_parts_requires_fields():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-
-    with pytest.raises(ValueError):
-        logger.get_record_parts()
-
-    logger.destroy()
-
-
-def test_get_record_parts_task_name_sync():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-    rec = logger.get_record_parts(task_name=True)
-    assert rec.task_name is None
-
-    logger.destroy()
-
-
-import asyncio
-
-async def test_get_record_parts_task_name_async():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-    rec = logger.get_record_parts(task_name=True)
-    assert rec.task_name == asyncio.current_task().get_name()
-
-    logger.destroy()
-
-
-def test_get_record_parts_exc_info():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-
-    try:
-        raise RuntimeError("boom")
-    except RuntimeError:
-        rec = logger.get_record_parts(exc_info=True)
-
-    assert rec.exc_info["exc_parts"]["err_type_name"] == "RuntimeError"
-    assert "boom" in rec.exc_info["full_trace_text"]
-
-    logger.destroy()
-
-
-def test_get_record_parts_stack_info():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-
-    rec = logger.get_record_parts(stack_info=True)
-    assert "test_get_record_parts_stack_info" in rec.stack_info
-
-    logger.destroy()
-
-
-def test_get_record_parts_process_name():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-
-    rec = logger.get_record_parts(process_name=True)
-    assert rec.process_name is not None
-
-    logger.destroy()
-
-
-def test_get_record_parts_timestamp():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-
-    rec = logger.get_record_parts(timestamp=True)
-    assert " " in rec.timestamp  # space instead of T
-    assert len(rec.timestamp) >= 23  # yyyy-mm-dd hh:mm:ss.mmm
-
-    logger.destroy()
-
-
-def test_get_record_parts_relative_created():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-
-    rec = logger.get_record_parts(relative_created=True)
-    assert rec.relative_created >= 0
-
-    logger.destroy()
-
-
-def test_get_record_parts_file_info():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-
-    rec = logger.get_record_parts(file_path=True, file_name=True, lineno=True, func_name=True)
-
-    assert rec.file_path.endswith(".py")
-    assert rec.file_name.endswith(".py")
-    assert isinstance(rec.lineno, int)
-    assert rec.func_name.startswith("test_")
-
-    logger.destroy()
-
-
-def test_get_record_parts_thread_process():
-    from LogSmith.smartlogger import SmartLogger
-    logger = SmartLogger("x")
-
-    rec = logger.get_record_parts(thread_id=True, thread_name=True, process_id=True)
-
-    assert rec.thread_id == threading.current_thread().ident
-    assert rec.thread_name == threading.current_thread().name
-    assert rec.process_id == os.getpid()
-
-    logger.destroy()
-
-
 def test_retire_closes_and_clears_handlers(tmp_path):
     from LogSmith.smartlogger import SmartLogger
     logger = SmartLogger("life_retire")
@@ -281,9 +168,126 @@ def test_dynamic_level_method_calls___log(monkeypatch):
     assert called["msg"] == "hello"
 
 
-def test_get_record_parts_process_name_non_empty():
+def test_get_record_requires_no_fields():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    rec = logger.get_record()
+    assert rec is not None
+
+    logger.destroy()
+
+
+def test_get_record_task_name_sync():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    rec = logger.get_record()
+    assert rec.task_name is None
+
+    logger.destroy()
+
+
+import asyncio
+
+async def test_get_record_task_name_async():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    rec = logger.get_record()
+    assert rec.task_name == asyncio.current_task().get_name()
+
+    logger.destroy()
+
+
+def test_get_record_exc_info():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    try:
+        raise RuntimeError("boom")
+    except RuntimeError:
+        rec = logger.get_record(exc_info = True)
+
+    assert rec.exc_info["exc_parts"]["err_type_name"] == "RuntimeError"
+    assert "boom" in rec.exc_info["full_trace_text"]
+
+    logger.destroy()
+
+
+def test_get_record_stack_info():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    rec = logger.get_record(stack_info = True)
+    assert "test_get_record_stack_info" in rec.stack_info
+
+    logger.destroy()
+
+
+def test_get_record_process_name():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    rec = logger.get_record()
+    assert rec.process_name is not None
+
+    logger.destroy()
+
+
+def test_get_record_timestamp():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    rec = logger.get_record()
+    assert " " in rec.timestamp
+    assert len(rec.timestamp) >= 23
+
+    logger.destroy()
+
+
+def test_get_record_relative_created():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    rec = logger.get_record()
+    assert rec.relative_created >= 0
+
+    logger.destroy()
+
+
+def test_get_record_file_info():
+    from LogSmith.smartlogger import SmartLogger
+    logger = SmartLogger("x")
+
+    rec = logger.get_record()
+
+    assert rec.file_path.endswith(".py")
+    assert rec.file_name.endswith(".py")
+    assert isinstance(rec.lineno, int)
+    assert rec.func_name.startswith("test_")
+
+    logger.destroy()
+
+
+def test_get_record_thread_process():
+    from LogSmith.smartlogger import SmartLogger
+    import threading, os
+
+    logger = SmartLogger("x")
+
+    rec = logger.get_record()
+
+    assert rec.thread_id == threading.current_thread().ident
+    assert rec.thread_name == threading.current_thread().name
+    assert rec.process_id == os.getpid()
+
+    logger.destroy()
+
+
+def test_get_record_process_name_non_empty():
     from LogSmith.smartlogger import SmartLogger
     logger = SmartLogger("proc_name")
 
-    rec = logger.get_record_parts(process_name=True)
+    rec = logger.get_record()
     assert rec.process_name is None or isinstance(rec.process_name, str)

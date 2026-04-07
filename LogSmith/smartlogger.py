@@ -1102,43 +1102,9 @@ class SmartLogger:
             if isinstance(logger, SmartLogger):
                 logger.propagate = False    # pragma: no cover
 
-            # logger.destroy()
-
     @staticmethod
-    def get_record():
-        return SmartLogger.get_record_parts(timestamp = True,
-                                     # level = True,
-                                     # logger_name = True,
-                                     relative_created = True,
-                                     file_path = True,
-                                     file_name = True,
-                                     lineno = True,
-                                     func_name = True,
-                                     thread_id = True,
-                                     thread_name = True,
-                                     task_name = True,
-                                     process_id = True,
-                                     process_name = True,
-                                     exc_info = True,
-                                     stack_info = True,
-                                     )
-
-    @staticmethod
-    def get_record_parts(
+    def get_record(
         *,
-        timestamp: bool = False,
-        # level: bool = False,
-        # logger_name: bool = False,
-        relative_created: bool = False,
-        file_path: bool = False,
-        file_name: bool = False,
-        lineno: bool = False,
-        func_name: bool = False,
-        thread_id: bool = False,
-        thread_name: bool = False,
-        task_name: bool = False,
-        process_id: bool = False,
-        process_name: bool = False,
         exc_info: bool = False,
         stack_info: bool = False,
     ) -> RetrievedRecord:
@@ -1152,19 +1118,6 @@ class SmartLogger:
         does not interact with handlers, formatters, or structured fields.
 
         Parameters (all keyword-only):
-            timestamp        – Include an ISO-formatted timestamp (no 'T', millisecond precision).
-            level            – Include the logger's numeric level.
-            logger_name      – Include the logger's name.
-            relative_created – Time (in seconds) since the logging system was initialized.
-            file_path        – Full path of the caller's source file.
-            file_name        – Basename of the caller's source file.
-            lineno           – Line number of the caller.
-            func_name        – Function name of the caller.
-            thread_id        – Current thread identifier.
-            thread_name      – Current thread name.
-            task_name        – Current asyncio task name, if any.
-            process_id       – Current process ID.
-            process_name     – Current process name (best-effort, no external dependencies).
             exc_info         – Current exception info tuple, if any.
             stack_info       – Formatted stack trace of the current thread.
 
@@ -1201,18 +1154,18 @@ class SmartLogger:
             caller_frame = None
             fn, lno, func = None, None, None
 
-        # ---------------------------------------------------------------
-        # 1. Validate that at least one field is requested
-        # ---------------------------------------------------------------
-        if not any([
-            # timestamp, level, logger_name, relative_created,
-            timestamp, relative_created,
-            file_path, file_name, lineno, func_name,
-            thread_id, thread_name, task_name,
-            process_id, process_name,
-            exc_info, stack_info
-        ]):
-            raise ValueError("get_record() requires at least one field to be True.")
+        # # ---------------------------------------------------------------
+        # # 1. Validate that at least one field is requested
+        # # ---------------------------------------------------------------
+        # if not any([
+        #     # timestamp, level, logger_name, relative_created,
+        #     timestamp, relative_created,
+        #     file_path, file_name, lineno, func_name,
+        #     thread_id, thread_name, task_name,
+        #     process_id, process_name,
+        #     exc_info, stack_info
+        # ]):
+        #     raise ValueError("get_record() requires at least one field to be True.")
 
         # ---------------------------------------------------------------
         # 2. Capture timestamp (independent of logging pipeline)
@@ -1262,9 +1215,8 @@ class SmartLogger:
         # ---------------------------------------------------------------
         rec = RetrievedRecord()
 
-        if timestamp:
-            dt = datetime.fromtimestamp(now)
-            rec.timestamp = dt.isoformat(timespec="milliseconds").replace("T", " ")
+        dt = datetime.fromtimestamp(now)
+        rec.timestamp = dt.isoformat(timespec="milliseconds").replace("T", " ")
 
         # if level:
         #     rec.level = logging.getLevelName(self.level)
@@ -1272,38 +1224,28 @@ class SmartLogger:
         # if logger_name:
         #     rec.logger_name = self.name
 
-        if relative_created:
-            # noinspection PyUnresolvedReferences,PyProtectedMember
-            rec.relative_created = now - logging._startTime
-            if rec.relative_created < 0:
-                rec.relative_created = 0    # pragma: no cover
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        rec.relative_created = now - logging._startTime
+        if rec.relative_created < 0:
+            rec.relative_created = 0    # pragma: no cover
 
-        if file_path:
-            rec.file_path = fn
+        rec.file_path = fn
 
-        if file_name:
-            rec.file_name = os.path.basename(fn) if fn else None
+        rec.file_name = os.path.basename(fn) if fn else None
 
-        if lineno:
-            rec.lineno = lno
+        rec.lineno = lno
 
-        if func_name:
-            rec.func_name = func
+        rec.func_name = func
 
-        if thread_id:
-            rec.thread_id = thread_obj.ident
+        rec.thread_id = thread_obj.ident
 
-        if thread_name:
-            rec.thread_name = thread_obj.name
+        rec.thread_name = thread_obj.name
 
-        if task_name:
-            rec.task_name = task_name_val
+        rec.task_name = task_name_val
 
-        if process_id:
-            rec.process_id = pid
+        rec.process_id = pid
 
-        if process_name:
-            rec.process_name = SmartLogger.__get_process_name()
+        rec.process_name = SmartLogger.__get_process_name()
 
         if exc_info:
             exc_type, exc_value, exc_tb = exc_val

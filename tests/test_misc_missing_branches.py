@@ -403,7 +403,7 @@ def test_rotation_timestamp(tmp_path):
 def test_get_record_minimal():
     from LogSmith.smartlogger import SmartLogger
 
-    rec = SmartLogger.get_record_parts(timestamp=True)
+    rec = SmartLogger.get_record()
     assert rec.timestamp is not None
 
 

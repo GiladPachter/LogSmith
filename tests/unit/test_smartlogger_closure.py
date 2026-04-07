@@ -188,7 +188,7 @@ def test_dynamic_level_registration(tmp_path):
 # 12. GET_RECORD
 # ---------------------------------------------------------------------------
 def test_get_record():
-    rec = SmartLogger.get_record()
+    rec = SmartLogger.get_record(stack_info = True)
     assert rec.file_name
     assert rec.func_name
     assert rec.process_id

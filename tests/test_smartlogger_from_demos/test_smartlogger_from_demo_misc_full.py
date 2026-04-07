@@ -26,12 +26,12 @@ def test_get_record_exc_and_stack():
     try:
         1 / 0
     except ZeroDivisionError:
-        rec = SmartLogger.get_record()
+        rec = SmartLogger.get_record(exc_info = True)
         assert rec.exc_info["exc_parts"]["err_type_name"] == "ZeroDivisionError"
 
     # stack_info
     logger.debug("stack", stack_info=True)
-    rec2 = SmartLogger.get_record()
+    rec2 = SmartLogger.get_record(stack_info = True)
     assert isinstance(rec2.stack_info, str)
 
 

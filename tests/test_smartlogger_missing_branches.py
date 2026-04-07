@@ -252,7 +252,7 @@ def test_dynamic_level_safeguards():
 # 12. get_record minimal path (1008, 1021–1031)
 # ============================================================
 def test_get_record_minimal():
-    rec = SmartLogger.get_record()
+    rec = SmartLogger.get_record(stack_info = True)
 
     # Timestamp is ALWAYS present
     assert isinstance(rec.timestamp, str)

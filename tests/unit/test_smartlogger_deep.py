@@ -280,7 +280,7 @@ def test_dynamic_level_registration(tmp_path):
 # 13. Record building (1008, 1021–1024, 1031, 1035)
 # ----------------------------------------------------------------------
 def test_get_record():
-    rec = SmartLogger.get_record()
+    rec = SmartLogger.get_record(stack_info = True)
     assert rec.file_name.endswith(".py")
     assert rec.func_name is not None
     assert rec.process_id == os.getpid()

@@ -22,7 +22,7 @@ def cleanup_global_state():
 
 
 def test_get_record_basic_fields():
-    rec = SmartLogger.get_record()
+    rec = SmartLogger.get_record(stack_info = True)
 
     # Timestamp always present
     assert isinstance(rec.timestamp, str)
@@ -44,7 +44,7 @@ def test_exc_info_and_stack_info_capture(tmp_path):
     try:
         1 / 0
     except ZeroDivisionError:
-        rec = SmartLogger.get_record()
+        rec = SmartLogger.get_record(exc_info = True)
         assert rec.exc_info["exc_parts"]["err_type_name"] == "ZeroDivisionError"
 
     # stack_info=True should produce a non-empty string

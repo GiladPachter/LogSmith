@@ -80,7 +80,7 @@ try:
     1 / 0
 except ZeroDivisionError:
     # ---------------------------
-    record = SmartLogger.get_record()    # examine record.exc_info at your convenience
+    record = SmartLogger.get_record(exc_info=True)    # examine record.exc_info at your convenience
     # ---------------------------
     logger.error("Error with Captured Exception", exc_info=True)
 
