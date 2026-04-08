@@ -104,18 +104,6 @@ def test_rotation_suffix_pid_timestamp(tmp_path, monkeypatch):
     assert suffix.count(".") == 1  # pid.timestamp
 
 
-def test_size_would_exceed(tmp_path):
-    file = tmp_path / "x.log"
-    h = Async_TimedSizedRotatingFileHandler(str(file), max_bytes=10)
-
-    with open(file, "w") as f:
-        f.write("12345")
-
-    h.stream = open(file, "a")
-    # noinspection PyUnresolvedReferences
-    assert h._Async_TimedSizedRotatingFileHandler__size_would_exceed("123456")
-
-
 def test_should_rotate_time(tmp_path, monkeypatch):
     file = tmp_path / "x.log"
     h = Async_TimedSizedRotatingFileHandler(

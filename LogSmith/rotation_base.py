@@ -195,6 +195,3 @@ class BaseTimedSizedRotatingFileHandler(ABC, BaseRotatingHandler):
         self.large_entry_behavior = large_entry_behavior
         self.append_filename_pid = append_filename_pid
         self.append_filename_timestamp = append_filename_timestamp
-
-        # For subclasses to use
-        self.__rotation_scheduled = False

@@ -191,16 +191,6 @@ def test_large_entry_crash_direct(tmp_path):
         emit_direct(handler, "X" * 100)
 
 
-def test_size_would_exceed_direct(tmp_path):
-    handler = make_handler(tmp_path, max_bytes=20)
-
-    emit_direct(handler, "12345")
-    # noinspection PyUnresolvedReferences
-    assert not handler._Async_TimedSizedRotatingFileHandler__size_would_exceed("12345")
-    # noinspection PyUnresolvedReferences
-    assert handler._Async_TimedSizedRotatingFileHandler__size_would_exceed("X" * 50)
-
-
 def test_daily_rollover_direct(tmp_path, monkeypatch):
     handler = make_handler(
         tmp_path,

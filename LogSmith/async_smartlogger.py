@@ -161,7 +161,6 @@ class AsyncSmartLogger:
         else:
             self.__worker_tasks = None
 
-        self.__worker_task: Optional[asyncio.Task[None]] = None
         self.__stopped = False
         self.__handlers: list[HandlerMetadata] = []
         self.__messages_enqueued = 0
@@ -298,12 +297,15 @@ class AsyncSmartLogger:
         stack_info_flag: bool = payload["stack_info_flag"]
 
         # Sanitize ANSI for file logging unless explicitly disabled
-        sanitize = True
-        for handler in self.__py_logger.handlers:
-            if hasattr(handler, "baseFilename"):
-                if getattr(handler, "preserve_colors_in_log_files", False):
-                    sanitize = False
-                break
+        if self is AsyncSmartLogger.__audit_logger:
+            sanitize = False
+        else:
+            sanitize = True
+            for handler in self.__py_logger.handlers:
+                if hasattr(handler, "baseFilename"):
+                    if getattr(handler, "preserve_colors_in_log_files", False):
+                        sanitize = False
+                    break
 
         if sanitize:
             msg = CPrint.strip_ansi(msg)
@@ -1320,6 +1322,12 @@ class AsyncSmartLogger:
 
         audit_logger = AsyncSmartLogger("_async_audit", cls.__default_level)
         cls.__audit_logger = audit_logger
+
+        # Ensure worker starts immediately
+        if audit_logger.__loop is not None:
+            audit_logger.__worker_tasks = [
+                audit_logger.__loop.create_task(audit_logger.__worker())
+            ]
 
         if details is None:
             details = LogRecordDetails()

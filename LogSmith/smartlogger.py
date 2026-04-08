@@ -243,7 +243,7 @@ class SmartLogger:
         if existing is not None:
             raise RuntimeError(
                 f"Logger name {name!r} is already in use. "
-                f"Call AsyncSmartLogger.destroy() or choose a different name."
+                f"Call SmartLogger.destroy() or choose a different name."
             )
 
         SmartLogger.__check_ancestors(name)
@@ -1077,7 +1077,7 @@ class SmartLogger:
         # Retroactively enable propagation on all SmartLogger instances
         for logger in logging.Logger.manager.loggerDict.values():
             if isinstance(logger, SmartLogger):
-                logger.propagate = True
+                logger.__py_logger.propagate = True
 
     @staticmethod
     def terminate_auditing() -> None:
@@ -1100,7 +1100,7 @@ class SmartLogger:
         # Retroactively disable propagation
         for logger in logging.Logger.manager.loggerDict.values():
             if isinstance(logger, SmartLogger):
-                logger.propagate = False    # pragma: no cover
+                logger.__py_logger.propagate = False    # pragma: no cover
 
     @staticmethod
     def get_record(

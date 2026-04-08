@@ -431,3 +431,63 @@ async def test_rotation_scheduled_once(tmp_path):
     assert True
 
 
+import time
+import os
+from datetime import datetime, timedelta
+
+import pytest
+
+from LogSmith.smartlogger import SmartLogger
+from LogSmith.rotation_base import RotationLogic, When, RotationTimestamp
+
+
+def test_daily_rotation_triggers_after_timestamp(tmp_path):
+    """
+    Verify that SmartLogger rotates when using When.EVERYDAY and the
+    timestamp is only a few seconds in the future.
+    """
+
+    logdir = tmp_path
+    logfile = "daily.log"
+    base_path = logdir / logfile
+
+    # Compute a timestamp 2 seconds in the future
+    now = datetime.now()
+    future = now + timedelta(seconds=2)
+
+    ts = RotationTimestamp(
+        hour=future.hour,
+        minute=future.minute,
+        second=future.second,
+    )
+
+    rotation = RotationLogic(
+        when=When.EVERYDAY,
+        interval=1,          # irrelevant for EVERYDAY
+        timestamp=ts,
+        maxBytes=None,       # disable size rotation
+        backupCount=3,
+    )
+
+    lg = SmartLogger("daily_rotation_test")
+    lg.add_file(str(logdir), logfile, rotation_logic=rotation)
+
+    # Write once BEFORE the rollover moment
+    lg.info("before rollover")
+
+    # Sleep long enough to pass the rollover timestamp
+    time.sleep(2.5)
+
+    # Write again AFTER the rollover moment → should trigger rotation
+    lg.info("after rollover")
+
+    # Flush to ensure handler writes are complete
+    for h in lg._SmartLogger__py_logger.handlers:
+        h.flush()
+
+    # The rotated file should now exist
+    rotated = base_path.with_name(logfile + ".1")
+    assert rotated.exists(), f"Expected rotated file {rotated} to exist"
+
+    # Cleanup
+    lg.destroy()

@@ -14,7 +14,7 @@ def terminal_supports_color() -> bool:
     if sys.platform == "win32":
         return True
 
-    # Windows: check if ANSI is enabled
+    # non-Windows: check if ANSI is enabled
     return os.getenv("ANSICON") or os.getenv("WT_SESSION") or sys.stdout.isatty()
 
 

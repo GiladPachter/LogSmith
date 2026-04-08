@@ -704,8 +704,8 @@ class StructuredJSONFormatter(logging.Formatter):
             "file_name": "file_name",
             "lineno": "lineno",
             "func_name": "func_name",
-            "module_name": "module_name",  # only if you ever add it to data
-            "pathname": "file_path",
+            # "module_name": "module_name",  # only if you ever add it to data
+            "file_path": "file_path",
             "thread_id": "thread_id",
             "thread_name": "thread_name",
             "process_id": "process_id",

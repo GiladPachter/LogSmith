@@ -15,25 +15,6 @@ from LogSmith.rotation_base import (
 
 
 # ------------------------------------------------------------
-# 1. __size_would_exceed
-# ------------------------------------------------------------
-def test_size_would_exceed(tmp_path):
-    file = tmp_path / "x.log"
-    file.write_text("12345")  # 5 bytes
-
-    handler = Async_TimedSizedRotatingFileHandler(str(file), max_bytes=10)
-
-    # This one exceeds: 6 chars + newline = 7 bytes → 5 + 7 = 12 >= 10
-    assert handler._Async_TimedSizedRotatingFileHandler__size_would_exceed("123456") is True
-
-    # This one ALSO exceeds: 4 chars + newline = 5 bytes → 5 + 5 = 10 >= 10
-    assert handler._Async_TimedSizedRotatingFileHandler__size_would_exceed("1234") is True
-
-    # This one does NOT exceed: 3 chars + newline = 4 bytes → 5 + 4 = 9 < 10
-    assert handler._Async_TimedSizedRotatingFileHandler__size_would_exceed("123") is False
-
-
-# ------------------------------------------------------------
 # 2. Large-entry behavior: RotateFirst
 # ------------------------------------------------------------
 def test_large_entry_rotate_first(tmp_path):
