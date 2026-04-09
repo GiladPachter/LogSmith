@@ -751,7 +751,7 @@ class AsyncSmartLogger:
             )
         )
 
-    def remove_file_handler(self, logfile_name: str, log_dir: str) -> None:
+    def remove_file_handler(self, log_dir: str, logfile_name: str) -> None:
         target_path = Path(log_dir) / logfile_name
 
         to_remove = [

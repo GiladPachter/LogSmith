@@ -151,3 +151,52 @@ async def test_rotation_under_load(tmp_path):
     # Check that some rotated files exist
     rotated_files = [p for p in tmp_path.iterdir() if p.name.startswith("load.log.")]
     assert len(rotated_files) <= rotation_logic.backupCount
+
+
+import time
+from datetime import datetime, timedelta
+from LogSmith import SmartLogger, When, LogRecordDetails, OptionalRecordFields
+
+
+def test_smartlogger_rotation_minute_and_hour(tmp_path):
+    log_dir = tmp_path
+    base_file = log_dir / "rotate_test.log"
+
+    # Ensure clean start
+    if base_file.exists():
+        base_file.unlink()
+
+    logger = SmartLogger("rotation_test")
+
+    # Add file with rotation scheduled 2 seconds into the future
+    logger.add_file(
+        log_dir=str(log_dir),
+        logfile_name="rotate_test.log",
+        rotation_logic = RotationLogic(when=When.MINUTE, interval=1),
+    )
+
+    logger.info("before rotation")
+
+    logger.remove_file_handler(str(log_dir), "rotate_test.log")
+
+    # age file
+    age_seconds = 10 * 60
+    past = time.time() - age_seconds
+    os.utime(base_file, (past, past))   # Set both atime and mtime
+
+    logger.add_file(
+        log_dir=str(log_dir),
+        logfile_name="rotate_test.log",
+        rotation_logic = RotationLogic(when=When.MINUTE, interval=1),
+    )
+
+    logger.info("after rotation")   # should rotate now
+
+    logger.destroy()
+
+    # Validate rotation occurred
+    rotated_files = list(log_dir.glob("rotate_test.log.*"))
+    assert len(rotated_files) >= 1
+
+    # Validate base file still exists
+    assert base_file.exists()

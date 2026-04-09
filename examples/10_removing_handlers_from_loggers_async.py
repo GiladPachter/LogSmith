@@ -86,7 +86,7 @@ async def main():
     await logger_a.flush()
     await logger_b.flush()
 
-    logger_a.remove_file_handler(logfile_name="A.log", log_dir=str(log_dir))
+    logger_a.remove_file_handler(log_dir=str(log_dir), logfile_name="A.log")
     logger_b.remove_console()
 
     # ------------------------------------------------------------

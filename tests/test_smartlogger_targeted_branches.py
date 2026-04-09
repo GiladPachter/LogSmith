@@ -73,7 +73,7 @@ def test_retire_destroy_reentrant(tmp_path):
         lambda: logger.add_console(),
         lambda: logger.add_file(log_dir=str(tmp_path), logfile_name="x.log"),
         # lambda: logger.remove_console(),
-        lambda: logger.remove_file_handler("x.log", str(tmp_path)),
+        lambda: logger.remove_file_handler(str(tmp_path), "x.log"),
     ]:
         with pytest.raises(Exception):
             op()
@@ -100,7 +100,7 @@ def test_remove_file_handler_cleanup(tmp_path):
     logger.add_file(log_dir=str(log_dir), logfile_name="x.log")
     assert len(logger.file_handlers) == 1
 
-    logger.remove_file_handler("x.log", str(log_dir))
+    logger.remove_file_handler(str(log_dir), "x.log")
     assert len(logger.file_handlers) == 0
 
     logger.destroy()

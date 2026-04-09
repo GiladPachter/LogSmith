@@ -51,7 +51,7 @@ for i in range(1, 4):
 # Step 2: remove handlers
 # ------------------------------------------------------------
 
-logger_a.remove_file_handler(logfile_name="A.log", log_dir=str(log_dir))
+logger_a.remove_file_handler(log_dir=str(log_dir), logfile_name="A.log")
 logger_b.remove_console()
 
 # ------------------------------------------------------------

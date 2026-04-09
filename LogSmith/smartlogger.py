@@ -720,7 +720,7 @@ class SmartLogger:
                 )
             )
 
-    def remove_file_handler(self, logfile_name: str, log_dir: str) -> None:
+    def remove_file_handler(self, log_dir: str, logfile_name: str) -> None:
         """
         Remove a specific file handler identified by (logfile_name, log_dir).
 

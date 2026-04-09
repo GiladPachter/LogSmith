@@ -63,7 +63,7 @@ def test_add_remove_console(logger, capsys):
 def test_add_remove_file(logger, tmp_log_dir):
     path = tmp_log_dir / "x.log"
     logger.add_file(tmp_log_dir.__str__(), "x.log")
-    logger.remove_file_handler("x.log", tmp_log_dir.__str__())
+    logger.remove_file_handler(tmp_log_dir.__str__(), "x.log")
     logger.info("hello")
     assert read_file(path) == ""
 

@@ -94,7 +94,7 @@ def test_smartlogger_blocks_multiple_console_handlers(tmp_path):
     logger = SmartLogger("logger")
     logger.add_file(str(tmp_path))
 
-    logger.remove_file_handler(logger.name + ".log", str(tmp_path))
+    logger.remove_file_handler(str(tmp_path), logger.name + ".log")
 
     assert len(logger.handler_info) == 0
     assert logger.console_handler is None

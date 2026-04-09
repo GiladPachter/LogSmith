@@ -229,7 +229,7 @@ def test_remove_handler_cleans_registry(tmp_path):
     # noinspection PyUnresolvedReferences
     assert str(p.resolve()) in FileHandlerRegistry._FileHandlerRegistry__active_paths
 
-    lg.remove_file_handler("clean.log", str(tmp_path))
+    lg.remove_file_handler(str(tmp_path), "clean.log")
 
     # noinspection PyUnresolvedReferences
     assert str(p.resolve()) not in FileHandlerRegistry._FileHandlerRegistry__active_paths
@@ -250,7 +250,7 @@ async def test_async_remove_handler_cleans_registry(tmp_path):
     # noinspection PyUnresolvedReferences
     assert str(p.resolve()) in FileHandlerRegistry._FileHandlerRegistry__active_paths
 
-    lg.remove_file_handler("clean_async.log", str(tmp_path))
+    lg.remove_file_handler(str(tmp_path), "clean_async.log")
 
     # noinspection PyUnresolvedReferences
     assert str(p.resolve()) not in FileHandlerRegistry._FileHandlerRegistry__active_paths
