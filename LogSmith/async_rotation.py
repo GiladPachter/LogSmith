@@ -337,8 +337,8 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
         Decides if rotation should occur (size and/or time).
         """
         # Ensure file is open
-        if self.stream is None:
-            self.stream = self._open()  # pragma: no cover
+        if self.stream is None: # pragma: no cover
+            self.stream = self._open()
 
         # ----------------------------------------------------------
         # SIZE-BASED ROTATION

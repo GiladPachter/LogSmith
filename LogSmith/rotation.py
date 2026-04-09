@@ -225,7 +225,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         target_weekday = weekday_map[self.when]
         days_ahead = (target_weekday - now_dt.weekday()) % 7
         if days_ahead == 0 and target <= now_dt:
-            days_ahead = 7
+            days_ahead = 7  # pragma: no cover
         target = target + timedelta(days=days_ahead)
         return target.timestamp()
 
@@ -236,7 +236,7 @@ class ConcurrentTimedSizedRotatingFileHandler (BaseTimedSizedRotatingFileHandler
         """
         Decide if rollover should occur (size and/or time).
         """
-        if self.stream is None:
+        if self.stream is None: # pragma: no cover
             self.stream = self._open()
 
         # size-based

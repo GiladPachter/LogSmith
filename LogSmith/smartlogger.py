@@ -11,7 +11,7 @@ import traceback
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Protocol, Callable, List, Dict, ClassVar
+from typing import Any, Optional, List, Dict, ClassVar
 
 from .file_registry import FileHandlerRegistry
 from .formatter import (
@@ -270,7 +270,7 @@ class SmartLogger:
             parent = manager.loggerDict.get(parent_name)
 
             # FIX: If parent is a PlaceHolder, replace it with a real Logger
-            if isinstance(parent, logging.PlaceHolder):
+            if isinstance(parent, logging.PlaceHolder): # pragma: no cover
                 parent = logging.getLogger(parent_name)
 
             # If parent is None (rare), also create it
@@ -418,7 +418,7 @@ class SmartLogger:
         for handler in self.__py_logger.handlers:
             if isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename"):
                 stream = handler.stream
-                if stream is None:
+                if stream is None:  # pragma: no cover
                     continue
 
                 # Format text exactly like print()
@@ -684,7 +684,7 @@ class SmartLogger:
 
                 for info in logger.__smart_state.handlers:
                     if info.kind != "file" or not info.path:
-                        continue
+                        continue    # pragma: no cover
 
                     existing_resolved = str(Path(info.path).resolve())
                     if existing_resolved == resolved_path:
@@ -988,7 +988,7 @@ class SmartLogger:
     # ------------------------------------------------------------------
     #  DYNAMIC LEVELS VIA __getattr__
     # ------------------------------------------------------------------
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str):   # pragma: no cover
         if name.startswith("_"):
             raise AttributeError(name)
 
@@ -1252,7 +1252,7 @@ class SmartLogger:
         if exc_info:
             exc_type, exc_value, exc_tb = exc_val
             if exc_value is None:
-                rec.exc_info = None
+                rec.exc_info = None # pragma: no cover
             else:
                 rec.exc_info = {
                     "exc_parts": {

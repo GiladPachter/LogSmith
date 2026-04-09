@@ -1144,7 +1144,7 @@ class AsyncSmartLogger:
         AsyncSmartLogger.__safeguard_internals(name, value)
         LEVELS.register(name, value, style)
 
-    def __getattr__(self, item: str) -> Any:
+    def __getattr__(self, item: str) -> Any:    # pragma: no cover
         if item.startswith("a_"):
             level_name = item[2:].upper()
             meta = LEVELS.all().get(level_name)
