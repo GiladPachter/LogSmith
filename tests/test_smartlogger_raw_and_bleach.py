@@ -3,7 +3,6 @@ import logging
 import pytest
 
 from LogSmith import SmartLogger, CPrint, AsyncSmartLogger
-from LogSmith.formatter import PassthroughFormatter
 
 
 def test_raw_output_and_bleaching(tmp_path):

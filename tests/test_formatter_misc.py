@@ -1,5 +1,5 @@
 import logging
-from LogSmith.formatter import PassthroughFormatter, AuditFormatter, LogRecordDetails
+from LogSmith.formatter import PassthroughFormatter, AuditFormatter, LogRecordDetails, OutputMode
 
 
 def make_record(msg="hello", level=logging.INFO, **kwargs):
@@ -17,7 +17,8 @@ def make_record(msg="hello", level=logging.INFO, **kwargs):
 
 
 def test_passthrough_formatter_preserves_ansi():
-    fmt = PassthroughFormatter()
+    fmt = PassthroughFormatter(OutputMode.PLAIN, LogRecordDetails())
+    rec = make_record("hello")
     rec = make_record("\x1b[31mRED\x1b[0m")
     out = fmt.format(rec)
     assert "\x1b[31m" in out

@@ -579,16 +579,16 @@ class StructuredColorFormatter:
         return line
 
 
-# ================================================================
-# formatter for file handles that doesn't sanitize text coloration
-# ================================================================
-class PassthroughFormatter(logging.Formatter):
-    """
-    Formatter that preserves ANSI escape sequences and returns the raw message.
-    Used for file handlers that intentionally allow colored output.
-    """
-    def format(self, record: logging.LogRecord) -> str:
-        return record.getMessage()
+# # ================================================================
+# # formatter for file handles that doesn't sanitize text coloration
+# # ================================================================
+# class PassthroughFormatter(logging.Formatter):
+#     """
+#     Formatter that preserves ANSI escape sequences and returns the raw message.
+#     Used for file handlers that intentionally allow colored output.
+#     """
+#     def format(self, record: logging.LogRecord) -> str:
+#         return record.getMessage()
 
 
 # ================================================================
@@ -821,3 +821,42 @@ class StructuredNDJSONFormatter(StructuredJSONFormatter):
 
     def format(self, record: logging.LogRecord) -> str:
         return super().format(record)
+
+
+class PassthroughFormatter:
+    """
+    A formatter that delegates to the correct structured formatter
+    based on output_mode.
+
+    - PLAIN  → StructuredPlainFormatter
+    - COLOR  → StructuredColorFormatter
+    - JSON   → StructuredJSONFormatter
+    - NDJSON → StructuredNDJSONFormatter
+    """
+
+    def __init__(self, output_mode: OutputMode | str, record_details: LogRecordDetails):
+        super().__init__()
+
+        if isinstance(output_mode, str):
+            try:
+                output_mode = OutputMode(output_mode)
+            except KeyError:
+                raise ValueError(f"Unsupported output mode: {output_mode}")
+
+        if output_mode == OutputMode.PLAIN:
+            self._formatter = StructuredPlainFormatter(record_details)
+
+        elif output_mode == OutputMode.COLOR:
+            self._formatter = StructuredColorFormatter(record_details)
+
+        elif output_mode == OutputMode.JSON:
+            self._formatter = StructuredJSONFormatter(record_details)
+
+        elif output_mode == OutputMode.NDJSON:
+            self._formatter = StructuredNDJSONFormatter(record_details)
+
+        else:
+            raise ValueError(f"Unsupported output mode: {output_mode}")
+
+    def format(self, record: logging.LogRecord) -> str:
+        return self._formatter.format(record)

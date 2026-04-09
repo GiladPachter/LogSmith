@@ -674,7 +674,7 @@ class AsyncSmartLogger:
             formatter = StructuredNDJSONFormatter(log_record_details)
         else:
             if preserve_colors_in_log_files:
-                formatter = PassthroughFormatter()
+                formatter = PassthroughFormatter(output_mode, log_record_details)
             else:
                 formatter = StructuredPlainFormatter(log_record_details)
 
