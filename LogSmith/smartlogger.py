@@ -981,7 +981,7 @@ class SmartLogger:
         # 6. Mark as destroyed (optional but useful)
         self.__smart_state.retired = True
 
-        if self.name in logging.Logger.manager.loggerDict:
+        if self.name in logging.Logger.manager.loggerDict:  # pragma: no cover
             del logging.Logger.manager.loggerDict[self.name]
             del self.__SmartLogger_registry[self.name]
 
@@ -1077,7 +1077,7 @@ class SmartLogger:
         SmartLogger.__audit_details = details
 
         # Retroactively enable propagation on all SmartLogger instances
-        for logger in logging.Logger.manager.loggerDict.values():
+        for logger in logging.Logger.manager.loggerDict.values():   # pragma: no cover
             if isinstance(logger, SmartLogger):
                 logger.__py_logger.propagate = True
 

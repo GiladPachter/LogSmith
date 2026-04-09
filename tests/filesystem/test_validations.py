@@ -142,3 +142,37 @@ def test_message_parts_order_without_optional_fields_raises():
         )
 
     assert "message_parts_order" in str(exc.value)
+
+
+def test_message_parts_order_exc_info_without_flag_raises():
+    with pytest.raises(ValueError) as exc:
+        LogRecordDetails(
+            optional_record_fields=OptionalRecordFields(
+                logger_name=True,   # enable strict mode
+                exc_info=False      # exc_info disabled
+            ),
+            message_parts_order=[
+                "logger_name",
+                "level",
+                "exc_info"          # illegal because exc_info flag is False
+            ]
+        )
+
+    assert "exc_info" in str(exc.value)
+
+
+def test_message_parts_order_stack_info_without_flag_raises():
+    with pytest.raises(ValueError) as exc:
+        LogRecordDetails(
+            optional_record_fields=OptionalRecordFields(
+                logger_name=True,   # enable strict mode
+                stack_info=False    # stack_info disabled
+            ),
+            message_parts_order=[
+                "logger_name",
+                "level",
+                "stack_info"        # illegal because stack_info flag is False
+            ]
+        )
+
+    assert "stack_info" in str(exc.value)

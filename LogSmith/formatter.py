@@ -169,11 +169,11 @@ class LogRecordDetails:
         # ------------------------------------------------------------
         # Diagnostics may appear only if enabled
         # ------------------------------------------------------------
-        if "exc_info" in mpo and not orf.exc_info:
-            raise ValueError("exc_info appears in message_parts_order but optional_record_fields.exc_info is False")
+        if "exc_info" in mpo:
+            raise ValueError("exc_info should not appear in message_parts_order")
 
-        if "stack_info" in mpo and not orf.stack_info:
-            raise ValueError("stack_info appears in message_parts_order but optional_record_fields.stack_info is False")
+        if "stack_info" in mpo:
+            raise ValueError("stack_info should not appear in message_parts_order")
 
         # ------------------------------------------------------------
         # Allowed message parts
