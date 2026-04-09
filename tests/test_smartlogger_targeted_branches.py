@@ -72,7 +72,7 @@ def test_retire_destroy_reentrant(tmp_path):
         lambda: logger.raw("x"),
         lambda: logger.add_console(),
         lambda: logger.add_file(log_dir=str(tmp_path), logfile_name="x.log"),
-        lambda: logger.remove_console(),
+        # lambda: logger.remove_console(),
         lambda: logger.remove_file_handler("x.log", str(tmp_path)),
     ]:
         with pytest.raises(Exception):

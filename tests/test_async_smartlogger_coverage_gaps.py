@@ -540,3 +540,45 @@ async def test_async_logger_rotation_debounce(tmp_path):
     await lg.a_info("x")
     await lg.a_info("y")  # second rotation request should debounce
     await lg.flush()
+
+
+import asyncio
+import pytest
+from LogSmith.async_smartlogger import AsyncSmartLogger
+
+
+@pytest.mark.asyncio
+async def test_asyncsmartlogger_profiling_short_stress():
+    # Ensure clean state
+    await AsyncSmartLogger.terminate_auditing()
+
+    lg = AsyncSmartLogger("async_profile_test")
+    lg.enable_profiling(enable = True)
+
+    async def spammer():
+        end = asyncio.get_event_loop().time() + 1.0  # run ~1 second
+        while asyncio.get_event_loop().time() < end:
+            await lg.a_info("profiling test message")
+            # tiny sleep to avoid overwhelming event loop
+            await asyncio.sleep(0)
+
+    # Run a few concurrent spammers
+    await asyncio.gather(
+        spammer(),
+        spammer(),
+        spammer(),
+    )
+
+    # Flush all pending logs
+    await lg.flush()
+
+    # Grab profiling stats
+    profiling_details = lg.get_profiling_details()
+
+    await lg.a_stdout(profiling_details)
+
+    lg.enable_profiling(False)
+
+    # Clean shutdown
+    await lg.shutdown()
+    lg.destroy()

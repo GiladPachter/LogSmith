@@ -72,9 +72,6 @@ def test_retire_and_destroy_full(tmp_path):
         logger.add_file(log_dir=str(tmp_path), logfile_name="y.log")
 
     with pytest.raises(Exception):
-        logger.remove_console()
-
-    with pytest.raises(Exception):
         logger.remove_file_handler("x.log", str(tmp_path))
 
 

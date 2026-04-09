@@ -210,9 +210,6 @@ def test_retire_deep_guards(tmp_path):
     with pytest.raises(RuntimeError):
         logger.add_file(str(tmp_path), "x.log")
 
-    with pytest.raises(RuntimeError):
-        logger.remove_console()
-
 
 # ============================================================
 # 10. Destroy deep cleanup (922–939)

@@ -583,15 +583,17 @@ class SmartLogger:
             if isinstance(h, logging.StreamHandler) and not hasattr(h, "baseFilename"):
                 self.__py_logger.removeHandler(h)
                 h.close()
+
+                # Remove metadata
+                self.__smart_state.handlers = [
+                    info for info in self.__smart_state.handlers
+                    if info.kind != "console"
+                ]
+
                 break   # pragma: no cover
         else:
-            raise RuntimeError(f"Logger {self.__py_logger.name!r} has no console handler to remove.")    # pragma: no cover
-
-            # Remove metadata
-        self.__smart_state.handlers = [
-            info for info in self.__smart_state.handlers
-            if info.kind != "console"
-        ]
+            if self.retired:
+                raise RuntimeError(f"Logger {self.__py_logger.name!r} has no console handler to remove.")    # pragma: no cover
 
     @staticmethod
     def __create_sync_handler(rotation_logic: RotationLogic, file_path: str):
@@ -855,7 +857,7 @@ class SmartLogger:
         LEVELS.register(name, value, style)
 
     @staticmethod
-    def apply_color_theme(theme: dict[int, LevelStyle]) -> None:
+    def apply_color_theme(theme: dict[int, LevelStyle] | None) -> None:
         # Reset to defaults
         if theme is None:
             for name, meta in LEVELS.all().items():

@@ -495,6 +495,9 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     @staticmethod
     def __bleach_non_colored_text(message: str) -> str:
+        """
+        Isolating non-colored text and coloring it with console default.
+        """
         result: list[str] = []
         plain_buffer: list[str] = []
 
@@ -1160,7 +1163,7 @@ class AsyncSmartLogger:
     # COLOR THEMES
     # ------------------------------------------------------------------
     @staticmethod
-    async def apply_color_theme(theme: dict[int, LevelStyle]) -> None:
+    async def apply_color_theme(theme: dict[int, LevelStyle] | None) -> None:
         # flush all log entries before changing theme,
         #  so that they all output with the theme that was active when they entered the queue
         values = list(AsyncSmartLogger.__AsyncSmartLogger_registry.values())

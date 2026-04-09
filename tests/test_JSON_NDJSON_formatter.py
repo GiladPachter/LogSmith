@@ -1,12 +1,17 @@
 import logging
 import sys
-
 import pytest
+
+from io import StringIO
 from rich import json
 
+from LogSmith import RotationLogic
+from LogSmith.formatter import StructuredJSONFormatter, LogRecordDetails, StructuredNDJSONFormatter
+from LogSmith import SmartLogger
+
 from LogSmith.async_smartlogger import AsyncSmartLogger
-from LogSmith.rotation_base import RotationLogic
-from LogSmith.formatter import OutputMode, StructuredJSONFormatter, LogRecordDetails, StructuredNDJSONFormatter
+from LogSmith import OutputMode
+
 
 
 @pytest.mark.asyncio
@@ -62,3 +67,86 @@ def test_ndjson_single_line_output():
     json.loads(out)
 
 
+def test_smartlogger_console_json(tmp_path):
+    lg = SmartLogger("console_json_test")
+    lg.add_console(output_mode=OutputMode.JSON)
+
+    # Replace console handler stream with StringIO
+    handler = lg._SmartLogger__py_logger.handlers[0]
+    buf = StringIO()
+    handler.stream = buf
+
+    lg.info("HELLO JSON")
+
+    handler.flush()
+    text = buf.getvalue().strip()
+
+    data = json.loads(text)
+    assert data["level"] == "INFO"
+    assert data["message"] == "HELLO JSON"
+
+    lg.destroy()
+
+
+def test_smartlogger_console_ndjson(tmp_path):
+    lg = SmartLogger("console_ndjson_test")
+    lg.add_console(output_mode=OutputMode.NDJSON)
+
+    handler = lg._SmartLogger__py_logger.handlers[0]
+    buf = StringIO()
+    handler.stream = buf
+
+    lg.info("HELLO NDJSON")
+
+    handler.flush()
+    text = buf.getvalue().strip()
+
+    data = json.loads(text)
+    assert data["level"] == "INFO"
+    assert data["message"] == "HELLO NDJSON"
+
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_asyncsmartlogger_console_json(tmp_path):
+    lg = AsyncSmartLogger("async_console_json_test")
+    lg.add_console(output_mode=OutputMode.JSON)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[0]
+    buf = StringIO()
+    handler.stream = buf
+
+    await lg.a_info("HELLO JSON")
+    await lg.flush()
+
+    text = buf.getvalue().strip()
+    data = json.loads(text)
+
+    assert data["level"] == "INFO"
+    assert data["message"] == "HELLO JSON"
+
+    await lg.shutdown()
+    lg.destroy()
+
+
+@pytest.mark.asyncio
+async def test_asyncsmartlogger_console_ndjson(tmp_path):
+    lg = AsyncSmartLogger("async_console_ndjson_test")
+    lg.add_console(output_mode=OutputMode.NDJSON)
+
+    handler = lg._AsyncSmartLogger__py_logger.handlers[0]
+    buf = StringIO()
+    handler.stream = buf
+
+    await lg.a_info("HELLO NDJSON")
+    await lg.flush()
+
+    text = buf.getvalue().strip()
+    data = json.loads(text)
+
+    assert data["level"] == "INFO"
+    assert data["message"] == "HELLO NDJSON"
+
+    await lg.shutdown()
+    lg.destroy()

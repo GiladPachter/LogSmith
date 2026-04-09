@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from LogSmith import SmartLogger, OutputMode, LogRecordDetails, OptionalRecordFields, CPrint
+from LogSmith import SmartLogger, AsyncSmartLogger, OutputMode, LogRecordDetails, OptionalRecordFields, CPrint
 
 
 def test_basic_console_logging(capsys):
@@ -129,3 +129,64 @@ def test_custom_logrecorddetails_for_file(tmp_path: Path):
     assert "core_details_file" in content
     assert "hello" in content
     assert "x=1" in content
+
+
+def test_smartlogger_console_handler_basic():
+    lg = SmartLogger("console_handler_test")
+
+    lg.add_console()
+
+    # Create console handler
+    h_info = lg.console_handler
+
+    print(f"\n {h_info}")
+
+    colored = [
+        CPrint.colorize("RAW",      fg=CPrint.FG.BRIGHT_RED),
+        CPrint.colorize("text",     fg=CPrint.FG.ORANGE),
+        CPrint.colorize("rocks",    fg=CPrint.FG.BRIGHT_YELLOW),
+        CPrint.colorize("in",       fg=CPrint.FG.BRIGHT_GREEN),
+        CPrint.colorize("multiple", fg=CPrint.FG.BRIGHT_BLUE),
+        CPrint.colorize("colors",   fg=CPrint.FG.SOFT_PURPLE)
+    ]
+
+    lg.raw(" ".join(colored))
+
+
+def test_smartlogger_remove_console_multiple_calls():
+    lg = SmartLogger("remove_console_test")
+
+    # Add a console handler
+    lg.add_console()
+
+    # Remove it multiple times — must not crash
+    lg.remove_console()
+    lg.remove_console()
+    lg.remove_console()
+
+    # Logger still works
+    lg.info("still alive")
+
+    lg.destroy()
+
+
+import pytest
+
+@pytest.mark.asyncio
+async def test_asyncsmartlogger_remove_console_multiple_calls():
+    lg = AsyncSmartLogger("async_remove_console_test")
+
+    # Add a console handler
+    lg.add_console()
+
+    # Remove it multiple times — must not crash
+    lg.remove_console()
+    lg.remove_console()
+    lg.remove_console()
+
+    # Logger still works
+    await lg.a_info("still alive")
+    await lg.flush()
+
+    await lg.shutdown()
+    lg.destroy()

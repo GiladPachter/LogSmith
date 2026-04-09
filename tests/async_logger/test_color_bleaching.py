@@ -1,11 +1,19 @@
 import pytest
 
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith import SmartLogger
+from LogSmith import AsyncSmartLogger
 from LogSmith.colors import CPrint
 
 
 def bleach(text: str) -> str:
     """Convenience wrapper for calling the private bleaching method."""
+    # noinspection PyProtectedMember
+    return SmartLogger._SmartLogger__bleach_non_colored_text(text)
+
+
+def a_bleach(text: str) -> str:
+    """Convenience wrapper for calling the private bleaching method."""
+    # noinspection PyProtectedMember
     return AsyncSmartLogger._AsyncSmartLogger__bleach_non_colored_text(text)
 
 
@@ -14,7 +22,9 @@ def test_bleach_plain_text_only():
     Plain text should be recolored using the default console color.
     """
     out = bleach("hello world")
+    out2 = a_bleach("hello world 2")
     assert "hello world" in out
+    assert "hello world 2" in out2
     assert CPrint.FG.CONSOLE_DEFAULT in out
 
 

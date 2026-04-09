@@ -1,7 +1,8 @@
 import pytest
 
 from LogSmith import RotationLogic
-from LogSmith.async_smartlogger import AsyncSmartLogger
+from LogSmith import SmartLogger
+from LogSmith import AsyncSmartLogger
 
 
 @pytest.mark.asyncio
@@ -246,3 +247,41 @@ async def test_async_flush_calls_handler_flush(tmp_path, monkeypatch):
     assert called.get("yes") is True
 
 
+def test_smartlogger_get_record_exc_info():
+    lg = SmartLogger("exc_test_smart")
+
+    # noinspection PyBroadException
+    try:
+        raise ValueError("boom")
+    except Exception as e:
+        record = lg.get_record(exc_info = True)
+
+    assert record.exc_info is not None
+    assert isinstance(record.exc_info, dict)
+    assert record.exc_info["exc_parts"]["err_type_name"] == "ValueError"
+    assert str(record.exc_info["exc_parts"]["error_text"]) == "boom"
+    assert "ValueError: boom" in record.exc_info["full_trace_text"]
+
+    lg.destroy()
+
+
+import pytest
+
+@pytest.mark.asyncio
+async def test_asyncsmartlogger_get_record_exc_info():
+    lg = AsyncSmartLogger("exc_test_async")
+
+    # noinspection PyBroadException
+    try:
+        raise RuntimeError("async boom")
+    except Exception as e:
+        record = lg.get_record(exc_info = True)
+
+    assert record.exc_info is not None
+    assert isinstance(record.exc_info, dict)
+    assert record.exc_info["exc_parts"]["err_type_name"] == "RuntimeError"
+    assert str(record.exc_info["exc_parts"]["error_text"]) == "async boom"
+    assert "RuntimeError: async boom" in record.exc_info["full_trace_text"]
+
+    await lg.shutdown()
+    lg.destroy()
