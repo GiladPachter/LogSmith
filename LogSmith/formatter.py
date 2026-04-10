@@ -322,7 +322,7 @@ class StructuredPlainFormatter:
                 elif part == "thread_name" and rf.thread_name:
                     parts.append(record.threadName)
                 elif part == "task_name" and rf.task_name and hasattr(record, "taskName"):
-                    parts.append(getattr(record, "taskName"))
+                    parts.append(getattr(record, "taskName") or '')     # taskName is the only field that can have NoneValue
                 elif part == "process_id" and rf.process_id:
                     parts.append("P=" + str(record.process))
                 elif part == "process_name" and rf.process_name:

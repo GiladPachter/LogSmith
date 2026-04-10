@@ -152,6 +152,8 @@ async def main():
 
     await logger.a_raw(colored)
 
+    await logger.flush()
+
     await logger.a_stdout("\nEscaped version of colored text (for inspection):")
     await logger.a_stdout(CPrint.escape_ansi_for_display(colored))
 

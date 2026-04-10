@@ -77,3 +77,5 @@ async def test_retired_logger_rejects_new_logs(tmp_path):
     # but existing queue processing still works (no deadlock)
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
+
+    logger.destroy()

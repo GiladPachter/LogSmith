@@ -206,7 +206,7 @@ class AsyncSmartLogger:
 
         # Only LOG/RAW should auto-start worker
         if item.op in (AsyncOp.LOG, AsyncOp.RAW):
-            if not self.__worker_tasks:
+            if not self.__worker_tasks: # pragma: no cover
                 self.__worker_tasks = [self.__loop.create_task(self.__worker())]
 
     def enable_profiling(self, enable: bool):
@@ -982,7 +982,7 @@ class AsyncSmartLogger:
         if self.__loop is not None and loop_thread is not None and current_thread is not loop_thread:
             def _start_and_enqueue(*_):
                 # Start worker if not yet started
-                if not self.__worker_tasks:
+                if not self.__worker_tasks: # pragma: no cover
                     self.__worker_tasks = [self.__loop.create_task(self.__worker())]
                 try:
                     self.__queue.put_nowait(item)

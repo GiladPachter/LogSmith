@@ -116,3 +116,42 @@ async def test_async_debug_raises_after_destroy(tmp_path):
     lg.destroy()
     with pytest.raises(RuntimeError):
         await lg.a_debug("x")
+
+
+def test_asyncsmartlogger_rejects_non_asyncsmartlogger_ancestor():
+    ancestor = "svc"
+    child = "svc.api"
+
+    # Insert a standard logging.Logger as the ancestor
+    logging.Logger.manager.loggerDict[ancestor] = logging.getLogger("dummy_ancestor")
+
+    try:
+        with pytest.raises(RuntimeError) as exc:
+            AsyncSmartLogger(child)
+
+        # The error message should mention ancestor mismatch
+        msg = str(exc.value).lower()
+        assert "ancestor" in msg
+        assert "different type" in msg or "does not exist" in msg
+
+    finally:
+        # Cleanup to avoid polluting global logger state
+        logging.Logger.manager.loggerDict.pop(ancestor, None)
+
+
+@pytest.mark.asyncio
+async def test_asyncsmartlogger_raises_after_retire():
+    logger = AsyncSmartLogger("retire_test")
+
+    # Retire the logger
+    logger.retire()
+
+    # Any async logging call should now raise RuntimeError
+    with pytest.raises(RuntimeError) as exc:
+        await logger.a_info("this should fail")
+
+    msg = str(exc.value).lower()
+    assert "retired" in msg
+    assert "cannot be used" in msg
+
+    logger.destroy()
