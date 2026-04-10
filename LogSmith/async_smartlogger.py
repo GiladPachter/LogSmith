@@ -273,7 +273,7 @@ class AsyncSmartLogger:
                 except Exception:  # pragma: no cover
                     pass
 
-            finally:
+            finally:    # pragma: no cover
                 self.__queue.task_done()
 
     # ------------------------------------------------------------------

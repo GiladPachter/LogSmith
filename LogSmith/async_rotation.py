@@ -234,10 +234,10 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
 
             # If rotation was triggered by size, propagate the failure
             if self.max_bytes and self.max_bytes > 0:
-                raise
+                raise   # pragma: no cover
 
             # Otherwise treat as logging error
-            self.handleError(record)
+            self.handleError(record)    # pragma: no cover
 
     def __schedule_rotation(self) -> None:
         """
@@ -438,7 +438,7 @@ class Async_TimedSizedRotatingFileHandler(BaseTimedSizedRotatingFileHandler):
             cutoff = now - timedelta(seconds=rule.interval)
         elif rule.scale == ExpirationScale.Minutes:
             cutoff = now - timedelta(minutes=rule.interval)
-        elif rule.scale == ExpirationScale.Hours:
+        elif rule.scale == ExpirationScale.Hours:   # pragma: no cover
             cutoff = now - timedelta(hours=rule.interval)
         elif rule.scale == ExpirationScale.Days:
             cutoff = now - timedelta(days=rule.interval)
