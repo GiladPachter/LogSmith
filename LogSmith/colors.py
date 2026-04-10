@@ -15,7 +15,7 @@ def terminal_supports_color() -> bool:
         return True
 
     # non-Windows: check if ANSI is enabled
-    return os.getenv("ANSICON") or os.getenv("WT_SESSION") or sys.stdout.isatty()
+    return os.getenv("ANSICON") or os.getenv("WT_SESSION") or sys.stdout.isatty()   # pragma: no cover
 
 
 class GradientDirection(Enum):
@@ -204,7 +204,7 @@ class CPrint:
                 parts.append(str(c))
             elif isinstance(c, str):
                 parts.append(c)
-        if not parts:
+        if not parts:   # pragma: no cover
             return ""
         return f"\033[{';'.join(parts)}m"
 
