@@ -234,8 +234,8 @@ def test_expiration_policy(tmp_path):
 # 8. Rollover interval computation
 # ------------------------------------------------------------
 
-def test_rollover_interval_seconds():
-    file = "dummy.txt"
+def test_rollover_interval_seconds(tmp_path):
+    file = str(tmp_path / "dummy.txt")
 
     h = Async_TimedSizedRotatingFileHandler(filename=file, when=When.SECOND, interval=5)
     # noinspection PyUnresolvedReferences
@@ -254,8 +254,8 @@ def test_rollover_interval_seconds():
 # 9. Next rollover computation (daily)
 # ------------------------------------------------------------
 
-def test_compute_next_rollover_daily(monkeypatch):
-    file = "dummy.txt"
+def test_compute_next_rollover_daily(monkeypatch, tmp_path):
+    file = str(tmp_path / "dummy.txt")
 
     # Fake time: March 20 2026, 10:00:00
     fake_now = datetime(2026, 3, 20, 10, 0, 0).timestamp()

@@ -186,9 +186,10 @@ import time
 from LogSmith.rotation_base import When, RotationTimestamp
 
 
-def test_rollover_every_second():
+def test_rollover_every_second(tmp_path):
+    filename = str(tmp_path / "dummy.log")
     handler = Async_TimedSizedRotatingFileHandler(
-        filename="dummy.log",
+        filename=filename,
         when=When.SECOND,
         interval=1,
     )
