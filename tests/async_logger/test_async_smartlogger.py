@@ -91,7 +91,7 @@ async def test_queue_overflow(tmp_path):
     # overflow counter increments when queue is full
     assert logger.messages_enqueued == 3
 
-    logger.destroy()
+    await logger.destroy()
 
 
 # ---------------------------------------------------------------------------
@@ -111,7 +111,7 @@ async def test_worker_processes_messages(tmp_path):
     assert "hello" in text
     assert "world" in text
 
-    logger.destroy()
+    await logger.destroy()
 
 
 # ---------------------------------------------------------------------------
@@ -139,7 +139,7 @@ async def test_rotation_scheduling(tmp_path):
     rotated = logfile.with_name("test.log.1")
     assert rotated.exists()
 
-    logger.destroy()
+    await logger.destroy()
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ async def test_raw_logging(tmp_path):
 
     assert "hello raw" in logfile.read_text()
 
-    logger.destroy()
+    await logger.destroy()
 
 
 # ---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ async def test_shutdown_drains_queue(tmp_path):
     assert "a" in text
     assert "b" in text
 
-    logger.destroy()
+    await logger.destroy()
 
 
 # ---------------------------------------------------------------------------
@@ -195,7 +195,7 @@ async def test_metadata_merge(tmp_path):
     assert "hello" in text
     assert "x" in text
 
-    logger.destroy()
+    await logger.destroy()
 
 
 # ---------------------------------------------------------------------------
@@ -219,4 +219,4 @@ async def test_rotation_shutdown_race(tmp_path):
     # Should not crash
     assert True
 
-    logger.destroy()
+    await logger.destroy()

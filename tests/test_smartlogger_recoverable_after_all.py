@@ -118,23 +118,27 @@ def test_retire_closes_and_clears_handlers(tmp_path):
     assert logger._SmartLogger__py_logger.handlers == []
 
 
-def test_destroy_removes_logger_and_reparents_children():
+def test_destroy_removes_logger_and_rejects_children():
     from LogSmith.smartlogger import SmartLogger
     import logging
 
     parent = SmartLogger("life_parent")
     child = SmartLogger("life_parent.child")
 
+    # Child is initially parented correctly
     assert child._SmartLogger__py_logger.parent is parent._SmartLogger__py_logger
 
+    # Destroy child first
+    child.destroy()
+
+    # Now parent can be destroyed
     parent.destroy()
 
     # Parent removed from loggerDict
-    assert "life.parent" not in logging.Logger.manager.loggerDict
+    assert "life_parent" not in logging.Logger.manager.loggerDict
 
-    # Child reparented to root
-    root = logging.getLogger("root")
-    assert child._SmartLogger__py_logger.parent is root
+    # Child removed entirely (no reparenting)
+    assert "life_parent.child" not in logging.Logger.manager.loggerDict
 
     # Parent marked retired
     assert parent.retired is True

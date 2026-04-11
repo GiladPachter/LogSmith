@@ -26,6 +26,7 @@ def test_logger_hierarchy_inheritance_and_override(capsys):
     assert "users debug" in out
     assert "users info" in out
 
+    users.destroy()
     api.destroy()
 
 

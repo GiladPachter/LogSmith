@@ -37,7 +37,7 @@ async def test_use_logger_properties():
     assert a_logger._AsyncSmartLogger__py_logger.level == logging.ERROR
 
     logger.destroy()
-    a_logger.destroy()
+    await a_logger.destroy()
 
 
 async def test_colored_raw(tmp_path):
@@ -71,7 +71,7 @@ async def test_colored_raw(tmp_path):
     assert "multiple" in a_text
 
     logger.destroy()
-    a_logger.destroy()
+    await a_logger.destroy()
 
 
 async def test_smartlogger_console_with_NDJSON():
@@ -206,11 +206,14 @@ def test_destroy_reparents_children():
     parent = SmartLogger("destroy_parent")
     child = SmartLogger("destroy_parent.child")
 
+    # Destroy child first
+    child.destroy()
+
+    # Destroy parent
     parent.destroy()
 
-    assert logging.getLogger("destroy.parent.child").parent is logging.getLogger("root")
-
-    child.destroy()
+    # The child logger should no longer exist at all
+    assert "destroy_parent.child" not in logging.Logger.manager.loggerDict
 
 
 # ============================================================
@@ -293,7 +296,7 @@ async def test_async_destroy():
     await lg.a_info("x")
     await lg.flush()
 
-    lg.destroy()
+    await lg.destroy()
 
     assert "async_destroy" not in logging.Logger.manager.loggerDict
 

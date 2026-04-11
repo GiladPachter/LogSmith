@@ -415,22 +415,23 @@ class SmartLogger:
         Does NOT go through file handlers.
         """
         # write to console handler's stream, if console handler exists
-        for handler in self.__py_logger.handlers:
-            if isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename"):
-                stream = handler.stream
-                if stream is None:  # pragma: no cover
-                    continue
+        if not self.__smart_state.retired:
+            for handler in self.__py_logger.handlers:
+                if isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename"):
+                    stream = handler.stream
+                    if stream is None:  # pragma: no cover
+                        continue
 
-                # Format text exactly like print()
-                buffer = io.StringIO()
-                with contextlib.redirect_stdout(buffer):
-                    print(*args, sep=sep, end=end)
-                text = buffer.getvalue()
+                    # Format text exactly like print()
+                    buffer = io.StringIO()
+                    with contextlib.redirect_stdout(buffer):
+                        print(*args, sep=sep, end=end)
+                    text = buffer.getvalue()
 
-                # Write directly to the console handler's stream
-                stream.write(text)
-                # stream.flush()
-                return
+                    # Write directly to the console handler's stream
+                    stream.write(text)
+                    # stream.flush()
+                    return
 
         # No console handler → fallback to normal print
         print(*args, sep=sep, end=end)
@@ -895,6 +896,15 @@ class SmartLogger:
     # ------------------------------------------------------------------
     #  RETIRE / DESTROY a logger
     # ------------------------------------------------------------------
+    def __prevent_retiring_if_children_exist(self) -> None:
+        prefix = self.name + "."
+        registry = SmartLogger.__SmartLogger_registry
+        children = [name for name in registry.keys() if name.startswith(prefix)]
+        if children:
+            raise RuntimeError(
+                f"Cannot retire logger '{self.name}' because it has child loggers: {children}"
+            )
+
     def retire(self) -> None:
         """
         Retire this logger:
@@ -906,7 +916,9 @@ class SmartLogger:
         if self.__smart_state.retired:
             return  # pragma: no cover
 
-            # Close and remove all real handlers
+        self.__prevent_retiring_if_children_exist()
+
+        # Close and remove all real handlers
         for h in list(self.__py_logger.handlers):
             # noinspection PyBroadException
             try:
@@ -983,7 +995,8 @@ class SmartLogger:
 
         if self.name in logging.Logger.manager.loggerDict:  # pragma: no cover
             del logging.Logger.manager.loggerDict[self.name]
-            del self.__SmartLogger_registry[self.name]
+        if self.name in SmartLogger.__SmartLogger_registry:
+            del SmartLogger.__SmartLogger_registry[self.name]
 
     # ------------------------------------------------------------------
     #  DYNAMIC LEVELS VIA __getattr__

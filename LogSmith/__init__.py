@@ -16,7 +16,7 @@ try:
     from importlib.metadata import version
     __version__ = version("LogSmith")
 except Exception:   # pragma: no cover
-    __version__ = "1.9.6"
+    __version__ = "1.9.7"
 
 
 # LogSmith's calling card

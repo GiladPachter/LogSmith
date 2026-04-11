@@ -27,7 +27,7 @@ async def test_retire_and_destroy(tmp_path):
     with pytest.raises(RuntimeError):
         await lg.a_info("X")
 
-    lg.destroy()
+    await lg.destroy()
     assert lg._AsyncSmartLogger__handlers == []
 
 def test_get_record_exc_and_stack():

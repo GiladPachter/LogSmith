@@ -100,7 +100,7 @@ async def test_async_worker_survives_formatter_exception(tmp_path):
 
     assert after == before
 
-    logger.destroy()
+    await logger.destroy()
 
 
 

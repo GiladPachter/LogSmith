@@ -179,9 +179,11 @@ async def test_async_shutdown(async_logger, tmp_log_dir):
     for i in range(5):
         await async_logger.a_info(f"msg {i}")
 
+    # Capture file path BEFORE shutdown
+    log_file = async_logger.handler_info[0]['path']
+
     await async_logger.shutdown()
 
-    log_file = async_logger.handler_info[0]['path']
     text = read_file(Path(log_file))
     assert "msg 0" in text
     assert "msg 4" in text
@@ -275,10 +277,8 @@ async def test_shutdown_stops_worker(tmp_path):
     for task in logger._AsyncSmartLogger__worker_tasks:
         assert task.done()
 
-    # Handlers remain — shutdown does NOT remove them
-    assert len(logger.handler_info) == 1
-
-    logger.destroy()
+    # Handlers are removed after shutdown (destroy)
+    assert len(logger.handler_info) == 0
 
 
 @pytest.mark.asyncio

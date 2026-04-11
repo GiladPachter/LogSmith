@@ -214,7 +214,7 @@ async def test_dynamic_level():
 
     await lg.a_alert("boom")  # dynamic method
 
-    lg.destroy()
+    await lg.destroy()
 
 
 def test_get_record_fallback():
@@ -231,10 +231,11 @@ def test_retire():
     lg.destroy()
 
 
-def test_destroy():
+@pytest.mark.asyncio
+async def test_destroy():
     lg = AsyncSmartLogger("dest")
     lg.add_console()
-    lg.destroy()
+    await lg.destroy()
     assert lg.name not in logging.Logger.manager.loggerDict
 
     lg.destroy()
@@ -384,7 +385,7 @@ async def test_stack_info(tmp_path):
     await lg.a_info("hello", stack_info=True)
     await lg.flush()
 
-    lg.destroy()
+    await lg.destroy()
 
 
 @pytest.mark.asyncio

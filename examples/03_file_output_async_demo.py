@@ -133,6 +133,8 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     await logger.a_stdout("\nAdding color-preserving file handler...")
 
+    await logger.flush()
+
     color_file = log_dir / "color_preserved.log"
 
     logger.add_file(

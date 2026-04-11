@@ -114,7 +114,7 @@ async def test_asyncsmartlogger_rotation_suffixes(tmp_path, pid, ts):
     pattern = _pattern_for_rotated(base, pid, ts)
     assert pattern.match(rotated[0]), rotated[0]
 
-    logger.destroy()
+    await logger.destroy()
 
 
 def test_rotation_with_suffix(tmp_path, monkeypatch):

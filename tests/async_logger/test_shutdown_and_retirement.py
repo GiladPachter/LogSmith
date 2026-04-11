@@ -6,13 +6,12 @@ from LogSmith.formatter import OutputMode
 
 
 @pytest.mark.asyncio
-async def test_stopped_logger_rejects_new_logs(tmp_path):
-    logger = AsyncSmartLogger("test_stopped_rejects", logging.INFO)
-    logger.add_file(str(tmp_path), "stopped.log")
+async def test_retired_logger_rejects_new_logs(tmp_path):
+    logger = AsyncSmartLogger("test_retired_rejects", logging.INFO)
+    logger.add_file(str(tmp_path), "retired.log")
 
     # Simulate stop
-    # logger._stopped = True
-    logger._AsyncSmartLogger__stopped = True    # accessing private member. do not use outside of test suite
+    logger._AsyncSmartLogger__retired = True    # accessing private member. do not use outside of test suite
 
     with pytest.raises(RuntimeError):
         await logger.a_info("should fail")
@@ -42,7 +41,7 @@ async def test_retired_logger_rejects_handler_additions(tmp_path):
     with pytest.raises(RuntimeError):
         logger.add_file(str(tmp_path), "x.log")
 
-    logger.destroy()
+    await logger.destroy()
 
 
 @pytest.mark.asyncio
@@ -78,4 +77,4 @@ async def test_retired_logger_rejects_new_logs(tmp_path):
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
-    logger.destroy()
+    await logger.destroy()

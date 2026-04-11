@@ -161,7 +161,6 @@ class AsyncSmartLogger:
         else:
             self.__worker_tasks = None
 
-        self.__stopped = False
         self.__handlers: list[HandlerMetadata] = []
         self.__messages_enqueued = 0
         self.__retired = False
@@ -858,8 +857,6 @@ class AsyncSmartLogger:
 
         await self.__ensure_worker_started()
 
-        if self.__stopped:
-            raise RuntimeError("AsyncSmartLogger has been shut down.")
         if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
@@ -908,8 +905,6 @@ class AsyncSmartLogger:
 
         await self.__ensure_worker_started()
 
-        if self.__stopped:
-            raise RuntimeError("AsyncSmartLogger has been shut down.")
         if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
 
@@ -941,7 +936,7 @@ class AsyncSmartLogger:
         - External thread: starts worker (if needed) and enqueues via loop thread-safely
         - Never blocks, survives QueueFull
         """
-        if self.__stopped or self.__retired:
+        if self.__retired:
             return
 
         # Allow tests to pass in metadata dicts from logger.file_handlers[0]
@@ -1106,7 +1101,7 @@ class AsyncSmartLogger:
             for h in self.__py_logger.handlers
         )
 
-        if not has_console:
+        if not has_console or self.__retired:
             # No console handler → fallback to normal print
             print(*args, sep=sep, end=end)
             return
@@ -1168,8 +1163,8 @@ class AsyncSmartLogger:
         #  so that they all output with the theme that was active when they entered the queue
         values = list(AsyncSmartLogger.__AsyncSmartLogger_registry.values())
         for lg in values:
-            if lg.__retired or lg.__stopped:
-                continue
+            if lg.__retired:
+                continue    # pragma: no cover
 
             # noinspection PyBroadException
             try:
@@ -1213,69 +1208,41 @@ class AsyncSmartLogger:
     # FLUSH & SHUTDOWN
     # ------------------------------------------------------------------
     async def flush(self) -> None:
-        # Ensure a live worker exists before waiting for queue.join()
-        worker_alive = self.__worker_tasks and any(not t.done() and not t.cancelled() for t in self.__worker_tasks)
-        if not worker_alive:
-            self.__worker_tasks = ([t for t in self.__worker_tasks if not t.done() and not t.cancelled()]
-                                   if self.__worker_tasks
-                                   else None)
-            await self.__ensure_worker_started()
+        # If called from a different loop than the one that owns the queue,
+        # do NOT touch queue.join() – just flush handlers best-effort.
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
 
-        await self.__queue.join()
+        same_loop = loop is self.__loop
 
+        if same_loop:
+            worker_alive = self.__worker_tasks and any(
+                not t.done() and not t.cancelled() for t in self.__worker_tasks
+            )
+            if not worker_alive:
+                self.__worker_tasks = (
+                    [t for t in self.__worker_tasks if not t.done() and not t.cancelled()]
+                    if self.__worker_tasks
+                    else None
+                )
+                await self.__ensure_worker_started()
+
+            await self.__queue.join()
+
+        # In both cases (same loop or not), flush handlers
         for handler in self.__py_logger.handlers:
             flush = getattr(handler, "flush", None)
             if not callable(flush):
                 continue    # pragma: no cover
 
-            # Be defensive: some handlers may already have closed their streams
-            # noinspection PyBroadException
             try:
                 flush()
             except ValueError:  # pragma: no cover
-                # "I/O operation on closed file" – safe to ignore here
                 pass
-            except Exception:  # pragma: no cover
-                # Don't let a broken handler kill flush()
+            except Exception:   # pragma: no cover
                 pass
-
-    async def shutdown(self):
-        if self.__stopped:
-            return  # pragma: no cover
-
-        self.__stopped = True
-
-        # 1. Flush all pending work BEFORE cancelling worker
-        await self.flush()
-
-        # 2. Now cancel worker tasks
-        if self.__worker_tasks:
-            for task in self.__worker_tasks:
-                task.cancel()
-            await asyncio.gather(*self.__worker_tasks, return_exceptions=True)
-
-        # 3. Drain queue (should be empty now)
-        while True:
-            try:
-                self.__queue.get_nowait()
-                # self.__queue.task_done()
-            except asyncio.QueueEmpty:
-                break
-
-        # 4. Flush + close handlers
-        for handler in self.__py_logger.handlers:
-            # noinspection PyBroadException
-            try:
-                handler.flush()
-            except Exception:  # pragma: no cover
-                pass
-            # noinspection PyBroadException
-            try:
-                handler.close()
-            except Exception:  # pragma: no cover
-                pass
-
-        self.__py_logger.handlers.clear()
 
     # ------------------------------------------------------------------
     # AUDITING (class-level)
@@ -1367,7 +1334,7 @@ class AsyncSmartLogger:
                 pass
 
         if cls.__audit_logger:
-            cls.__audit_logger.destroy()
+            await cls.__audit_logger.destroy()
 
         cls.__audit_logger = None
         cls.__audit_handler = None
@@ -1456,10 +1423,49 @@ class AsyncSmartLogger:
     # ------------------------------------------------------------------
     # retire & destroy
     # ------------------------------------------------------------------
+    def __prevent_retiring_if_children_exist(self) -> None:
+        prefix = self.name + "."
+        registry = AsyncSmartLogger.__AsyncSmartLogger_registry
+        children = [name for name in registry.keys() if name.startswith(prefix)]
+        if children:
+            raise RuntimeError(
+                f"Cannot retire logger '{self.name}' because it has child loggers: {children}"
+            )
+
+    async def __noop_async(self, *args, **kwargs):
+        return
+
     def retire(self) -> None:
+        self.__prevent_retiring_if_children_exist()
         self.__retired = True
 
-    def destroy(self) -> None:
+    async def destroy(self):
+        # 1. Mark retired – block new log entries
+        self.retire()
+
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        same_loop = loop is self.__loop
+
+        if same_loop:
+            # 2. Flush pending logs (full semantics)
+            await self.flush()
+
+            # 3. Stop worker tasks
+            for task in self.__worker_tasks:
+                task.cancel()
+            await asyncio.gather(*self.__worker_tasks, return_exceptions=True)
+            self.__worker_tasks.clear()
+        else:   # pragma: no cover
+            # Different loop:
+            # - do NOT touch queue.join() or worker tasks (they belong to another loop)
+            # - we still proceed to close handlers and deregister
+            pass
+
+        # 4. Close handlers
         for handler in list(self.__py_logger.handlers):
             # noinspection PyBroadException
             try:
@@ -1472,10 +1478,21 @@ class AsyncSmartLogger:
             except Exception:   # pragma: no cover
                 pass
 
+        # 5. Clear handler lists
         self.__py_logger.handlers.clear()
         self.__handlers.clear()
-        self.__retired = True
 
+        # 6. Remove from registry
         if self.name in logging.Logger.manager.loggerDict:
             del logging.Logger.manager.loggerDict[self.name]
-            del self.__AsyncSmartLogger_registry[self.name]
+        if self.name in AsyncSmartLogger.__AsyncSmartLogger_registry:
+            del AsyncSmartLogger.__AsyncSmartLogger_registry[self.name]
+
+    @classmethod
+    async def shutdown(cls):
+        # 1. Stop auditing
+        await cls.terminate_auditing()
+
+        # 2. Destroy all async loggers
+        for logger in list(cls.__AsyncSmartLogger_registry.values()):
+            await logger.destroy()

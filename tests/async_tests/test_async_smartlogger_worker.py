@@ -18,7 +18,7 @@ async def test_duplicate_console_handler():
 
     await logger.shutdown()
 
-    logger.destroy()
+    await logger.destroy()
 
 
 # ------------------------------------------------------------
@@ -37,8 +37,7 @@ async def test_duplicate_file_handler(tmp_path):
     with pytest.raises(ValueError):
         logger2.add_file(log_dir=log_dir, logfile_name=logfile)
 
-    await logger1.shutdown()
-    await logger2.shutdown()
+    await AsyncSmartLogger.shutdown()
 
     logger1.destroy()
     logger2.destroy()
@@ -77,12 +76,12 @@ async def test_shutdown_sends_sentinel():
 
     tasks = list(logger._AsyncSmartLogger__worker_tasks)
 
-    await logger.shutdown()
+    await AsyncSmartLogger.shutdown()
 
     for t in tasks:
         assert t.done()
 
-    logger.destroy()
+    await logger.destroy()
 
 
 # ------------------------------------------------------------
@@ -104,5 +103,5 @@ async def test_shutdown_after_retire():
 async def test_shutdown_twice():
     logger = AsyncSmartLogger("shutdown_twice")
 
-    await logger.shutdown()
-    await logger.shutdown()  # second call hits uncovered branch
+    await AsyncSmartLogger.shutdown()
+    await AsyncSmartLogger.shutdown()  # second call hits uncovered branch

@@ -32,6 +32,6 @@ async def test_async_stream_reopen_json(tmp_path):
 
     assert data["named_args"]["foo"] == 1
 
-    logger.destroy()
+    await logger.destroy()
 
 

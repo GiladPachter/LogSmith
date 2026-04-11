@@ -89,10 +89,10 @@ async def test_rotation_callback_ignored_when_retired(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_rotation_callback_ignored_when_stopped(tmp_path):
+async def test_rotation_callback_ignored_when_retired(tmp_path):
     logic = RotationLogic(maxBytes=1, backupCount=1)
 
-    logger = AsyncSmartLogger("rot_stopped", logging.INFO)
+    logger = AsyncSmartLogger("rot_retired", logging.INFO)
     logger.add_file(str(tmp_path), "s.log", rotation_logic=logic)
 
     handler = next(
@@ -102,8 +102,7 @@ async def test_rotation_callback_ignored_when_stopped(tmp_path):
     )
 
     # Stop logger
-    # logger._stopped = True
-    logger._AsyncSmartLogger__stopped = True    # accessing private member. do not use outside of test suite
+    logger._AsyncSmartLogger__retired = True    # accessing private member. do not use outside of test suite
 
     # Attempt rotation
     handler.rotation_callback(handler)

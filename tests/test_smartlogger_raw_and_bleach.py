@@ -47,4 +47,4 @@ async def test_async_raw(tmp_path):
 
     assert (tmp_path / "x.log").read_text() == "hello"
 
-    logger.destroy()
+    await logger.destroy()

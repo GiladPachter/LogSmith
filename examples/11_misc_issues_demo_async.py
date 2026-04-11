@@ -113,7 +113,7 @@ async def main():
     except Exception as e:
         await logger.a_stdout(f"Caught expected error:\n    {type(e).__name__}: {e}")
 
-    temp_logger.destroy()
+    await temp_logger.destroy()
     await logger.a_stdout("\nLogger destroyed. Further usage will fail.")
 
     try:

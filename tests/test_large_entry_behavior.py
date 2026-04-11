@@ -274,7 +274,7 @@ async def test_async_worker_survives_handler_exception(tmp_path):
     # No successful writes → no increment
     assert after == before
 
-    logger.destroy()
+    await logger.destroy()
 
 
 def test_smartlogger_add_remove_console():

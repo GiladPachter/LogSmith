@@ -52,8 +52,6 @@ def test_smartlogger_stdout_with_console_handler():
     logger.destroy()
 
 
-
-
 @pytest.mark.asyncio
 async def test_asyncsmartlogger_a_stdout_without_console_handler():
     logger = AsyncSmartLogger("a_stdout_no_console")
