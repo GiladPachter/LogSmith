@@ -69,7 +69,7 @@ def test_bleach_non_colored_text(tmp_path):
 
     colored_red = CPrint.colorize("RED", fg=CPrint.FG.RED) + " plain"
     msg = f"plain {colored_red} text"
-    logger.raw(msg)
+    logger.raw(logging.INFO, msg)
 
     out = buf.getvalue()
     assert "RED" in out
@@ -89,7 +89,7 @@ def test_raw_stream_none(tmp_path):
 
     logger._SmartLogger__py_logger.addHandler(handler)
 
-    logger.raw("hello")
+    logger.raw(logging.INFO, "hello")
 
     assert file_path.read_text().strip() == "hello"
 

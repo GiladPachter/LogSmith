@@ -75,7 +75,7 @@ def test_bleach_edge_cases():
 
     # Ends with plain text while color_active=True
     msg = CPrint.colorize("RED", fg=CPrint.FG.RED) + "plain"
-    logger.raw(msg)
+    logger.raw(logging.INFO, msg)
 
     out = buf.get()
     assert "plain" in out
@@ -100,7 +100,7 @@ def test_raw_reopen_failure(tmp_path):
     logger._SmartLogger__py_logger.addHandler(handler)
 
     # Should skip handler silently (no exception)
-    logger.raw("hello")
+    logger.raw(logging.INFO, "hello")
 
     # Nothing to assert — success is "no crash"
 
@@ -205,7 +205,7 @@ def test_retire_deep_guards(tmp_path):
     logger.retire()
 
     with pytest.raises(RuntimeError):
-        logger.raw("x")
+        logger.raw(logging.INFO, "x")
 
     with pytest.raises(RuntimeError):
         logger.add_file(str(tmp_path), "x.log")
@@ -400,7 +400,7 @@ def test_raw_writes_to_file_handler(tmp_path):
     lg = SmartLogger("raw_file")
     lg.add_file(str(tmp_path), "x.log")
 
-    lg.raw("\x1b[31mRED\x1b[0m", end="!")
+    lg.raw(logging.INFO, "\x1b[31mRED\x1b[0m", end="!")
 
     with open(tmp_path / "x.log", "r") as f:
         assert f.read() == "RED!"

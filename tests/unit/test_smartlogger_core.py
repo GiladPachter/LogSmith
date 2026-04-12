@@ -1,3 +1,4 @@
+import logging
 import re
 from pathlib import Path
 
@@ -47,7 +48,7 @@ def test_raw_output_bypasses_formatting(capsys):
     logger = SmartLogger("core_raw", level=levels["TRACE"])
     logger.add_console()
 
-    logger.raw("RAW LINE")
+    logger.raw(logging.INFO, "RAW LINE")
 
     ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -150,7 +151,7 @@ def test_smartlogger_console_handler_basic():
         CPrint.colorize("colors",   fg=CPrint.FG.SOFT_PURPLE)
     ]
 
-    lg.raw(" ".join(colored))
+    lg.raw(logging.INFO, " ".join(colored))
 
 
 def test_smartlogger_remove_console_multiple_calls():

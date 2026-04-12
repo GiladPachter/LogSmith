@@ -32,7 +32,7 @@ def test_console_bleach(tmp_path, capsys):
     logger.add_console()
 
     red = CPrint.colorize("RED", fg=CPrint.FG.RED)
-    logger.raw("plain " + red)
+    logger.raw(logging.INFO, "plain " + red)
 
     out = capsys.readouterr().out
     assert "RED" in out
@@ -51,7 +51,7 @@ def test_raw_file_reopen(tmp_path):
     handler.stream = None
     logger._SmartLogger__py_logger.addHandler(handler)
 
-    logger.raw("hello")
+    logger.raw(logging.INFO, "hello")
     assert path.read_text().strip() == "hello"
 
 

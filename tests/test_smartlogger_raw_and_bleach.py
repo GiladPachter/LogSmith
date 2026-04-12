@@ -10,7 +10,7 @@ def test_raw_output_and_bleaching(tmp_path):
     logger.add_file(str(tmp_path), "b.log")
 
     colored = CPrint.colorize("HELLO", fg=CPrint.FG.RED)
-    logger.raw(colored)
+    logger.raw(logging.INFO, colored)
 
     text = (tmp_path / "b.log").read_text()
     assert "HELLO" in text
@@ -21,7 +21,7 @@ def test_passthrough_formatter(tmp_path):
     logger.add_file(str(tmp_path), "p.log", preserve_colors_in_log_files=True)
 
     colored = CPrint.colorize("HELLO", fg=CPrint.FG.GREEN)
-    logger.raw(colored)
+    logger.raw(logging.INFO, colored)
 
     text = (tmp_path / "p.log").read_text()
     assert "\x1b" in text  # ANSI preserved
@@ -30,7 +30,7 @@ def test_smartlogger_raw(tmp_path):
     log = SmartLogger("x")
     log.add_file(str(tmp_path), "x.log")
 
-    log.raw("hello", end="")
+    log.raw(logging.INFO, "hello", end="")
     assert (tmp_path / "x.log").read_text() == "hello"
 
     log.destroy()

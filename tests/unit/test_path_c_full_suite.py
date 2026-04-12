@@ -189,7 +189,7 @@ def test_smartlogger_raw_on_retired_logger(tmp_path):
 
     lg.retire()
     with pytest.raises(RuntimeError):
-        lg.raw("should-fail")
+        lg.raw(logging.INFO, "should-fail")
 
 
 # ---------------------------------------------------------------------------

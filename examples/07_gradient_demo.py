@@ -9,7 +9,7 @@ Demonstrates LogSmith's gradient capabilities:
 - Combined FG + BG gradients
 - Palette blending
 """
-
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ preview_palette("Pastel",    GradientPalette.PASTEL)
 # ==========================================================================================================
 section("1. Basic two‑color foreground gradient")
 
-lg.raw(CPrint.gradient(
+lg.raw(logging.INFO, CPrint.gradient(
     "Red → Yellow gradient",
     fg_codes=[GradientPalette.RED, GradientPalette.YELLOW],
 ))
@@ -86,7 +86,7 @@ lg.raw(CPrint.gradient(
 # ==========================================================================================================
 section("2. Three‑stop foreground gradient")
 
-lg.raw(CPrint.gradient(
+lg.raw(logging.INFO, CPrint.gradient(
     "Red → Green → Blue",
     fg_codes=[GradientPalette.RED, GradientPalette.GREEN, GradientPalette.BLUE],
 ))
@@ -96,7 +96,7 @@ lg.raw(CPrint.gradient(
 # ==========================================================================================================
 section("3. Rainbow foreground gradient")
 
-lg.raw(CPrint.gradient(
+lg.raw(logging.INFO, CPrint.gradient(
     "Full rainbow gradient",
     fg_codes=GradientPalette.RAINBOW,
 ))
@@ -106,7 +106,7 @@ lg.raw(CPrint.gradient(
 # ==========================================================================================================
 section("4. Vertical foreground gradient")
 
-lg.raw(CPrint.gradient(
+lg.raw(logging.INFO, CPrint.gradient(
     "Line 1\nLine 2\nLine 3",
     fg_codes=[GradientPalette.CYAN, GradientPalette.MAGENTA, GradientPalette.DEEP_BLUE],
     direction=GradientDirection.VERTICAL,
@@ -117,7 +117,7 @@ lg.raw(CPrint.gradient(
 # ==========================================================================================================
 section("5. Background gradient (ICE palette)")
 
-lg.raw(CPrint.gradient(
+lg.raw(logging.INFO, CPrint.gradient(
     "Background gradient example.",
     bg_codes=GradientPalette.ICE,
 ))
@@ -127,7 +127,7 @@ lg.raw(CPrint.gradient(
 # ==========================================================================================================
 section("6. Combined FG + BG gradient")
 
-lg.raw(CPrint.gradient(
+lg.raw(logging.INFO, CPrint.gradient(
     "Foreground + Background gradient",
     fg_codes=[GradientPalette.RED, GradientPalette.YELLOW, GradientPalette.GREEN],
     bg_codes=[GradientPalette.DEEP_BLUE, GradientPalette.BLUE_4, GradientPalette.CYAN],
@@ -138,7 +138,7 @@ lg.raw(CPrint.gradient(
 # ==========================================================================================================
 section("7. Rainbow FG + Greyscale BG (auto‑stretch)")
 
-lg.raw(CPrint.gradient(
+lg.raw(logging.INFO, CPrint.gradient(
     "Rainbow FG + Greyscale BG",
     fg_codes=GradientPalette.RAINBOW,
     bg_codes=GradientPalette.GREYSCALE,
@@ -151,7 +151,7 @@ section("8. Blended palette: SUNSET + OCEAN → Tropical")
 
 tropical = blend_palettes(GradientPalette.SUNSET, GradientPalette.OCEAN)
 preview_palette("Tropical (blended)", tropical)
-lg.raw(CPrint.gradient("Tropical blended gradient", fg_codes=tropical))
+lg.raw(logging.INFO, CPrint.gradient("Tropical blended gradient", fg_codes=tropical))
 
 section("9. Blended palette: NEON + FIRE → CyberFire")
 

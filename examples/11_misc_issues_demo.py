@@ -12,7 +12,7 @@ Demonstrates SmartLogger miscellaneous features and safeguards:
 - invalid theme registration
 - SmartLogger safeguards in action
 """
-
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ record = SmartLogger.get_record()
 if isinstance(record.stack_info, str):
     record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
 logger.stdout("\nRecord contents:")
-logger.raw(json.dumps(record.__dict__, indent=4))
+logger.raw(logging.INFO, json.dumps(record.__dict__, indent=4))
 
 # ==========================================================================================================
 # B. exc_info and stack_info (now visible)
@@ -84,7 +84,7 @@ except ZeroDivisionError:
     # ---------------------------
     logger.error("Error with Captured Exception", exc_info=True)
 
-logger.raw("")
+logger.raw(logging.INFO, "")
 
 logger.debug("Debug with Stack Info", stack_info=True)
 

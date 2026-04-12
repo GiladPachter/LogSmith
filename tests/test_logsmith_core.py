@@ -179,7 +179,7 @@ def test_smartlogger_raw_sanitizes_file_and_colors_console(tmp_path, capsys):
     logger.add_file(log_dir=str(tmp_path), logfile_name="raw.log")
 
     colored = CPrint.colorize("hello", fg=CPrint.FG.BRIGHT_RED)
-    logger.raw(colored, end="")
+    logger.raw(logging.INFO, colored, end="")
 
     # console output should still contain ANSI
     captured = capsys.readouterr()

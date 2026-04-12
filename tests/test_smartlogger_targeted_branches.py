@@ -27,7 +27,7 @@ def test_bleach_interleaved_colors(capsys):
     logger.add_console()
 
     msg = "plain \x1b[31mred\x1b[0m plain"
-    logger.raw(msg)
+    logger.raw(logging.INFO, msg)
 
     out = capsys.readouterr().out
     assert "red" in out
@@ -48,7 +48,7 @@ def test_raw_skips_handler_with_no_stream():
     logger._SmartLogger__py_logger.addHandler(dummy)
 
     # Should not crash, should skip dummy handler
-    logger.raw("hello")
+    logger.raw(logging.INFO, "hello")
 
 
 # ============================================================
@@ -69,7 +69,7 @@ def test_retire_destroy_reentrant(tmp_path):
 
     for op in [
         lambda: logger.info("x"),
-        lambda: logger.raw("x"),
+        lambda: logger.raw(logging.INFO, "x"),
         lambda: logger.add_console(),
         lambda: logger.add_file(log_dir=str(tmp_path), logfile_name="x.log"),
         # lambda: logger.remove_console(),

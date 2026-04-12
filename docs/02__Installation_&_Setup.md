@@ -63,7 +63,7 @@ python tools/build_wheel.py
 The resulting file appears under `dist/`, for example:
 
 ```
-dist/logsmith-1.9.7-py3-none-any.whl
+dist/logsmith-1.9.8-py3-none-any.whl
 ```
 
 ---

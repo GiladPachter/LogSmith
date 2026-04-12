@@ -370,16 +370,24 @@ class SmartLogger:
 
         return "".join(result)
 
-    def raw(self, message: str, end: str = "\n") -> None:
+    def raw(self, level: int, message: str, end: str = "\n") -> None:
         """
-        Write raw text to all handlers.
+        Write raw text to all handlers that are enabled for the given level.
         Console handlers receive colored output.
         File handlers sanitize ANSI unless preserve_colors_in_log_files=True.
         """
         if self.__smart_state.retired:
-            raise RuntimeError(f"Logger {self.__py_logger.name!r} has been retired and cannot be used.") # pragma: no cover
+            raise RuntimeError(f"Logger {self.__py_logger.name!r} has been retired and cannot be used.")    # pragma: no cover
+
+        # Logger-level filtering (hierarchy-aware)
+        if not self.__py_logger.isEnabledFor(level):
+            return
 
         for handler in self.__py_logger.handlers:
+            # Handler-level filtering
+            if level < handler.level:
+                continue
+
             stream = getattr(handler, "stream", None)
 
             # FIX: FileHandler lazily opens the file; force-open if needed
