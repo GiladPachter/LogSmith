@@ -1321,11 +1321,11 @@ class AsyncSmartLogger:
         formatter = AuditFormatter(details, NDJSON_output)
 
         audit_logger.add_file(
-            log_dir=log_dir,
-            logfile_name=logfile_name,
-            rotation_logic=rotation_logic,
-            output_mode=OutputMode.PLAIN,
-            audit_mode=True,
+            log_dir        = log_dir,
+            logfile_name   = logfile_name,
+            rotation_logic = rotation_logic,
+            output_mode    = OutputMode.PLAIN,
+            audit_mode     = True,
         )
 
         # Override the formatter on the actual handler
@@ -1449,7 +1449,7 @@ class AsyncSmartLogger:
             )
 
     async def __noop_async(self, *args, **kwargs):
-        return
+        return  # pragma: no cover
 
     def retire(self) -> None:
         self.__prevent_retiring_if_children_exist()
@@ -1461,7 +1461,7 @@ class AsyncSmartLogger:
 
         try:
             loop = asyncio.get_running_loop()
-        except RuntimeError:
+        except RuntimeError:    # pragma: no cover
             loop = None
 
         same_loop = loop is self.__loop
