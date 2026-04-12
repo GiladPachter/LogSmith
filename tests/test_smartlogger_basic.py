@@ -1,3 +1,4 @@
+import logging
 import time
 from pathlib import Path
 
@@ -34,7 +35,7 @@ def test_info_to_file(logger, tmp_log_dir):
 
 def test_raw_console(logger, capsys):
     logger.add_console()
-    logger.raw("RAW")
+    logger.raw(logging.INFO, "RAW")
     out = capsys.readouterr().out
     stripped = CPrint.strip_ansi(out).strip()
     assert "RAW" in stripped
@@ -44,7 +45,7 @@ def test_raw_console(logger, capsys):
 def test_raw_file(logger, tmp_log_dir):
     path = tmp_log_dir / "raw.txt"
     logger.add_file(tmp_log_dir.__str__(), "raw.txt")
-    logger.raw("RAW")
+    logger.raw(logging.INFO, "RAW")
     assert read_file(path).strip() == "RAW"
 
 

@@ -1,4 +1,5 @@
 # tests/test_smartlogger_from_demos/test_smartlogger_from_demo_misc_full.py
+import logging
 
 import pytest
 
@@ -63,7 +64,7 @@ def test_retire_and_destroy_full(tmp_path):
         logger.info("fail")
 
     with pytest.raises(Exception):
-        logger.raw("fail")
+        logger.raw(logging.INFO, "fail")
 
     with pytest.raises(Exception):
         logger.add_console()

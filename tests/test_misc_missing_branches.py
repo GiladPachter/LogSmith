@@ -59,7 +59,7 @@ async def test_colored_raw(tmp_path):
     logger.add_file(str(tmp_path))
     a_logger.add_file(str(tmp_path))
 
-    logger.raw(" ".join(colored))
+    logger.raw(logging.INFO, " ".join(colored))
     await a_logger.a_raw(" ".join(colored))
 
     await a_logger.flush()
@@ -179,7 +179,7 @@ def test_raw_writes_to_file_handler(tmp_path):
     lg = SmartLogger("raw_file")
     lg.add_file(str(tmp_path), "x.log")
 
-    lg.raw("\x1b[31mRED\x1b[0m", end="!")
+    lg.raw(logging.INFO, "\x1b[31mRED\x1b[0m", end="!")
 
     with open(tmp_path / "x.log", "r") as f:
         assert f.read() == "RED!"

@@ -10,7 +10,7 @@ Basic demonstration of LogSmith:
 - RAW text (plain + colored)
 - Synchronization between print() and logger output
 """
-
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ logger.stdout(json.dumps(sorted_levels, indent = 4))
 # 6. RAW text (plain + colored)
 # ----------------------------------------------------------------------------------------------------------
 logger.stdout("\nRAW text output:\n----------------")
-logger.raw("SmartLogger loggers can log raw text (no formatting, no prefix)."
+logger.raw(logging.INFO, "SmartLogger loggers can log raw text (no formatting, no prefix)."
            "\nRAW text syncs perfectly with other logging operations."
            "\nNote: DON'T SPAM !"
            "\n      Meaning, don't use logger.raw() as convenient replacement for print()"
@@ -117,7 +117,7 @@ colored = [
     CPrint.colorize("colors",   fg=CPrint.FG.SOFT_PURPLE)
 ]
 
-logger.raw(" ".join(colored))
+logger.raw(logging.INFO, " ".join(colored))
 
 # ----------------------------------------------------------------------------------------------------------
 # 7. Safeguards & validations (informational)

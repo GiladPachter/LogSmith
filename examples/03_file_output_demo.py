@@ -10,6 +10,7 @@ Demonstrates LogSmith file output:
 - LogSmith's path validation safeguards
 """
 import json
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -141,7 +142,7 @@ logger.add_file(
 
 logger.stdout("\nWriting colored text via logger.raw():")
 colored = CPrint.colorize("This text contains ANSI colors", fg=CPrint.FG.BRIGHT_MAGENTA)
-logger.raw(colored)
+logger.raw(logging.INFO, colored)
 
 logger.stdout("\nEscaped version of colored text (for inspection):")
 logger.stdout(CPrint.escape_ansi_for_display(colored))

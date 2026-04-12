@@ -56,14 +56,14 @@ def test_smartlogger_raw_raises_after_retire(tmp_path):
     lg = SmartLogger("sl_raw_retire")
     lg.retire()
     with pytest.raises(RuntimeError):
-        lg.raw("x")
+        lg.raw(logging.INFO, "x")
 
 
 def test_smartlogger_raw_raises_after_destroy(tmp_path):
     lg = SmartLogger("sl_raw_destroy")
     lg.destroy()
     with pytest.raises(RuntimeError):
-        lg.raw("x")
+        lg.raw(logging.INFO, "x")
 
 
 def test_smartlogger_debug_raises_after_retire(tmp_path):
