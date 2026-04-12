@@ -184,7 +184,7 @@ async def test_worker_survives_raw_exception(tmp_path, monkeypatch):
     monkeypatch.setattr(handler.stream, "write", boom)
 
     # Should not kill worker
-    await logger.a_raw("hello")
+    await logger.a_raw(logging.INFO, "hello")
     await logger.flush()
 
     await logger.shutdown()

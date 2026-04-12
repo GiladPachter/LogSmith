@@ -89,16 +89,16 @@ async def test_async_raw_raises_after_retire(tmp_path):
     lg = AsyncSmartLogger("asl_raw_retire")
     lg.retire()
     with pytest.raises(RuntimeError):
-        await lg.a_raw("x")
+        await lg.a_raw(logging.INFO, "x")
 
 
 @pytest.mark.asyncio
 async def test_async_raw_raises_after_destroy(tmp_path):
     lg = AsyncSmartLogger("asl_raw_destroy")
     await lg.shutdown()   # destroy() is sync, but shutdown is required first
-    lg.destroy()
+    await lg.destroy()
     with pytest.raises(RuntimeError):
-        await lg.a_raw("x")
+        await lg.a_raw(logging.INFO, "x")
 
 
 @pytest.mark.asyncio

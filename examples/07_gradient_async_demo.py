@@ -9,7 +9,7 @@ Demonstrates AsyncSmartLogger's gradient capabilities:
 - Combined FG + BG gradients
 - Palette blending
 """
-
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ async def main():
     # ======================================================================================================
     await section("1. Basic two‑color foreground gradient")
 
-    await lg.a_raw(CPrint.gradient(
+    await lg.a_raw(logging.INFO, CPrint.gradient(
         "Red → Yellow gradient",
         fg_codes=[GradientPalette.RED, GradientPalette.YELLOW],
     ))
@@ -83,7 +83,7 @@ async def main():
     # ======================================================================================================
     await section("2. Three‑stop foreground gradient")
 
-    await lg.a_raw(CPrint.gradient(
+    await lg.a_raw(logging.INFO, CPrint.gradient(
         "Red → Green → Blue",
         fg_codes=[GradientPalette.RED, GradientPalette.GREEN, GradientPalette.BLUE],
     ))
@@ -93,7 +93,7 @@ async def main():
     # ======================================================================================================
     await section("3. Rainbow foreground gradient")
 
-    await lg.a_raw(CPrint.gradient(
+    await lg.a_raw(logging.INFO, CPrint.gradient(
         "Full rainbow gradient",
         fg_codes=GradientPalette.RAINBOW,
     ))
@@ -103,7 +103,7 @@ async def main():
     # ======================================================================================================
     await section("4. Vertical foreground gradient")
 
-    await lg.a_raw(CPrint.gradient(
+    await lg.a_raw(logging.INFO, CPrint.gradient(
         "Line 1\nLine 2\nLine 3",
         fg_codes=[GradientPalette.CYAN, GradientPalette.MAGENTA, GradientPalette.DEEP_BLUE],
         direction=GradientDirection.VERTICAL,
@@ -114,7 +114,7 @@ async def main():
     # ======================================================================================================
     await section("5. Background gradient (ICE palette)")
 
-    await lg.a_raw(CPrint.gradient(
+    await lg.a_raw(logging.INFO, CPrint.gradient(
         "Background gradient example.",
         bg_codes=GradientPalette.ICE,
     ))
@@ -124,7 +124,7 @@ async def main():
     # ======================================================================================================
     await section("6. Combined FG + BG gradient")
 
-    await lg.a_raw(CPrint.gradient(
+    await lg.a_raw(logging.INFO, CPrint.gradient(
         "Foreground + Background gradient",
         fg_codes=[GradientPalette.RED, GradientPalette.YELLOW, GradientPalette.GREEN],
         bg_codes=[GradientPalette.DEEP_BLUE, GradientPalette.BLUE_4, GradientPalette.CYAN],
@@ -135,7 +135,7 @@ async def main():
     # ======================================================================================================
     await section("7. Rainbow FG + Greyscale BG (auto‑stretch)")
 
-    await lg.a_raw(CPrint.gradient(
+    await lg.a_raw(logging.INFO, CPrint.gradient(
         "Rainbow FG + Greyscale BG",
         fg_codes=GradientPalette.RAINBOW,
         bg_codes=GradientPalette.GREYSCALE,
@@ -148,7 +148,7 @@ async def main():
 
     tropical = blend_palettes(GradientPalette.SUNSET, GradientPalette.OCEAN)
     await preview_palette("Tropical (blended)", tropical)
-    await lg.a_raw(CPrint.gradient("Tropical blended gradient", fg_codes=tropical))
+    await lg.a_raw(logging.INFO, CPrint.gradient("Tropical blended gradient", fg_codes=tropical))
 
     await section("9. Blended palette: NEON + FIRE → CyberFire")
 

@@ -150,7 +150,7 @@ async def test_rotation_scheduling(tmp_path):
 async def test_raw_logging(tmp_path):
     logger, logfile = make_file_logger(tmp_path)
 
-    await logger.a_raw("hello raw", end="\n")
+    await logger.a_raw(logging.INFO, "hello raw", end="\n")
     await drain(logger)
 
     assert "hello raw" in logfile.read_text()

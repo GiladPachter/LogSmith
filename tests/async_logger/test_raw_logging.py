@@ -17,7 +17,7 @@ async def test_console_raw_bleaching(capsys):
     logger.add_console()
 
     msg = "plain " + "\x1b[31mred\x1b[0m" + " plain2"
-    await logger.a_raw(msg)
+    await logger.a_raw(logging.INFO, msg)
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
@@ -42,7 +42,7 @@ async def test_file_raw_sanitization(tmp_path):
     logger.add_file(str(tmp_path), "raw.log")
 
     msg = "hello \x1b[32mgreen\x1b[0m world"
-    await logger.a_raw(msg)
+    await logger.a_raw(logging.INFO, msg)
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
@@ -67,7 +67,7 @@ async def test_file_raw_passthrough(tmp_path):
     )
 
     msg = "hello \x1b[35mpurple\x1b[0m world"
-    await logger.a_raw(msg)
+    await logger.a_raw(logging.INFO, msg)
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
@@ -86,7 +86,7 @@ async def test_raw_end_parameter(tmp_path):
     logger = AsyncSmartLogger("test_raw_end", logging.INFO)
     logger.add_file(str(tmp_path), "end.log")
 
-    await logger.a_raw("hello", end="")
+    await logger.a_raw(logging.INFO, "hello", end="")
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
@@ -108,7 +108,7 @@ async def test_raw_stream_reopening(tmp_path):
     handler.stream.close()
     handler.stream = None
 
-    await logger.a_raw("reopened")
+    await logger.a_raw(logging.INFO, "reopened")
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
@@ -123,7 +123,7 @@ async def test_raw_op_processed(tmp_path):
     lg = AsyncSmartLogger("raw_test")
     lg.add_file(str(tmp_path), "exp.log")
 
-    await lg.a_raw("raw message")
+    await lg.a_raw(logging.INFO, "raw message")
     await lg.flush()
 
     # RAW may not write to file, but must not crash

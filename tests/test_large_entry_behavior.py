@@ -292,7 +292,7 @@ async def test_async_logger_raw(tmp_path):
     logger = AsyncSmartLogger("y")
     logger.add_file(str(tmp_path), "y.log")
 
-    await logger.a_raw("hello")
+    await logger.a_raw(logging.INFO, "hello")
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 

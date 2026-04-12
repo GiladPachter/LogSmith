@@ -6,12 +6,15 @@ Demonstrates AsyncSmartLogger hierarchy behavior:
 - NOTSET inheritance
 - Changing parent level affects descendants
 """
-
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
 import sys
 from pathlib import Path
+
+from LogSmith.levels import TRACE
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
@@ -78,15 +81,24 @@ async def main():
     # Helper: exercise all loggers
     # ------------------------------------------------------------------------------------------------------
     async def exercise():
+        padding = 36 * ' '
+
         await parent.a_debug("parent DEBUG")
+        await parent.a_raw(logging.DEBUG, padding + "parent RAW DEBUG")
         await parent.a_info("parent INFO")
+        await parent.a_raw(logging.INFO, padding + "parent RAW INFO")
 
         await child.a_debug("child DEBUG")
+        await parent.a_raw(logging.DEBUG, padding + "child RAW DEBUG")
         await child.a_info("child INFO")
+        await parent.a_raw(logging.INFO, padding + "child RAW INFO")
 
         await grandchild.a_trace("grandchild TRACE")
+        await parent.a_raw(TRACE, padding + "grandchild RAW TRACE")
         await grandchild.a_debug("grandchild DEBUG")
+        await parent.a_raw(logging.DEBUG, padding + "grandchild RAW DEBUG")
         await grandchild.a_warning("grandchild WARNING")
+        await parent.a_raw(logging.WARNING, padding + "grandchild RAW WARNING")
 
         await parent.flush()
         # await child.flush()

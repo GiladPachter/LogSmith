@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 
@@ -119,7 +120,7 @@ async def test_worker_processes_all_ops(tmp_path):
     await lg.a_info("A")
 
     # RAW
-    await lg.a_raw("B")
+    await lg.a_raw(logging.INFO, "B")
 
     # Trigger ROTATE
     await lg.a_info("X" * 200)

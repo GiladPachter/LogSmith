@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 from pathlib import Path
 from LogSmith.async_smartlogger import AsyncSmartLogger
@@ -11,7 +13,7 @@ async def test_raw_console_bleaches_color(capsys):
     # Contains ANSI color
     msg = "\x1b[31mRED\x1b[0m plain"
 
-    await logger.a_raw(msg)
+    await logger.a_raw(logging.INFO, msg)
     await logger.flush()
 
     out = capsys.readouterr().out
@@ -31,7 +33,7 @@ async def test_raw_file_strips_ansi(tmp_path):
 
     msg = "\x1b[32mGREEN\x1b[0m plain"
 
-    await logger.a_raw(msg)
+    await logger.a_raw(logging.INFO, msg)
     await logger.flush()
     await logger.shutdown()
 
@@ -52,7 +54,7 @@ async def test_raw_file_preserves_ansi(tmp_path):
 
     msg = "\x1b[35mMAGENTA\x1b[0m plain"
 
-    await logger.a_raw(msg)
+    await logger.a_raw(logging.INFO, msg)
     await logger.flush()
     await logger.shutdown()
 
@@ -77,7 +79,7 @@ async def test_raw_reopens_file_if_stream_none(tmp_path, monkeypatch):
     handler.stream.close()
     handler.stream = None
 
-    await logger.a_raw("hello")
+    await logger.a_raw(logging.INFO, "hello")
     await logger.flush()
     await logger.shutdown()
 
@@ -101,6 +103,6 @@ async def test_raw_write_error_is_swallowed(tmp_path, monkeypatch):
     monkeypatch.setattr(handler.stream, "write", bad_write)
 
     # Should not crash
-    await logger.a_raw("hello")
+    await logger.a_raw(logging.INFO, "hello")
     await logger.flush()
     await logger.shutdown()

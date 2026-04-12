@@ -132,7 +132,7 @@ async def test_raw_write_failure_is_swallowed(tmp_path):
     original_stream = handler.stream
     handler.stream = FakeStream()
 
-    await logger.a_raw("raw text")
+    await logger.a_raw(logging.INFO, "raw text")
 
     # Restore valid stream before flush()
     handler.stream = original_stream

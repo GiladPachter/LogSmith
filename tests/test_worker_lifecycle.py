@@ -120,7 +120,7 @@ async def test_worker_handles_raw_write(clean_async_logger, tmp_path):
 
     logger.add_file(str(tmp_path), "x.log")
 
-    await logger.a_raw("raw-text")
+    await logger.a_raw(logging.INFO, "raw-text")
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 
@@ -145,7 +145,7 @@ async def test_worker_survives_raw_write_exception(clean_async_logger, tmp_path)
     before = logger.messages_processed()
 
     # RAW write fails
-    await logger.a_raw("hello")
+    await logger.a_raw(logging.INFO, "hello")
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 

@@ -11,7 +11,7 @@ async def test_raw_logging(tmp_path):
     logger = AsyncSmartLogger("raw", logging.INFO)
     logger.add_file(str(tmp_path), "raw.log")
 
-    await logger.a_raw("HELLO_RAW")
+    await logger.a_raw(logging.INFO, "HELLO_RAW")
 
     await asyncio.sleep(0.05)
 

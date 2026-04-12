@@ -1,4 +1,6 @@
 import asyncio
+import logging
+
 import pytest
 
 from LogSmith import RotationLogic
@@ -46,7 +48,7 @@ async def test_enqueue_raw_exponential_backoff(monkeypatch):
     )
 
     # Should NOT raise
-    await lg.a_raw("hello")
+    await lg.a_raw(logging.INFO, "hello")
 
     # Should have attempted multiple retries
     assert boom.calls >= 3
@@ -99,7 +101,7 @@ async def test_enqueue_raw_drops_after_max_retries(monkeypatch):
     )
 
     # Should NOT raise
-    await lg.a_raw("hello")
+    await lg.a_raw(logging.INFO, "hello")
 
     # Should have attempted all retries
     assert full.calls >= 5

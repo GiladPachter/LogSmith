@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from pathlib import Path
 import pytest
@@ -69,7 +70,7 @@ async def test_async_logger_raw(tmp_path):
     lg = AsyncSmartLogger("async_raw")
     lg.add_file(log_dir, file)
 
-    await lg.a_raw("RAW-LINE", end="")
+    await lg.a_raw(logging.INFO, "RAW-LINE", end="")
     await drain(lg)
 
     content = Path(tmp_path / file).read_text()

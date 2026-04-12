@@ -12,7 +12,7 @@ async def test_async_passthrough_formatter(tmp_path):
     )
 
     colored = CPrint.colorize("HELLO", fg=CPrint.FG.GREEN)
-    await logger.a_raw(colored)
+    await logger.a_raw(logging.INFO, colored)
     # await logger.__queue.join()
     await logger._AsyncSmartLogger__queue.join()    # accessing private member. do not use outside of test suite
 

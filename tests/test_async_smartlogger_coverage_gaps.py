@@ -78,7 +78,7 @@ async def test_raw_reopens_file(tmp_path):
     handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
     handler.stream = None  # simulate missing stream
 
-    await lg.a_raw("hello")
+    await lg.a_raw(logging.INFO, "hello")
     await lg.flush()
 
     text = (tmp_path / "raw.log").read_text()
@@ -198,7 +198,7 @@ async def test_raw_write_fallback(tmp_path):
     handler = lg._AsyncSmartLogger__py_logger.handlers[-1]
     handler.stream = None
 
-    await lg.a_raw("hello")
+    await lg.a_raw(logging.INFO, "hello")
     await lg.flush()
 
     assert "hello" in (tmp_path / "x.log").read_text()
@@ -359,9 +359,9 @@ async def test_raw_write_error(tmp_path, monkeypatch):
 
     monkeypatch.setattr(handler.stream, "write", bad_write)
 
-    await lg.a_raw("hello")  # Should not crash
+    await lg.a_raw(logging.INFO, "hello")  # Should not crash
 
-    lg.destroy()
+    await lg.destroy()
 
 
 def test_audit_prefix():

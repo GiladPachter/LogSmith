@@ -6,12 +6,15 @@ Demonstrates SmartLogger hierarchy behavior:
 - NOTSET inheritance
 - Changing parent level affects descendants
 """
-
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
 import sys
 from pathlib import Path
+
+from LogSmith.levels import TRACE
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # ----------------------------------------------------------------------------------------------------------
 
@@ -75,15 +78,24 @@ grandchild.add_console(level=levels["TRACE"], log_record_details=details)
 # Helper: exercise all loggers
 # ----------------------------------------------------------------------------------------------------------
 def exercise():
+    padding = 36 * ' '
+
     parent.debug("parent DEBUG")
+    parent.raw(logging.DEBUG, padding + "parent RAW DEBUG")
     parent.info("parent INFO")
+    parent.raw(logging.INFO, padding + "parent RAW INFO")
 
     child.debug("child DEBUG")
+    parent.raw(logging.DEBUG, padding + "child RAW DEBUG")
     child.info("child INFO")
+    parent.raw(logging.INFO, padding + "child RAW INFO")
 
     grandchild.trace("grandchild TRACE")
+    parent.raw(TRACE, padding + "grandchild RAW TRACE")
     grandchild.debug("grandchild DEBUG")
+    parent.raw(logging.DEBUG, padding + "grandchild RAW DEBUG")
     grandchild.warning("grandchild WARNING")
+    parent.raw(logging.WARNING, padding + "grandchild RAW WARNING")
 
 # ----------------------------------------------------------------------------------------------------------
 # 4. Demonstrate inheritance

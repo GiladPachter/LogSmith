@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from LogSmith import RotationLogic
@@ -36,7 +38,7 @@ async def test_async_raw_logging(tmp_path):
     logger = AsyncSmartLogger("async_raw")
     logger.add_file(str(tmp_path), "raw.log")
 
-    await logger.a_raw("RAW-LINE", end="")
+    await logger.a_raw(logging.INFO, "RAW-LINE", end="")
     await logger.flush()
 
     assert "RAW-LINE" in (tmp_path / "raw.log").read_text()
@@ -150,7 +152,7 @@ async def test_async_enqueue_raw_no_errors(tmp_path):
     logger.add_file(str(tmp_path), "raw2.log")
 
     # This hits the enqueue path where put_nowait succeeds immediately
-    await logger.a_raw("X")
+    await logger.a_raw(logging.INFO, "X")
     await logger.flush()
 
     assert "X" in (tmp_path / "raw2.log").read_text()

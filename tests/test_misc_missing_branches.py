@@ -60,7 +60,7 @@ async def test_colored_raw(tmp_path):
     a_logger.add_file(str(tmp_path))
 
     logger.raw(logging.INFO, " ".join(colored))
-    await a_logger.a_raw(" ".join(colored))
+    await a_logger.a_raw(logging.INFO, " ".join(colored))
 
     await a_logger.flush()
 

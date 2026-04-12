@@ -66,7 +66,7 @@ async def test_async_info_to_file(async_logger, tmp_log_dir):
 @pytest.mark.asyncio
 async def test_async_raw_console(async_logger, capsys):
     async_logger.add_console()
-    await async_logger.a_raw("RAW")
+    await async_logger.a_raw(logging.INFO, "RAW")
     await async_logger.flush()
 
     out = capsys.readouterr().out
@@ -79,7 +79,7 @@ async def test_async_raw_console(async_logger, capsys):
 async def test_async_raw_file(async_logger, tmp_log_dir):
     path = tmp_log_dir / "raw_async.log"
     async_logger.add_file(tmp_log_dir.__str__(), "raw_async.log")
-    await async_logger.a_raw("RAW")
+    await async_logger.a_raw(logging.INFO, "RAW")
     await async_logger.flush()
     assert read_file(path).strip() == "RAW"
 
@@ -237,7 +237,7 @@ async def test_raw_logging_uses_bleach_and_file_reopen(tmp_path):
     handler.stream = None
 
     msg = "\x1b[31mRED\x1b[0m plain"
-    await logger.a_raw(msg)
+    await logger.a_raw(logging.INFO, msg)
     await logger.flush()
 
     text = (tmp_path / "raw.log").read_text()
@@ -503,7 +503,7 @@ async def test_process_raw_console():
 
     item = _QueueItem(
         op=AsyncOp.RAW,
-        payload={"message": "hello raw", "end": "\n"},
+        payload={"level": logging.INFO, "message": "hello raw", "end": "\n"},
     )
     logger._AsyncSmartLogger__queue.put_nowait(item)
 
@@ -527,7 +527,7 @@ async def test_process_raw_file_like():
     colored = "\x1b[31mRED\x1b[0m"
     item = _QueueItem(
         op=AsyncOp.RAW,
-        payload={"message": colored, "end": ""},
+        payload={"level": logging.INFO, "message": colored, "end": ""},
     )
     logger._AsyncSmartLogger__queue.put_nowait(item)
 
@@ -774,7 +774,7 @@ async def test_raw_processed(tmp_path):
     lg = AsyncSmartLogger("raw_test")
     lg.add_file(str(tmp_path), "exp.log")
 
-    await lg.a_raw("hello raw")
+    await lg.a_raw(logging.INFO, "hello raw")
     await lg.flush()
 
     # RAW may not write to file, but must not crash

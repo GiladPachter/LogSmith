@@ -14,7 +14,7 @@ Demonstrates AsyncSmartLogger miscellaneous features and safeguards:
 - invalid level registration
 - invalid theme registration
 """
-
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ async def main():
             record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
 
     await logger.a_stdout("\nRecord contents:")
-    await logger.a_raw(json.dumps(record.__dict__, indent=4))
+    await logger.a_raw(logging.INFO, json.dumps(record.__dict__, indent=4))
 
     # ======================================================================================================
     # B. exc_info and stack_info
@@ -91,7 +91,7 @@ async def main():
         record = logger.get_record(exc_info = True, stack_info = True)  # examine record.exc_info if desired
         await logger.a_error("Error with Captured Exception", exc_info=True)
 
-    await logger.a_raw("")
+    await logger.a_raw(logging.INFO, "")
     await logger.a_debug("Debug with Stack Info", stack_info=True)
 
     # ======================================================================================================

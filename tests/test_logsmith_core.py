@@ -242,7 +242,7 @@ async def test_asyncsmartlogger_raw_respects_sanitization(tmp_path):
     )
 
     colored = CPrint.colorize("async-raw", fg=CPrint.FG.BRIGHT_GREEN)
-    await logger.a_raw(colored, end="")
+    await logger.a_raw(logging.INFO, colored, end="")
 
     await asyncio.sleep(0.1)
 

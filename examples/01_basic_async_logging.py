@@ -10,7 +10,7 @@ Basic demonstration of AsyncSmartLogger:
 - RAW text (plain + colored)
 - Synchronization between print() and async logger output
 """
-
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ async def main():
     # ------------------------------------------------------------------------------------------------------
     await logger.a_stdout("\nRAW text output:\n----------------")
 
-    await logger.a_raw(
+    await logger.a_raw(logging.INFO,
         "AsyncSmartLogger can log raw text (no formatting, no prefix)."
         "\nRAW text syncs perfectly with other async logging operations."
         "\nNote: DON'T SPAM !"
@@ -116,7 +116,7 @@ async def main():
         CPrint.colorize("colors",   fg=CPrint.FG.SOFT_PURPLE),
     ]
 
-    await logger.a_raw(" ".join(colored))
+    await logger.a_raw(logging.INFO, " ".join(colored))
 
     # ------------------------------------------------------------------------------------------------------
     # 7. Safeguards & validations (informational)

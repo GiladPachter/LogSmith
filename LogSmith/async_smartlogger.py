@@ -405,15 +405,24 @@ class AsyncSmartLogger:
     # PROCESS RAW
     # ------------------------------------------------------------------
     async def __process_raw(self, payload: dict[str, Any]) -> None:
+        level: int = payload["level"]
         message: str = payload["message"]
         end: str = payload["end"]
         console_only: bool = payload.get("console_only", False)
 
+        # Logger-level filtering only when NOT console_only
+        if not console_only and not self.__py_logger.isEnabledFor(level):
+            return
+
         for handler in self.__py_logger.handlers:
             is_console = isinstance(handler, logging.StreamHandler) and not hasattr(handler, "baseFilename")
 
-            # NEW: skip non-console handlers when console_only=True
+            # console_only=True → skip file handlers
             if console_only and not is_console:
+                continue
+
+            # Handler-level filtering
+            if not console_only and level < handler.level:
                 continue
 
             stream = handler.stream
@@ -429,7 +438,7 @@ class AsyncSmartLogger:
                 stream = handler.stream
 
             if stream is None:
-                continue    # pragma: no cover
+                continue  # pragma: no cover
 
             if is_console:
                 text = self.__bleach_non_colored_text(message)
@@ -441,7 +450,7 @@ class AsyncSmartLogger:
             try:
                 stream.write(text + end)
                 stream.flush()
-            except Exception:   # pragma: no cover
+            except Exception:  # pragma: no cover
                 # Ignore write errors
                 pass
 
@@ -901,8 +910,7 @@ class AsyncSmartLogger:
     def messages_enqueued(self):
         return self.__messages_enqueued
 
-    async def __enqueue_raw(self, message: str, end: str, console_only: bool = False) -> None:
-
+    async def __enqueue_raw(self, level: int, message: str, end: str, console_only: bool = False) -> None:
         await self.__ensure_worker_started()
 
         if self.__retired:
@@ -910,7 +918,12 @@ class AsyncSmartLogger:
 
         item = _QueueItem(
             op=AsyncOp.RAW,
-            payload={"message": message, "end": end, "console_only": console_only},
+            payload={
+                "level": level,
+                "message": message,
+                "end": end,
+                "console_only": console_only,
+            },
         )
 
         # --- Minimal exponential backpressure ---
@@ -924,6 +937,9 @@ class AsyncSmartLogger:
         else:   # pragma: no cover
             return  # drop silently
         # ----------------------------------------
+
+        # match enqueue_log behavior to preserve ordering
+        await asyncio.sleep(0)
 
     def __enqueue_rotation(self, handler):
         """
@@ -1079,10 +1095,10 @@ class AsyncSmartLogger:
     async def a_critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
         await self.__a_log(logging.CRITICAL, msg, *args, **kwargs)
 
-    async def a_raw(self, message: str, end: str = "\n") -> None:
+    async def a_raw(self, level: int, message: str, end: str = "\n") -> None:
         if self.__retired:
             raise RuntimeError(f"AsyncSmartLogger {self.__name!r} has been retired and cannot be used.")
-        await self.__enqueue_raw(message, end)
+        await self.__enqueue_raw(level, message, end)
 
     async def a_stdout(self, *args, sep=" ", end="\n"):
         """
@@ -1107,7 +1123,7 @@ class AsyncSmartLogger:
             return
 
         # Console handler exists → enqueue console-only RAW
-        await self.__enqueue_raw(text, end="", console_only=True)
+        await self.__enqueue_raw(logging.NOTSET, text, end="", console_only=True)
 
     # ------------------------------------------------------------------
     # DYNAMIC LEVEL SUPPORT

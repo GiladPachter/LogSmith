@@ -10,6 +10,7 @@ Demonstrates AsyncSmartLogger file output:
 - AsyncSmartLogger path validation safeguards
 """
 import json
+import logging
 # ----------------------------------------------------------------------------------------------------------
 # Make ROOT_DIR a known path when executing via CLI from (active) ROOT_DIR
 # ----------------------------------------------------------------------------------------------------------
@@ -152,7 +153,7 @@ async def main():
         fg=CPrint.FG.BRIGHT_MAGENTA
     )
 
-    await logger.a_raw(colored)
+    await logger.a_raw(logging.INFO, colored)
 
     await logger.flush()
 
