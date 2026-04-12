@@ -7,6 +7,7 @@ This chapter distills everything in LogSmith into practical, real‑world guidan
 A well‑structured logging system is predictable, easy to debug, and easy to extend. The following principles keep your architecture clean:
 
 - use dot‑separated logger names to mirror your module structure  
+- create loggers **top‑down** (parents must exist first)
 - attach a console handler only to the root logger  
 - attach file handlers to specific modules or subsystems  
 - use JSON / NDJSON for ingestion pipelines  
@@ -18,6 +19,7 @@ This keeps logs organized without duplication or handler chaos.
 ---
 
 ## Choosing Between Sync and Async  
+
 ### SmartLogger (sync)
 Use when:
 
@@ -33,6 +35,7 @@ Use when:
 - you need non‑blocking logging  
 - you want ordering guarantees across tasks  
 - you want async‑safe rotation  
+- you need high‑volume throughput
 
 Async logging is ideal for servers, bots, and pipelines.
 
@@ -47,6 +50,7 @@ Handlers define where logs go and how they look.
 - use NDJSON for ingestion  
 - use PLAIN mode for file logs unless color is explicitly needed  
 - sanitize ANSI in files (default)  
+- avoid duplicate file handlers (LogSmith prevents them)
 
 This prevents duplication and keeps logs clean.
 
@@ -61,8 +65,9 @@ Rotation is essential for long‑running applications.
 - set retention rules to avoid disk bloat  
 - avoid rotating too frequently (increases overhead)  
 - use timestamp anchors for daily/weekly rotation  
+- use async rotation for heavy workloads
 
-Async rotation is recommended for heavy workloads.
+Async rotation avoids blocking the event loop.
 
 ---
 
@@ -73,7 +78,8 @@ Structured fields make logs machine‑friendly.
 - keep field names short and consistent  
 - avoid deeply nested structures  
 - ensure values are JSON‑serializable  
-- use structured fields instead of embedding data in the message  
+- prefer IDs over large objects
+- avoid logging full payloads (e.g., HTTP bodies)
 
 This improves readability and ingestion quality.
 
@@ -87,6 +93,7 @@ JSON is for humans; NDJSON is for machines.
 - avoid pretty JSON in production (slower)  
 - ensure raw output is not mixed with JSON  
 - ensure structured fields are serializable  
+- avoid multi‑line messages in NDJSON
 
 NDJSON is the recommended format for production systems.
 
@@ -100,6 +107,7 @@ Color improves readability but should be used wisely.
 - avoid color in file logs unless explicitly needed  
 - reset themes when switching environments  
 - style dynamic levels for clarity  
+- remember themes map **level numbers**, not names
 
 Themes should enhance readability, not distract.
 
@@ -113,6 +121,7 @@ Dynamic levels add expressive power.
 - style them with themes  
 - avoid creating too many levels  
 - use them consistently across modules  
+- avoid overriding built‑in level numbers
 
 Dynamic levels should clarify, not complicate.
 
@@ -126,6 +135,7 @@ Auditing provides a global capture of all logs.
 - rotate audit logs with retention  
 - ensure audit directory is writable  
 - disable auditing during tests unless needed  
+- use `terminate_auditing()` to shut it down cleanly
 
 Auditing is ideal for compliance, debugging, and forensics.
 
@@ -134,11 +144,12 @@ Auditing is ideal for compliance, debugging, and forensics.
 ## Lifecycle Best Practices  
 Clean lifecycle management prevents leaks and corruption.
 
-- retire loggers when those are no longer useful
+- retire loggers when temporarily disabling them
 - destroy loggers when resetting configuration
 - flush async loggers before shutdown
 - use global shutdown at application exit
 - avoid creating many short‑lived loggers
+- recreate loggers only after destruction
 
 Lifecycle management keeps your logging system stable.
 
@@ -148,11 +159,13 @@ Lifecycle management keeps your logging system stable.
 Logging should be fast and predictable.
 
 - use async logging for high‑volume workloads  
-- avoid gradients in production  
 - minimize rotation frequency  
 - avoid attaching too many handlers  
 - prefer NDJSON over pretty JSON  
 - avoid extremely large structured fields  
+- avoid gradients in production
+- avoid logging inside micro‑loops
+- use SSDs for high‑volume logging
 
 These practices maximize throughput and minimize latency.
 
@@ -166,6 +179,7 @@ Logging should be test‑friendly.
 - disable auditing during tests  
 - use PLAIN mode for predictable output  
 - avoid async logging unless testing async behavior  
+- ensure hierarchy is recreated cleanly
 
 This ensures clean, reproducible test output.
 

@@ -57,6 +57,13 @@ This controls:
 - the order of fields  
 - how color is applied  
 - how exceptions and stack traces are shown  
+- strict validation of formatting rules  
+
+LogRecordDetails supports:
+
+- **simple mode** (no optional fields)  
+- **strict mode** (inline optional fields + message_parts_order)  
+- **diagnostics‑only** (exc_info / stack_info)  
 
 It is the backbone of LogSmith’s formatting system.
 
@@ -97,6 +104,8 @@ A logger may have:
 
 Handlers never propagate upward unless auditing is enabled.
 
+Duplicate file handlers are prevented process‑wide via a global registry.
+
 ---
 
 ## 🔹 Rotation Logic  
@@ -120,12 +129,10 @@ Rotation triggers when **either** condition is met:
 
 Rotation is:
 
-- thread‑safe  
-- process‑safe  
+- thread‑safe and process‑safe (sync engine)  
+- async‑scheduled and non‑blocking (async engine)  
 - atomic  
 - predictable  
-
-AsyncSmartLogger schedules rotation in its worker thread.
 
 ---
 
@@ -160,7 +167,7 @@ JSON / NDJSON output:
 ```json
 {
   "message": "User login",
-  "fields": {
+  "named_args": {
     "username": "Gilad",
     "action": "login"
   }
@@ -186,7 +193,7 @@ Example:
 ```python
 from LogSmith import CPrint, GradientPalette
 
-logger.raw(CPrint.gradient("Hello", fg_codes = GradientPalette.RAINBOW))
+logger.raw(CPrint.gradient("Hello", fg_codes=GradientPalette.RAINBOW))
 ```
 
 ---
@@ -211,7 +218,7 @@ SmartLogger.register_level("NOTICE", 25)
 logger.notice("Hello")
 ```
 
-Dynamic levels automatically become logger methods.
+Dynamic levels automatically become logger methods in both sync and async engines.
 
 ---
 
@@ -229,8 +236,10 @@ Rules:
 - A logger with level NOTSET inherits from its parent  
 - Handlers do **not** propagate unless auditing is enabled  
 - Each logger manages its own handlers independently  
+- **Ancestors must exist and must be the same logger type**  
+- **Mixed‑type hierarchies are rejected**  
 
-This keeps large applications organized.
+This prevents subtle bugs and keeps large applications organized.
 
 ---
 
@@ -246,6 +255,7 @@ Auditing:
 - enables propagation  
 - uses AuditFormatter  
 - supports rotation  
+- preserves ANSI  
 - can be disabled cleanly  
 
 AsyncSmartLogger has its own async auditing system.
@@ -278,6 +288,8 @@ AsyncSmartLogger uses:
 - ordered delivery  
 - async rotation scheduling  
 - synchronized printing via `a_stdout()`  
+- safe backpressure handling  
+- clean shutdown via `flush()`  
 
 This keeps your event loop clean and responsive.
 
@@ -289,7 +301,8 @@ Loggers can be:
 - **retired** — handlers closed, logger disabled  
 - **destroyed** — removed from the logging system entirely  
 
-This allows clean recreation of loggers with the same name.
+Retired or destroyed loggers cannot be used again.  
+A destroyed logger’s name becomes available for reuse.
 
 ---
 
@@ -306,3 +319,4 @@ These concepts form the foundation of LogSmith:
 - auditing  
 - predictable hierarchy  
 - raw output  
+- clean lifecycle management  

@@ -22,6 +22,8 @@ AsyncSmartLogger solves all of these with:
 - async rotation scheduling  
 - safe shutdown via `flush()`  
 - synchronized printing via `a_stdout()`  
+- strict hierarchy validation  
+- duplicate‑handler prevention  
 
 ---
 
@@ -35,6 +37,12 @@ levels = AsyncSmartLogger.levels()
 logger = AsyncSmartLogger("demo.async", level = levels["INFO"])
 logger.add_console()
 ```
+
+Hierarchy rules apply:
+
+- ancestors must exist  
+- ancestors must be AsyncSmartLogger instances  
+- mixed‑type hierarchies are rejected  
 
 You can start logging immediately.
 
@@ -65,11 +73,11 @@ The worker task handles formatting and output.
 ## 🔹 Ordering Guarantees
 AsyncSmartLogger guarantees:
 
-- **FIFO ordering** for all log events  
-- **per‑logger ordering** even across tasks  
-- **no interleaving** between tasks  
+- **FIFO ordering per logger**  
+- **ordering preserved across tasks using the same logger**  
+- **no interleaving** between tasks for that logger  
 
-This is critical for debugging async systems.
+Each logger has its own queue and worker.
 
 ---
 
@@ -82,7 +90,13 @@ Internally, AsyncSmartLogger runs a worker task that:
 - performs rotation checks  
 - flushes on shutdown  
 
-You never interact with the worker directly — it is managed automatically.
+The worker:
+
+- starts lazily when the first log is enqueued  
+- auto‑starts only when running inside the logger’s event loop  
+- is thread‑safe when scheduling rotation from external threads  
+
+You never interact with the worker directly.
 
 ---
 
@@ -97,14 +111,27 @@ This ensures:
 
 - all queued logs are written  
 - rotation is completed  
-- file handles are closed cleanly  
+- file handles are flushed  
 
-If you forget, LogSmith attempts a best‑effort flush during garbage collection, but explicit flushing is recommended.
+To fully shut down the logger:
+
+```python
+await logger.shutdown()
+```
+
+Shutdown:
+
+- flushes  
+- cancels worker tasks  
+- closes handlers  
+- drains the queue  
+
+A retired or destroyed logger cannot be used again.
 
 ---
 
 ## 🔹 Adding Handlers
-AsyncSmartLogger supports the same handlers as SmartLogger:
+AsyncSmartLogger supports the same handler types as SmartLogger, with async‑aware rotation.
 
 ### Console handler
 
@@ -116,10 +143,14 @@ logger.add_console()
 
 ```python
 logger.add_file(
-    log_dir      = "logs",
+    log_dir = "/absolute/normalized/path",
     logfile_name = "async.log",
 )
 ```
+
+**Important:**  
+`log_dir` must be a normalized absolute path.  
+Relative or non‑normalized paths raise an error.
 
 ### JSON / NDJSON
 
@@ -143,6 +174,8 @@ logger.add_file(
 
 Rotation is handled in the worker thread, not the event loop.
 
+Duplicate file handlers are prevented process‑wide.
+
 ---
 
 ## 🔹 a_stdout(): Synchronized Printing
@@ -151,9 +184,7 @@ Mixing `print()` with logging causes interleaving.
 AsyncSmartLogger provides a synchronized print replacement:
 
 ```python
-from LogSmith import a_stdout
-
-await a_stdout("This prints in sync with async logs")
+await logger.a_stdout("This prints in sync with async logs")
 ```
 
 This ensures:
@@ -161,6 +192,8 @@ This ensures:
 - no interleaving  
 - consistent ordering  
 - clean and sensible console output  
+
+If no console handler exists, `a_stdout()` falls back to normal printing.
 
 ---
 
@@ -177,6 +210,8 @@ These fields appear in:
 - file output  
 - JSON  
 - NDJSON  
+
+They are stored under `named_args` in structured formats.
 
 ---
 
@@ -198,6 +233,8 @@ Output includes:
 - traceback  
 - structured fields  
 
+Stack traces (`stack_info=True`) are also supported.
+
 ---
 
 ## 🔹 Async Rotation
@@ -207,6 +244,7 @@ Rotation is fully async‑aware:
 - file operations run in a thread pool  
 - no blocking of the event loop  
 - ordering is preserved  
+- per‑handler debounce prevents redundant rotations  
 
 Example:
 
@@ -214,9 +252,9 @@ Example:
 rotation = RotationLogic(maxBytes=100_000, backupCount=5)
 
 logger.add_file(
-    log_dir="logs",
-    logfile_name="async_rotating.log",
-    rotation_logic=rotation,
+    log_dir = "/logs",
+    logfile_name = "async_rotating.log",
+    rotation_logic = rotation,
 )
 ```
 
@@ -232,9 +270,10 @@ AsyncSmartLogger is optimized for:
 
 Typical performance:
 
-- enqueue cost: ~0.1–0.3 µs  
+- enqueue cost: extremely low  
 - worker throughput: thousands of logs/sec  
 - rotation overhead: offloaded to threads  
+- backpressure: minimal exponential retry  
 
 ---
 
@@ -261,12 +300,14 @@ Both loggers share the same API and formatting model.
 AsyncSmartLogger provides:
 
 - async logging methods (`a_info`, `a_error`, etc.)  
-- FIFO ordering  
+- FIFO ordering per logger  
 - non‑blocking behavior  
 - async rotation  
 - structured fields  
 - JSON / NDJSON support  
 - synchronized printing (`a_stdout`)  
-- safe shutdown via `flush()`  
+- safe shutdown via `flush()` and `shutdown()`  
+- strict hierarchy validation  
+- duplicate‑handler prevention  
 
 The next chapter covers **Rotation & Retention** in depth — including hybrid rotation, expiration rules, timestamp anchors, and concurrency guarantees.

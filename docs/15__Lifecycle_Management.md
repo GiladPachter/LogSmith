@@ -20,6 +20,7 @@ LogSmith provides explicit lifecycle operations to handle all of these safely.
 ---
 
 ## 🏗️ Logger Creation
+
 Creating a logger is straightforward:
 
 ```python
@@ -28,7 +29,13 @@ from LogSmith import SmartLogger
 logger = SmartLogger("myapp.module", level=20)
 ```
 
-Loggers are created on demand. If a logger with the same name already exists, LogSmith returns the existing instance unless it has been destroyed.
+Hierarchy rules apply:
+
+- parent loggers must already exist  
+- parent and child must be the same logger type (sync or async)  
+- duplicate creation is not allowed  
+
+If a logger with the same name already exists and is **not destroyed**, LogSmith raises an error.
 
 Async version:
 
@@ -46,10 +53,17 @@ Loggers are singletons by name:
 
 ```python
 a = SmartLogger("myapp.api")
-b = SmartLogger("myapp.api")    # Error!
+b = SmartLogger("myapp.api")    # raises an error
 ```
 
-This ensures consistent configuration across your application and prevents accidental duplication of handlers or state.
+A logger name becomes reusable **only after destruction**:
+
+```python
+logger.destroy()
+logger = SmartLogger("myapp.api")  # brand new logger
+```
+
+Retired loggers cannot be recreated — they still exist in the registry.
 
 ---
 
@@ -67,6 +81,7 @@ Retirement:
 - flushes pending writes  
 - disables logging methods  
 - preserves the logger object for inspection  
+- keeps the logger in the registry  
 
 A retired logger cannot log until reconfigured.
 
@@ -83,7 +98,9 @@ logger.destroy()
 Destruction:
 
 - closes handlers  
+- flushes pending writes  
 - removes the logger from the registry  
+- re‑parents children to the root logger  
 - frees memory  
 - allows clean recreation with the same name  
 
@@ -110,12 +127,13 @@ This is useful in test suites, dynamic plugin systems, and long‑running servic
 ---
 
 ## 🧹 Handler Shutdown
+
 Handlers are closed automatically when:
 
 - a logger is retired  
 - a logger is destroyed  
 - the application exits cleanly  
-- auditing is stopped  
+- auditing is terminated  
 
 Closing a handler:
 
@@ -145,10 +163,14 @@ Flushing ensures that:
 Destroying an async logger:
 
 ```python
-logger.destroy()
+await logger.destroy()
 ```
 
-This removes the logger from the registry after safely shutting down its worker.
+This:
+
+- flushes  
+- shuts down the worker  
+- removes the logger from the registry
 
 ---
 
@@ -172,8 +194,8 @@ Global shutdown:
 
 - flushes all handlers  
 - closes all files  
-- stops auditing  
-- terminates async workers  
+- terminates auditing  
+- shuts down async workers  
 - clears the logger registry  
 
 This is ideal for application exit or test teardown.
@@ -186,25 +208,26 @@ You can reconfigure a logger at any time:
 
 ```python
 logger.setLevel(10)
-logger.clear_handlers()
+logger.remove_console()
 logger.add_console()
 logger.add_file(log_dir="logs", logfile_name="new.log")
 ```
 
-Reconfiguration is safe and atomic. Loggers can be reshaped dynamically without restarting the application.
+Reconfiguration is safe and atomic.<br/>
+Loggers can be reshaped dynamically without restarting the application.
 
 ---
 
 ## 🗑️ Clearing Handlers
 
-Remove all handlers from a logger:
+Remove handlers individually:
 
 ```python
 logger.remove_console()
-logger.remove_file_handler(logfile_name, log_dir)
+logger.remove_file_handler(logfile_name = "old.log", log_dir = "logs")
 ```
 
-This does not disable the logger — it simply removes one of its output channels.
+This does not disable the logger — it simply removes output channels.
 
 ---
 
@@ -213,20 +236,21 @@ This does not disable the logger — it simply removes one of its output channel
 You can inspect a logger’s state:
 
 ```python
-print(logger.handler_info())
-print(logger.console_handler())
-print(logger.file_handlers())
+print(logger.handler_info)
+print(logger.console_handler)
+print(logger.file_handlers)
 ```
 
 This returns:
 
-- name  
+- logger name  
 - level  
-- formatter type name
+- formatter type
 - rotation settings  
 - output modes  
 - theme state  
 - async queue status (for async loggers)  
+- handler paths and configuration  
 
 Introspection is essential for debugging and diagnosing configuration issues.
 
@@ -234,8 +258,10 @@ Introspection is essential for debugging and diagnosing configuration issues.
 
 ## 🧵 Lifecycle in Multi‑Process Environments
 
-Each process has its own logger registry.<br/>
+Each process has its own logger registry.  
 Destroying a logger in one process does not affect others.
+
+File handlers remain concurrency‑safe across processes (with Windows limitations).
 
 ---
 

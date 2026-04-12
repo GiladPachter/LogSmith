@@ -39,6 +39,8 @@ SmartLogger.apply_color_theme(DARK_THEME)
 
 All console handlers created afterward use the new theme automatically.
 
+Themes map **log level numbers** (e.g., 5, 10, 20, 30…) to `LevelStyle` objects.
+
 ---
 
 ## 🧩 LevelStyle — The Building Block
@@ -47,7 +49,7 @@ Each log level is styled using a `LevelStyle` object. It defines:
 
 - foreground color  
 - background color  
-- intensity (bold, dim)  
+- intensity (bold, dim, normal)  
 - text styles (underline, italic, strike)  
 
 Example:
@@ -56,30 +58,36 @@ Example:
 from LogSmith import LevelStyle, CPrint
 
 style = LevelStyle(
-    fg   = CPrint.FG.BRIGHT_MAGENTA,
-    bg   = CPrint.BG.BLACK,
-    bold = True,
+    fg = CPrint.FG.BRIGHT_MAGENTA,
+    bg = CPrint.BG.BLACK,
+    intensity = CPrint.Intensity.BOLD,
+    styles = (CPrint.Style.UNDERLINE,),
 )
 ```
 
-Themes are dictionaries mapping level names to `LevelStyle` objects.
+Themes are dictionaries mapping **level numbers** to `LevelStyle` objects.
 
 ---
 
 ## 🏗️ Creating a Custom Theme
 
-A theme is simply a dictionary mapping level names to styles:
+A theme is simply a dictionary mapping level numbers to styles:
 
 ```python
 from LogSmith import LevelStyle, CPrint
 
 MY_THEME = {
-    "TRACE":    LevelStyle(fg = CPrint.FG.CYAN),
-    "DEBUG":    LevelStyle(fg = CPrint.FG.BLUE),
-    "INFO":     LevelStyle(fg = CPrint.FG.GREEN),
-    "WARNING":  LevelStyle(fg = CPrint.FG.YELLOW),
-    "ERROR":    LevelStyle(fg = CPrint.FG.RED),
-    "CRITICAL": LevelStyle(fg = CPrint.FG.WHITE, bg = CPrint.BG.RED, bold = True),
+    5:  LevelStyle(fg = CPrint.FG.CYAN),
+    10: LevelStyle(fg = CPrint.FG.BLUE),
+    20: LevelStyle(fg = CPrint.FG.GREEN),
+    30: LevelStyle(fg = CPrint.FG.YELLOW),
+    40: LevelStyle(fg = CPrint.FG.RED),
+    50: LevelStyle(
+            fg = CPrint.FG.WHITE,
+            bg = CPrint.BG.RED,
+            intensity = CPrint.Intensity.BOLD,
+            styles = (CPrint.Style.UNDERLINE,),
+        ),
 }
 ```
 
@@ -109,7 +117,11 @@ Example:
 ```python
 from LogSmith import CPrint
 
-text = CPrint.colorize("Hello", fg = CPrint.FG.BRIGHT_GREEN, bold = True)
+text = CPrint.colorize(
+    "Hello",
+    fg = CPrint.FG.BRIGHT_GREEN,
+    intensity = CPrint.Intensity.BOLD,
+)
 logger.raw(text)
 ```
 
@@ -200,6 +212,7 @@ This produces fully colorized structured logs.
 ---
 
 ## Themes + Dynamic Levels  
+
 Dynamic levels automatically inherit theme colors if defined:
 
 ```python
@@ -213,7 +226,7 @@ MY_THEME["NOTICE"] = LevelStyle(fg = CPrint.FG.BRIGHT_MAGENTA)
 SmartLogger.apply_color_theme(MY_THEME)
 ```
 
-If a dynamic level is not defined in the theme, it is unaffected by the applied theme.
+If a dynamic level is not defined in the theme, it uses its default style.
 
 ---
 

@@ -68,7 +68,7 @@ logger.info("User login", username="Gilad", action="login")
 NDJSON output:
 
 ```
-{"timestamp":"...","level":"INFO","message":"User login","fields":{"username":"Gilad","action":"login"}}
+{"timestamp":"...","level":"INFO","message":"User login","named_args":{"username":"Gilad","action":"login"}}
 ```
 
 ---
@@ -80,20 +80,20 @@ A fully customized structured format.
 from LogSmith import LogRecordDetails, OptionalRecordFields
 
 details = LogRecordDetails(
-    datefmt="%Y-%m-%d %H:%M:%S",
-    separator="•",
-    optional_record_fields=OptionalRecordFields(
-        logger_name=True,
-        lineno=True,
+    datefmt = "%Y-%m-%d %H:%M:%S",
+    separator = "•",
+    optional_record_fields = OptionalRecordFields(
+        logger_name = True,
+        lineno = True,
     ),
-    message_parts_order=[
+    message_parts_order  =[
         "level",
         "logger_name",
         "lineno",
     ],
 )
 
-logger.add_console(log_record_details=details)
+logger.add_console(log_record_details = details)
 ```
 
 ---
@@ -116,8 +116,11 @@ Define your own color scheme.
 from LogSmith import LevelStyle, CPrint, SmartLogger
 
 MY_THEME = {
-    "INFO": LevelStyle(fg=CPrint.FG.BRIGHT_GREEN),
-    "ERROR": LevelStyle(fg=CPrint.FG.BRIGHT_RED, bold=True),
+    20: LevelStyle(fg = CPrint.FG.BRIGHT_GREEN),  # INFO
+    40: LevelStyle(                             # ERROR
+        fg = CPrint.FG.BRIGHT_RED,
+        intensity = CPrint.Intensity.BOLD,
+    ),
 }
 
 SmartLogger.apply_color_theme(MY_THEME)
@@ -132,12 +135,23 @@ Add a new level and use it immediately.
 from LogSmith import SmartLogger
 
 SmartLogger.register_level("NOTICE", 25)
-. . .
-SmartLogger.register_level(
-    name="NOTICE",
-    value=25,
-    style=LevelStyle(fg=CPrint.FG.BRIGHT_MAGENTA, intensity=CPrint.Intensity.BOLD),
-)
+
+logger.notice("This is a NOTICE message")
+```
+
+To style it:
+
+```python
+from LogSmith import LevelStyle, CPrint
+
+MY_THEME = {
+    25: LevelStyle(
+        fg = CPrint.FG.BRIGHT_MAGENTA,
+        intensity = CPrint.Intensity.BOLD,
+    )
+}
+
+SmartLogger.apply_color_theme(MY_THEME)
 ```
 
 ---
@@ -148,7 +162,7 @@ Non‑blocking logging for asyncio applications.
 ```python
 from LogSmith import AsyncSmartLogger
 
-logger = AsyncSmartLogger("async.demo", level=20)
+logger = AsyncSmartLogger("async.demo", level = 20)
 logger.add_console()
 
 await logger.a_info("Async message")
@@ -162,27 +176,25 @@ Async rotation runs in a worker thread.
 
 ```python
 from LogSmith import AsyncSmartLogger, RotationLogic
+from pathlib import Path
 
-logger = AsyncSmartLogger("async.service", level=20)
+logger = AsyncSmartLogger("async.service", level = 20)
 
 logger.add_file(
-    log_dir="logs",
-    logfile_name="async.log",
-    rotation_logic=RotationLogic(maxBytes=50_000),
+    log_dir = str(Path("logs").resolve()),
+    logfile_name = "async.log",
+    rotation_logic = RotationLogic(maxBytes = 50_000),
 )
 ```
 
 ---
 
-## Printing with Sync & Async logging
+## Printing with Sync & Async Logging  
 Prevent interleaving between print() and log messages in console.
 
 ```python
-from LogSmith import stdout
-from LogSmith import a_stdout
-
-stdout("This prints in sync with SmartLogger logs")
-await a_stdout("This prints in sync with AsyncSmartLogger logs")
+logger.stdout("This prints in sync with SmartLogger logs")
+await logger.a_stdout("This prints in sync with AsyncSmartLogger logs")
 ```
 
 ---
@@ -194,29 +206,27 @@ Capture all logs from all loggers into a unified audit file.
 from LogSmith import SmartLogger
 
 SmartLogger.audit_everything(
-    log_dir="audit",
-    logfile_name="audit.log",
+    log_dir = "audit",
+    logfile_name = "audit.log",
 )
 ```
 
 ---
 
-## Log-Level propagation to multiple logger from ancestor logger
-Set parent level to apply to self + all descendants
+## Log-Level Propagation from Parent Logger  
+Set parent level to apply to self + all descendants.
 
 ```python
 levels = SmartLogger.levels()
 
-# root logger
 root = SmartLogger("myapp", levels["DEBUG"])
 root.add_console()
 
-# module loggers
 api = SmartLogger("myapp.api", levels["NOTSET"])
-api.add_file(log_dir="logs", logfile_name="api.log")
+api.add_file(log_dir="logs", logfile_name = "api.log")
 
 users = SmartLogger("myapp.api.users", levels["NOTSET"])
-users.add_file(log_dir="logs", logfile_name="users.log")
+users.add_file(log_dir="logs", logfile_name = "users.log")
 ```
 
 ---
@@ -228,7 +238,11 @@ Structured exception output.
 try:
     risky_operation()
 except Exception:
-    logger.error("Operation failed", operation="risky_operation", exc_info = True)
+    logger.error(
+        "Operation failed",
+        operation = "risky_operation",
+        exc_info = True,
+    )
 ```
 
 ---
@@ -241,26 +255,27 @@ from LogSmith import CPrint, GradientPalette
 
 logger.raw(CPrint.gradient(
     "WELCOME",
-    fg_codes=GradientPalette.RAINBOW
+    fg_codes = GradientPalette.RAINBOW
 ))
 ```
 
 ---
 
-## Retiring / Destroying a logger
-Decommission a logger name
+## Retiring / Destroying a Logger
+Decommission a logger name.
 
-The following call renders a logger no longer functional and makes logger.name unavailable.
 ```python
-logger.retire()
+logger.retire()   # disables the logger but keeps the name reserved
 ```
-A retired logger cannot be salvaged.
 
-To release all the retired logger's resources and make logger.name available once more call: 
+A retired logger cannot be reused.
+
+To release the name:
 
 ```python
 logger.destroy()
 ```
+
 Destroying a logger does not require retiring it beforehand.
 
 ---

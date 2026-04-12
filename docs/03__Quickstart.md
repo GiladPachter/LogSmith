@@ -33,7 +33,7 @@ Nothing else is required.
 AsyncSmartLogger is designed for asyncio applications, servers, bots, and pipelines.
 
 ```python
-from LogSmith import AsyncSmartLogger, a_stdout
+from LogSmith import AsyncSmartLogger
 import asyncio
 
 async def main():
@@ -53,6 +53,7 @@ AsyncSmartLogger guarantees:
 - non‑blocking behavior  
 - async rotation scheduling  
 - clean shutdown via `flush()`  
+- synchronized console output via `a_stdout()`  
 
 ---
 
@@ -81,6 +82,8 @@ This creates:
 - automatic rotation (size OR time)  
 - up to 5 rotated files  
 
+Rotation is concurrency‑safe in SmartLogger and async‑scheduled in AsyncSmartLogger.
+
 ---
 
 ## 🔹 Structured Fields (Named Arguments)
@@ -102,12 +105,14 @@ JSON / NDJSON output includes:
 ```json
 {
   "message": "User login",
-  "fields": {
+  "named_args": {
     "username": "Gilad",
     "action": "login"
   }
 }
 ```
+
+Structured fields work identically in sync and async loggers.
 
 ---
 
@@ -130,7 +135,7 @@ logger.add_file(
 - Console → pretty JSON  
 - File → compact NDJSON (one JSON object per line)  
 
-Perfect for ingestion pipelines.
+Perfect for ingestion pipelines and log processors.
 
 ---
 
@@ -151,6 +156,8 @@ Use raw output for:
 - gradient art  
 - debugging dumps  
 
+SmartLogger sanitizes ANSI for file handlers unless `preserve_colors_in_log_files=True`.
+
 ---
 
 ## 🔹 Dynamic Log Levels
@@ -158,7 +165,7 @@ Use raw output for:
 Add new levels at runtime:
 
 ```python
-from LogSmith import LevelStyle, CPrint
+from LogSmith import LevelStyle, CPrint, SmartLogger
 
 SmartLogger.register_level(
     name  = "NOTICE",
@@ -169,7 +176,7 @@ SmartLogger.register_level(
 logger.notice("This is a NOTICE message")
 ```
 
-Dynamic levels automatically become logger methods.
+Dynamic levels automatically become logger methods in both sync and async engines.
 
 ---
 
@@ -178,7 +185,7 @@ Dynamic levels automatically become logger methods.
 Apply a built‑in theme:
 
 ```python
-from LogSmith import DARK_THEME
+from LogSmith import DARK_THEME, SmartLogger
 
 SmartLogger.apply_color_theme(DARK_THEME)
 logger.info("Dark theme activated!")
@@ -190,11 +197,11 @@ Themes affect only console output.
 
 ## 🔹 Sync / Async Printing (stdout / a_stdout)
 
-SmartLogger and AsyncSmartLogger includes a synchronized print() wrappers:
+SmartLogger and AsyncSmartLogger include synchronized print wrappers:
 
 ```python
-stdout("This prints in sync with SmartLogger logs")
-await a_stdout("This prints in sync with AsyncSmartLogger logs")
+logger.stdout("This prints in sync with SmartLogger logs")
+await logger.a_stdout("This prints in sync with AsyncSmartLogger logs")
 ```
 
 This prevents interleaving between print() and console logs.
@@ -212,3 +219,4 @@ You now know how to:
 - output raw ANSI text  
 - register dynamic levels  
 - apply themes  
+- print in sync with logging output  

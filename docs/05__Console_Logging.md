@@ -21,6 +21,8 @@ This gives you:
 
 No global configuration, no format strings.
 
+LogSmith prevents duplicate console handlers automatically.
+
 ---
 
 ## 🔹 Basic Console Output  
@@ -97,6 +99,13 @@ logger.add_console(level = levels["TRACE"], log_record_details = details)
 
 This produces a fully colorized, structured entry.
 
+Strict formatting rules apply:
+
+- `timestamp` and `message` must **not** appear in `message_parts_order`  
+- `level` must appear **exactly once**  
+- enabled optional fields must appear exactly once  
+- disabled optional fields must not appear  
+
 ---
 
 ## 🔹 Named Arguments (Structured Fields)  
@@ -112,7 +121,19 @@ Console output:
 … • INFO • User login {username = 'Gilad', action = 'login'}
 ```
 
-These fields also appear in JSON / NDJSON output.
+JSON / NDJSON output:
+
+```json
+{
+  "message": "User login",
+  "named_args": {
+    "username": "Gilad",
+    "action": "login"
+  }
+}
+```
+
+Structured fields work identically in sync and async loggers.
 
 ---
 
@@ -126,7 +147,7 @@ logger.raw("This is raw text")
 Raw output:
 
 - preserves ANSI colors  
-- does not include timestamp, level, named arguments or diagnostics (specified later on)
+- does **not** include timestamp, level, metadata, or structured fields  
 - is ideal for banners, headers, and gradient art  
 
 Example:
@@ -136,6 +157,9 @@ from LogSmith import CPrint
 
 logger.raw(CPrint.colorize("RAW colored text", fg = CPrint.FG.BRIGHT_RED))
 ```
+
+SmartLogger sanitizes ANSI for file handlers unless `preserve_colors_in_log_files=True`.  
+Console handlers always preserve ANSI.
 
 ---
 
@@ -151,7 +175,7 @@ logger.raw(CPrint.gradient(
 ))
 ```
 
-Out-of-the-box gradient styles:
+Out‑of‑the‑box gradient features:
 
 - foreground gradients  
 - background gradients  
@@ -206,9 +230,10 @@ This is great for debugging or piping logs into tools.
 ---
 
 ## 🔹 Handler Introspection  
-You can inspect `logger.console_handler` to access metadata that describes a logger's console handler.
+You can inspect `logger.console_handler` to access metadata describing the console handler.
 
 This returns a clean dictionary describing:
+
 - handler type
 - level
 - formatter  
@@ -217,16 +242,21 @@ This returns a clean dictionary describing:
 ---
 
 ## 🔹 stdout(): Synchronized Printing
-Python's built-in `print()` interleaves output and does not synchronize with logging.
-LogSmith provides a synchronized replacement.
+Python's built‑in `print()` interleaves output and does not synchronize with logging.<br/>
+LogSmith provides a synchronized replacement:
 
 ```python
-from LogSmith import SmartLogger, stdout
+logger.stdout("This prints in sync with SmartLogger logs")
+```
 
-stdout("This prints in sync with SmartLogger logs")
+AsyncSmartLogger provides:
+
+```python
+await logger.a_stdout("This prints in sync with AsyncSmartLogger logs")
 ```
 
 This ensures:
+
 - no interleaving  
 - consistent ordering  
 - clean and sensible console output  

@@ -52,6 +52,7 @@ Offloads all I/O to a background worker. Benefits include:
 - smoother throughput  
 - better CPU utilization  
 - safe rotation under load  
+- reduced lock contention
 
 Recommended for:
 
@@ -69,19 +70,19 @@ Different handlers have different costs:
 - **Console handler** — fastest  
 - **File handler** — fast, depends on disk  
 - **NDJSON handler** — moderate  
-- **JSON handler** — moderate to high  
-- **Audit handler** — moderate to high  
+- **JSON handler** — moderate to high (pretty printing is expensive)
+- **Audit handler** — moderate  
 - **Raw handler** — fast, minimal processing  
 
 Most expensive operations:
 
 - JSON encoding  
-- NDJSON generation  
+- NDJSON serialization
 - rotation under heavy load  
 
 For maximum throughput:
 
-- prefer NDJSON over JSON  
+- prefer NDJSON over pretty JSON
 - avoid deep structured fields  
 - avoid large multi‑line messages  
 - use async logging for file handlers  
@@ -96,7 +97,7 @@ Formatter overhead grows with:
 - deep structured fields  
 - exception formatting  
 - stack trace extraction  
-- theme rendering  
+- theme rendering (small cost)
 
 Exception formatting is the single most expensive operation in the pipeline.
 
@@ -116,7 +117,7 @@ Each field must be sanitized, merged, and serialized.
 Example:
 
 ```python
-logger.info("User login", username="Gilad", roles=["admin", "editor"])
+logger.info("User login", username = "Gilad", roles = ["admin", "editor"])
 ```
 
 For high‑volume systems:
@@ -141,7 +142,13 @@ To optimize:
 - use SSDs instead of HDDs  
 - avoid rotating many loggers simultaneously  
 
-Async rotation uses a thread pool to ensure rotation does not block the main worker.
+Async rotation uses:
+
+- `asyncio.to_thread()` for file operations  
+- a per‑handler debounce flag  
+- non‑blocking scheduling  
+
+This ensures rotation does not block the event loop.
 
 ---
 
@@ -195,12 +202,11 @@ LogSmith supports multi‑process logging with important caveats:
 - rotation is atomic  
 - retention is safe  
 
-File handlers use OS-level locks to ensure safe writes.
-Contention increases when multiple processes write to the same file
-On Linux, fcntl locks are efficient, but Windows file locks are more restrictive and a lot more challenging.
-LogSmith intentionally does not support multiple processes writing to the same base file on Windows.
+File handlers use OS‑level locks to ensure safe writes.
 
-For multi‑process apps:
+On Windows, multiple processes writing to the same base file is **not supported**.
+
+Recommended pattern:
 
 ```
 logs/app_worker_1.log
@@ -219,6 +225,8 @@ Gradients are slower due to per‑character ANSI generation.
 - **Gradients** — 5–20× slower, still fine for banners or occasional use  
 - Not recommended for high‑volume logs  
 
+Gradients only affect **raw output**, not structured logs.
+
 ---
 
 ## 🧮 Memory Usage
@@ -232,18 +240,21 @@ LogSmith is lightweight:
 
 Async queue memory usage depends on backlog size.
 
+Large backlogs increase memory usage but do not affect correctness.
+
 ---
 
 ## 🧠 Best Practices
 
 - use async logging for high‑volume workloads  
-- minimize rotation frequency (by using smart time/size based rotation rules)  
+- minimize rotation frequency
 - avoid logging large objects or payloads  
 - prefer NDJSON over indented JSON for ingestion pipelines  
 - avoid excessive structured fields  
 - avoid multi‑process writes to the same file on Windows  
 - use gradients sparingly in log files  
 - flush async loggers before shutdown  
+- use SSDs for high‑volume logging
 
 ---
 

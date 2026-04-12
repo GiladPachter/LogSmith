@@ -6,14 +6,17 @@ LogSmith is intentionally lightweight:
 - **No external dependencies**
 - **ANSI‑capable terminal** (for color output)
 - **Standard OS file system** (for rotation and retention)
-- **fcntl** (Unix) or **msvcrt** (Windows) for concurrency‑safe rotation
+- **fcntl** (Unix) or **msvcrt** (Windows) for concurrency‑safe rotation in the sync engine  
+- **Async rotation scheduling** (no OS locking required) in the async engine
 
-If your terminal supports ANSI colors, LogSmith will automatically detect it. If not, it gracefully falls back to plain output.
+If your terminal supports ANSI colors, LogSmith will automatically detect it.  
+If not, it gracefully falls back to plain output.
 
 ---
 
 # 🔧 Installation & Setup  
-LogSmith is pure Python, dependency‑free, and works on all major platforms. This chapter walks you through installing it, verifying your environment, and understanding the minimal setup needed before creating your first logger.
+LogSmith is pure Python, dependency‑free, and works on all major platforms.<br/>
+This chapter walks you through installing it, verifying your environment, and understanding the minimal setup needed before creating your first logger.
 
 ---
 
@@ -60,7 +63,7 @@ python tools/build_wheel.py
 The resulting file appears under `dist/`, for example:
 
 ```
-dist/logsmith-1.8.0-py3-none-any.whl
+dist/logsmith-1.9.7-py3-none-any.whl
 ```
 
 ---
@@ -96,9 +99,8 @@ This structure ensures:
 - **Core logic is isolated** in `LogSmith/`
 - **Demonstrations are complete and runnable** in `examples/`
 - **Packaging is clean** via `pyproject.toml`
-- **No external dependencies** &nbsp; — &nbsp; everything is pure Python
+- **No external dependencies** — everything is pure Python
 
-<br/>
 You can run any example directly:
 
 ```
@@ -107,7 +109,7 @@ python examples/01_basic_logging.py
 
 ---
 
-## 🔹 Initialization Requirements - None
+## 🔹 Initialization Requirements — None
 
 ### SmartLogger (sync)
 
@@ -156,12 +158,14 @@ python -m pylint.pyreverse.main -o png -p MyProject .
 ## 🔹 Platform Notes
 
 ### Linux & macOS
-- Uses `fcntl` for concurrency‑safe rotation  
+- Sync rotation uses `fcntl` for concurrency‑safe locking  
+- Async rotation uses LogSmith’s async scheduler (no OS locking)  
 - Fully supports ANSI colors  
-- Ideal for multi‑process logging
+- Ideal for multi‑process logging (per‑process files)
 
 ### Windows
-- Uses `msvcrt` for rotation locking  
+- Sync rotation uses `msvcrt` for locking  
+- Async rotation uses LogSmith’s async scheduler  
 - ANSI colors supported in modern terminals (Windows Terminal, VSCode, PyCharm)
 
 ### WSL
@@ -177,3 +181,4 @@ python -m pylint.pyreverse.main -o png -p MyProject .
 - Works on all major platforms  
 - No dependencies  
 - Ready for both sync and async applications  
+- Rotation behavior is safe and predictable across OSes  

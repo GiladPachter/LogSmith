@@ -4,7 +4,7 @@ LogSmith includes built‑in diagnostics to help you understand how loggers beha
 
 ---
 
-## � Purpose of Diagnostics  
+## 💡 Purpose of Diagnostics  
 Diagnostics help you answer questions like:
 
 - Why isn’t this log appearing?  
@@ -14,6 +14,7 @@ Diagnostics help you answer questions like:
 - Are async logs being flushed?  
 - Is auditing enabled?
 - Are ANSI codes being sanitized?  
+- Is the hierarchy valid?
 
 LogSmith provides explicit tools to inspect and debug all of these.
 
@@ -24,9 +25,9 @@ LogSmith provides explicit tools to inspect and debug all of these.
 Every logger can describe itself:
 
 ```python
-print(logger.handler_info())
-print(logger.console_handler())
-print(logger.file_handlers())
+print(logger.handler_info)
+print(logger.console_handler)
+print(logger.file_handlers)
 ```
 
 This returns a structured dictionary containing:
@@ -39,8 +40,10 @@ This returns a structured dictionary containing:
 - rotation settings  
 - retention settings  
 - theme state  
+- ANSI sanitization mode
 - async queue status (for AsyncSmartLogger)  
 - auditing status  
+- hierarchy validity
 
 This is the single most useful debugging tool in LogSmith.
 
@@ -64,12 +67,14 @@ print(logger.file_handlers)
 
 Each handler reports:
 
-- path  
+- resolved file path  
 - output mode  
 - rotation logic  
 - retention policy  
 - sanitization settings  
 - formatter configuration  
+- whether colors are preserved
+- whether the handler is retired
 
 This makes it easy to detect misconfiguration or missing components.
 
@@ -98,7 +103,7 @@ This is essential when logs aren’t appearing due to level filtering.
 If logs aren’t showing up, inspect the logger:
 
 ```python
-logger.describe()
+print(logger.handler_info)
 ```
 
 Common issues:
@@ -108,6 +113,9 @@ Common issues:
 - logger level too high  
 - handler level too high  
 - auditing enabled but audit file not writable  
+- logger was retired
+- logger was destroyed
+- hierarchy invalid (parent missing or wrong type)
 
 Most logging issues come from handler misconfiguration rather than logger logic.
 
@@ -137,6 +145,8 @@ Common causes:
 - log directory not writable  
 - multiple processes writing to the same file on Windows  
 - async rotation not flushed before shutdown  
+- timestamp anchors misconfigured
+- hybrid rotation triggering earlier than expected
 
 Rotation debugging almost always comes down to configuration or filesystem permissions.
 
@@ -147,20 +157,23 @@ Rotation debugging almost always comes down to configuration or filesystem permi
 AsyncSmartLogger includes several diagnostics:
 
 ```python
-logger.describe()
+print(logger.handler_info)
 ```
 
 Async diagnostics include:
 
 - queue_size  
+- worker_alive
 - messages_processed
+- pending_flush
+- rotation_scheduled
 
 If logs appear out of order or not at all, check:
 
 - whether `await logger.flush()` was called  
 - whether the event loop is still running  
 - whether the worker task is alive  
-
+- whether the logger was destroyed prematurely
 
 Flush manually:
 
@@ -181,25 +194,41 @@ If console logs are not appearing:
 - ensure the logger level allows the message  
 - ensure the console stream is not redirected  
 - ensure ANSI sanitization is not stripping output  
-- Check the handler:
+- ensure the theme is applied correctly
 
+Use synchronized printing:
+
+### Sync
+
+```python
+logger.stdout("Hello")
+```
+
+### Async
+
+```python
+await logger.a_stdout("Hello")
+```
 
 ---
 
 ## ⚠️ Avoid using print()
-`print()` interleaves with both sync and async logs:
 
-When using Smartlogger, also import stdout() and just use like you would use print()
+`print()` interleaves with both sync and async logs.
 
-```python
-stdout(text)
-```
-
-When using AsyncSmartlogger, also import a_stdout() and use it as follows:
+Use:
 
 ```python
-await a_stdout(text)
+logger.stdout(text)
 ```
+
+or:
+
+```python
+await logger.a_stdout(text)
+```
+
+These guarantee ordering with log output.
 
 ---
 
@@ -207,11 +236,12 @@ await a_stdout(text)
 
 If JSON logs look malformed:
 
-- ensure `output_mode=OutputMode.NDJSON` when calling add_console() or add_file()
+- ensure `output_mode=OutputMode.NDJSON` or `OutputMode.JSON`
 - ensure ANSI sanitization is enabled (default)  
 - ensure raw output is not mixed with JSON output  
-- ensure structured fields (named arguments) are JSON‑serializable  
+- ensure structured fields (`named_args`) are JSON‑serializable
 - check for stray newline characters in messages  
+- ensure exceptions are serializable (LogSmith handles this automatically)
 
 NDJSON requires one JSON object per line — malformed entries usually come from raw output or non‑serializable fields.
 
@@ -219,18 +249,35 @@ NDJSON requires one JSON object per line — malformed entries usually come from
 
 ## 🎨 Debugging Theme Behavior
 
-There isn't really anything to do regarding debugging themes.
-call SmartLogger.apply_color_theme(...) or AsyncSmartLogger.apply_color_theme(...)
-Then immediately call all logging methods and verify the output colors in the console
+Themes are simple to debug:
 
 ```python
-logger.trace() / await logger.a_trace()
-logger.debug() / await logger.a_debug()
-logger.info() / await logger.a_info()
-logger.warning() / await logger.a_warning()
-logger.error() / await logger.a_error()
-logger.critical() / await logger.a_critical()
+SmartLogger.apply_color_theme(...)
 ```
+
+Then call:
+
+```python
+logger.trace()
+logger.debug()
+logger.info()
+logger.warning()
+logger.error()
+logger.critical()
+```
+
+Async:
+
+```python
+await logger.a_info()
+```
+
+If colors don’t appear:
+
+- ensure output mode is COLOR
+- ensure ANSI is not sanitized
+- ensure console supports ANSI
+- ensure theme maps level **numbers**, not names
 
 ---
 
@@ -243,26 +290,32 @@ If audit logs are missing:
 - check rotation settings  
 - check async audit worker status (async only)  
 
+Restart auditing:
+
+### Sync
+
 ```python
-SmartLogger.stop_auditing()
-SmartLogger.audit_everything(log_dir="audit", logfile_name="audit.log")
+SmartLogger.terminate_auditing()
+SmartLogger.audit_everything(log_dir = "audit", logfile_name = "audit.log")
 ```
 
-Async:
+### Async
 
 ```python
-await AsyncSmartLogger.stop_auditing()
-await AsyncSmartLogger.audit_everything(log_dir="audit", logfile_name="audit_async.log")
+await AsyncSmartLogger.terminate_auditing()
+await AsyncSmartLogger.audit_everything(log_dir = "audit", logfile_name = "audit_async.log")
 ```
 
 ---
 
 ## 🧵 Debugging Multi‑Process Behavior
+
 If logs are missing or corrupted:
 
-- ensure each process writes to its own base file (Windows)  
+- ensure each process writes to its own base file (Windows limitation)  
 - ensure directories exist  
 - ensure rotation is concurrency‑safe (it is by default)  
+- ensure file handlers are not duplicated across processes
 
 ---
 
@@ -275,6 +328,7 @@ If logging feels slow:
 - check if rotation is happening too frequently  
 - check if async queue is overloaded  
 - check if gradients or heavy ANSI output are used excessively  
+- check if auditing is enabled (adds overhead)
 
 Async logging usually improves performance dramatically.
 
@@ -291,7 +345,7 @@ Diagnostics in LogSmith provide tools to inspect:
 - JSON / NDJSON formatting  
 - theme behavior  
 - auditing state  
-- multi‑process safety  
+- hierarchy validity  
 - performance bottlenecks  
 
 These tools make it easy to understand why logs behave the way they do and how to fix issues quickly.

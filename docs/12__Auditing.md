@@ -23,13 +23,15 @@ Auditing is **opt‑in** and must be enabled explicitly.
 
 When auditing is enabled:
 
-1. All loggers propagate upward to the root audit logger.  
-2. The audit logger writes to a dedicated audit file.  
-3. The audit file uses a special `AuditFormatter`.  
-4. Rotation and retention apply normally.  
-5. Console handlers are unaffected unless you choose otherwise.  
+1. A dedicated audit handler is attached to the root logger.  
+2. All SmartLogger instances have propagation enabled.  
+3. Every log record flows into the audit handler.  
+4. The audit handler uses `AuditFormatter` for strict, structured output.  
+5. Rotation and retention apply normally.  
 
-Auditing does **not** modify existing handlers — it adds a new global sink.
+Auditing does **not** modify existing handlers — it adds a global sink.
+
+Console handlers remain unaffected unless you explicitly add them.
 
 ---
 
@@ -50,7 +52,7 @@ This:
 
 - creates `audit/audit.log`  
 - attaches a global audit handler  
-- enables propagation for all loggers  
+- enables propagation for all SmartLogger instances  
 - ensures every log entry flows into the audit file  
 
 You can still attach normal handlers to individual loggers.
@@ -64,22 +66,25 @@ AsyncSmartLogger includes an async‑aware auditing system:
 ```python
 from LogSmith import AsyncSmartLogger
 
-AsyncSmartLogger.audit_everything(
-    log_dir      = "audit",
-    logfile_name = "audit_async.log",
+await AsyncSmartLogger.audit_everything(
+    log_dir="audit",
+    logfile_name="audit_async.log",
 )
 ```
 
-This creates a dedicated async audit worker that:
+This creates a dedicated **AsyncSmartLogger audit logger** that:
 
 - receives all log events  
 - writes them in order  
 - performs rotation in a thread pool  
-- flushes cleanly on shutdown
+- flushes cleanly on shutdown  
+
+The audit logger has its own queue and worker.
 
 ---
 
 ## 🧾 Audit Formatter
+
 Audit logs use a special formatter optimized for:
 
 - machine parsing  
@@ -87,18 +92,25 @@ Audit logs use a special formatter optimized for:
 - security auditing  
 - ingestion pipelines  
 
+`AuditFormatter` wraps either:
+
+- `StructuredPlainFormatter` (default), or  
+- `StructuredNDJSONFormatter` (if `NDJSON_output=True`)  
+
 Audit entries include:
 
 - timestamp  
 - level  
 - logger name  
 - message  
-- structured fields  
-- file, line, and function  
+- structured fields (`named_args`)  
+- file path, file name, line number  
+- function name  
 - thread and process IDs  
 - exception information  
+- stack info (if enabled)  
 
-Audit formatting is intentionally strict and consistent to ensure reliable ingestion.
+Audit formatting is intentionally strict and consistent.
 
 ---
 
@@ -117,19 +129,30 @@ SmartLogger.audit_everything(
 )
 ```
 
-Rotated audit files remain valid structured logs, and retention rules apply normally. Rotation is concurrency‑safe and works identically to standard file handlers.
+Rotated audit files remain valid structured logs.  
+Retention rules apply normally.
+
+Rotation is concurrency‑safe and identical to standard file handlers.
 
 ---
 
 ## 🧾 Audit + JSON / NDJSON
 
-Audit handlers can output JSON or NDJSON:
+Audit handlers do **not** use the regular JSON/NDJSON output modes.
+
+Instead:
+
+- `AuditFormatter` always produces structured plain text  
+- unless `NDJSON_output=True`, in which case it produces NDJSON  
+
+Example:
 
 ```python
 SmartLogger.audit_everything(
-    log_dir      = "audit",
-    logfile_name = "audit.ndjson",
-    output_mode  = OutputMode.NDJSON,
+    log_dir        = "audit",
+    logfile_name   = "audit.ndjson",
+    rotation_logic = RotationLogic(maxBytes=50_000),
+    output_mode    = OutputMode.NDJSON,
 )
 ```
 
@@ -139,15 +162,18 @@ This is ideal for:
 - Loki  
 - BigQuery  
 - SIEM pipelines  
-- Compliance frameworks.
-Each line is a standalone JSON object, making it easy to stream and index.
+- Compliance frameworks  
+
+Each line is a standalone JSON object.
 
 ---
 
 ## 🚫 Audit + Raw Output
 
-Audit handlers ignore raw output.<br/>
-> >Raw output is intended for console‑only use and is not included in audit files. This ensures audit logs remain clean, structured, and machine‑friendly.
+Audit handlers **ignore raw output**.
+
+Raw output is intended for console‑only use and is not included in audit files.  
+This ensures audit logs remain clean, structured, and machine‑friendly.
 
 ---
 
@@ -155,14 +181,16 @@ Audit handlers ignore raw output.<br/>
 
 Disable auditing cleanly:
 
+### Sync:
+
 ```python
-SmartLogger.stop_auditing()
+SmartLogger.terminate_auditing()
 ```
 
-Async version:
+### Async:
 
 ```python
-await AsyncSmartLogger.stop_auditing()
+await AsyncSmartLogger.terminate_auditing()
 ```
 
 This:
@@ -178,8 +206,8 @@ This:
 
 When auditing is enabled:
 
-- all loggers propagate upward  
-- the audit logger becomes the root sink  
+- all SmartLogger instances propagate upward  
+- the audit handler becomes the global sink  
 - individual handlers still work normally  
 - logger levels still apply  
 - dynamic levels are included automatically  
@@ -192,12 +220,17 @@ Auditing does **not** change how loggers behave — it only adds a global listen
 
 Audit files are concurrency‑safe:
 
-- fcntl locks on Unix  
-- msvcrt locks on Windows  
+- `fcntl` locks on Unix  
+- `msvcrt` locks on Windows  
 - atomic renaming  
 - safe rotation  
 
-However, on Windows, multiple processes should not write to the same audit file. Use per‑process audit files if needed.
+However:
+
+- On **Windows**, multiple processes should not write to the same audit file.  
+- Use per‑process audit files if needed.
+
+Async audit logging is safe across tasks but not across processes.
 
 ---
 
@@ -230,5 +263,5 @@ Auditing provides:
 - rotation and retention  
 - async‑aware behavior  
 - concurrency‑safe writes  
-- JSON / NDJSON support  
+- NDJSON support via `NDJSON_output=True`  
 - clean enable/disable lifecycle  

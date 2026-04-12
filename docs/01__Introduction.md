@@ -5,12 +5,16 @@ LogSmith is a logging framework built for developers who care about both **reada
 It takes Python’s built‑in `logging` module — a solid but aging foundation — and layers on the features modern applications actually need:
 
 ✔ Structured Logs  
+✔ Strict formatting with `OptionalRecordFields` + `message_parts_order`  
 ✔ Color & Gradients  
 ✔ Safe Rotation & Retention  
-✔ Async support  
+✔ Async logging with ordering guarantees  
 ✔ JSON / NDJSON  
 ✔ Themes  
 ✔ Predictable, explicit API  
+✔ Duplicate‑handler prevention  
+✔ Fully validated logger hierarchy rules  
+✔ Clean lifecycle management (retire/destroy)  
 
 This chapter gives you a high‑level understanding of what LogSmith is, why it exists, and how it fits into real‑world applications.
 
@@ -20,14 +24,16 @@ This chapter gives you a high‑level understanding of what LogSmith is, why it 
 
 Python’s standard logging module is powerful but low‑level. It leaves many practical needs to the developer:
 
-- How do I get readable, structured logs without having to deal with logging format string?
+- How do I get readable, structured logs without dealing with format strings?
 - How do I get rich color output that doesn’t bleed or break?
-- How do I rotate logs safely across threads?
+- How do I rotate logs safely across threads or processes?
 - How do I log JSON or NDJSON without hand‑rolling serializers?
 - How do I capture logs from *all* loggers into one audit file?
 - How do I log asynchronously without losing ordering?
 - How do I add new log levels with custom colors?
 - How do I avoid the “logger soup” that happens in large applications?
+- How do I prevent duplicate file handlers across the process?
+- How do I enforce consistent formatting across sync and async loggers?
 
 LogSmith answers all of these and more with a unified, consistent design.
 
@@ -42,6 +48,7 @@ Nothing happens behind your back.
 You attach handlers explicitly.  
 You choose formatting explicitly.  
 You enable auditing explicitly.
+You retire/destroy loggers explicitly.
 
 ### 🔹 Structure first, color second
 Color is great for humans.  
@@ -53,16 +60,15 @@ SmartLogger (sync) and AsyncSmartLogger (async) share the same API and formattin
 If you know one, you know the other.
 
 ### 🔹 Rotation must be safe
-Rotation is notoriously tricky.  
+Rotation is notoriously tricky.<br/>
 LogSmith’s rotation handlers are:
 
-- thread‑safe  
-- atomic  
+- thread‑safe and atomic (sync engine)  
+- async‑scheduled and non‑blocking (async engine)  
 - predictable  
+- validated  
 
-Async rotation is handled in a worker thread so your event loop stays clean.
-
-### 🔹 Logging should be expressive**
+### 🔹 Logging should be expressive
 Gradients, themes, raw ANSI output, palette blending — these are tools for developers who want their logs to *communicate*, not just print.
 
 ---
@@ -106,6 +112,9 @@ Both support:
 - auditing  
 - raw output  
 - JSON / NDJSON  
+- strict formatting rules  
+- validated hierarchy rules  
+- safe lifecycle management  
 
 The async version adds:
 
@@ -113,6 +122,7 @@ The async version adds:
 - ordering guarantees  
 - async rotation scheduling  
 - a_stdout() for synchronized printing  
+- non‑blocking log emission  
 
 ---
 
@@ -143,4 +153,4 @@ Each chapter is practical, example‑driven, and written for developers who want
 
 ---
 
-LogSmith is designed to make your logs clearer, safer, and more expressive — and at the same time making powerful logging a child's play.  
+LogSmith is designed to make your logs clearer, safer, and more expressive — while making powerful logging a child's play.

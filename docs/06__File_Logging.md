@@ -24,6 +24,8 @@ If the directory doesn’t exist, LogSmith creates it.
 
 A logger may have **any number of file handlers**, each with its own formatting and rotation rules.
 
+Duplicate file handlers (same resolved path) are prevented process‑wide.
+
 ---
 
 ## 🔹 Output Modes for File Handlers  
@@ -62,7 +64,7 @@ logger.add_file(
 )
 ```
 
-Use this only when you *intentionally* want colored log files (e.g., for demos or debugging).
+Use this only when you *intentionally* want colored log files (e.g. demos or debugging).
 
 ---
 
@@ -94,6 +96,13 @@ logger.add_file(
 ```
 
 This produces clean, structured, machine‑friendly logs.
+
+Strict formatting rules apply:
+
+- `timestamp` and `message` must **not** appear in `message_parts_order`  
+- `level` must appear **exactly once**  
+- enabled optional fields must appear exactly once  
+- disabled optional fields must not appear  
 
 ---
 
@@ -197,12 +206,12 @@ Retention is independent of rotation triggers.
 ---
 
 ## 🔹 Concurrency‑Safe Rotation  
-LogSmith’s rotation handler is:
+SmartLogger’s rotation handler is:
 
 - **thread‑safe**  
 - **process‑safe**  
 - **atomic** (uses `os.replace`)  
-- **cross‑platform** (fcntl on Unix, msvcrt on Windows)  
+- **cross‑platform** (`fcntl` on Unix, `msvcrt` on Windows)  
 
 This prevents corruption when multiple threads or processes write to the same file.
 
@@ -212,22 +221,25 @@ Multiple processes may write to the same *directory*, but not the same *base fil
 ---
 
 ## 🔹 Async File Logging  
-AsyncSmartLogger uses a dedicated async‑aware handler:
+AsyncSmartLogger uses an async‑aware rotating handler:
 
 - rotation is scheduled in the worker thread  
 - rotation never blocks the event loop  
 - ordering is preserved  
 - file writes are offloaded to threads  
+- path normalization is strictly enforced  
 
 Example:
 
 ```python
 logger = AsyncSmartLogger("demo.async", level = 10)
 logger.add_file(
-    log_dir = str(Path(ROOT_DIR).resolve() / "logs" / "async"),    # enforces normalized path
-    # absent logfile_name defaults to logger name ('demo.async')
+    log_dir = str(Path("logs/async").resolve()),  # must be normalized
+    logfile_name = "demo.async.log",
 )
 ```
+
+If `logfile_name` is omitted, it defaults to the logger name.
 
 ---
 

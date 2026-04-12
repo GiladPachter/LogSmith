@@ -45,6 +45,8 @@ You can now log:
 logger.notice("This is a NOTICE message")
 ```
 
+Dynamic levels behave exactly like built‑in ones.
+
 ---
 
 ## 🔢 Choosing a Level Value
@@ -60,11 +62,19 @@ Common patterns:
 - ERROR    → 40
 - CRITICAL → 50  
 
-You can choose any integer, but you cannot assign existing level names or level values.
+Rules enforced by LogSmith:
+
+- level names must be uppercase alphanumeric with underscores  
+- level values must be unique  
+- level names must be unique  
+- level values must be non‑negative  
+- internal SmartLogger attributes cannot be overridden  
 
 ---
 
 ## 🎨 Styling Dynamic Levels
+
+Themes map **level numbers**, not names.
 
 Example:
 
@@ -72,7 +82,10 @@ Example:
 from LogSmith import LevelStyle, CPrint
 
 MY_THEME = {
-    "NOTICE": LevelStyle(fg = CPrint.FG.BRIGHT_MAGENTA),
+    25: LevelStyle(
+        fg C Print.FG.BRIGHT_MAGENTA,
+        intensity = CPrint.Intensity.BOLD,
+    ),
 }
 ```
 
@@ -82,7 +95,7 @@ Apply it:
 SmartLogger.apply_color_theme(MY_THEME)
 ```
 
-Dynamic levels behave exactly like built‑in ones in theme mappings.
+Dynamic levels integrate seamlessly with theme styling.
 
 ---
 
@@ -102,22 +115,27 @@ Async logging methods are generated automatically:
 - `a_notice()`  
 - `a_success()`  
 - `a_verbose()`  
-- and so on  
+- etc.  
 
-Dynamic levels integrate seamlessly with async logging, including ordering guarantees and async rotation.
+Dynamic levels integrate with:
+
+- async ordering  
+- async rotation  
+- async auditing  
+- structured formatting  
 
 ---
 
 ## 🧾 Dynamic Levels in JSON / NDJSON
 
-Dynamic levels appear naturally in JSON and NDJSON output without any additional configuration. Log entries include the dynamic level name exactly as registered:
+Dynamic levels appear naturally in JSON and NDJSON output:
 
 ```json
 {
   "timestamp": "...",
   "level": "NOTICE",
   "message": "User logged in",
-  "fields": {}
+  "named_args": {}
 }
 ```
 
@@ -127,7 +145,7 @@ NDJSON example:
 {"timestamp":"...","level":"NOTICE","message":"User logged in"}
 ```
 
-This makes dynamic levels fully compatible with ingestion pipelines such as ELK, Loki, BigQuery, and SIEM systems.
+No extra configuration required.
 
 ---
 
@@ -139,7 +157,7 @@ Audit logs include dynamic levels automatically:
 2026‑02‑15 01:08:46.035 • NOTICE • User logged in
 ```
 
-The audit formatter treats dynamic levels exactly like built‑in ones. No special configuration is required.
+`AuditFormatter` treats dynamic levels exactly like built‑in ones.
 
 ---
 
@@ -154,7 +172,7 @@ logger.notice("User login", username = "Gilad", action = "login")
 JSON output:
 
 ```json
-"fields": {
+"named_args": {
   "username": "Gilad",
   "action": "login"
 }
@@ -165,14 +183,24 @@ Structured fields remain fully compatible with themes, JSON, NDJSON, and auditin
 ---
 
 ## Dynamic Levels + Themes  
+
 Themes can style dynamic levels just like built‑in ones:
 
 ```python
-MY_THEME["SECURITY"] = LevelStyle(
-    fg   = CPrint.FG.BRIGHT_RED,
-    bold = True,
+MY_THEME[60] = LevelStyle(
+    fg = CPrint.FG.BRIGHT_RED,
+    intensity = CPrint.Intensity.BOLD,
+    styles = (CPrint.Style.UNDERLINE,),
 )
 ```
+
+Apply it:
+
+```python
+SmartLogger.apply_color_theme(MY_THEME)
+```
+
+If a dynamic level is not defined in the theme, it uses its default style.
 
 ---
 
@@ -188,14 +216,14 @@ Dynamic levels work seamlessly with all handler types:
 - async logging  
 - auditing  
 
-Handlers do not require any special configuration to support dynamic levels.
+Handlers require no special configuration.
 
 ---
 
 ## 🚫 Removing Dynamic Levels
 
-Dynamic levels cannot be removed at runtime.<br/>
-This is intentional to avoid breaking existing loggers.
+Dynamic levels **cannot be removed** at runtime.<br/>
+This prevents breaking existing loggers or handlers.
 
 ---
 
