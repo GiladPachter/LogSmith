@@ -24,6 +24,7 @@ from .formatter import (
     AuditFormatter,
     LogRecordDetails, OutputMode, StructuredJSONFormatter, StructuredNDJSONFormatter,
 )
+from .helpers import contains_all
 from .levels import TRACE, LevelStyle
 from .level_registry import LEVELS
 from .colors import CPrint
@@ -326,7 +327,16 @@ class AsyncSmartLogger:
         if self.__profile_enabled:
             self.__profile_stats["find_caller"] += time.perf_counter() - t_find
 
-        sinfo = "".join(traceback.format_stack()) if stack_info_flag else None
+        # sinfo = "".join(traceback.format_stack()[0:-8]) if stack_info_flag else None
+        if stack_info_flag:
+            formated_stack: list = traceback.format_stack()
+            filtered_stack = [s for s in formated_stack
+                              if not contains_all(s, ["JetBrains", "PyCharm", "plugins", "pydev"])
+                              and "\\Lib\\asyncio\\" not in s
+                              and "LogSmith\\async_smartlogger.py" not in s]
+            sinfo = "".join(filtered_stack)
+        else:
+            sinfo = None
 
         # AUDIT (unchanged)
         if (
@@ -1405,9 +1415,17 @@ class AsyncSmartLogger:
         # Stack metadata – start from the resolved caller frame (one level above get_record)
         if stack_info:
             if caller_frame is not None:
-                stack_val = "".join(traceback.format_stack(caller_frame))
+                # stack_val = "".join(traceback.format_stack(caller_frame))
+                formated_stack: list = traceback.format_stack(caller_frame)
             else:  # fallback, should be rare
-                stack_val = "".join(traceback.format_stack())   # pragma: no cover
+                # stack_val = "".join(traceback.format_stack())   # pragma: no cover
+                formated_stack: list = traceback.format_stack()
+
+            filtered_stack = [s for s in formated_stack
+                              if not contains_all(s, ["JetBrains", "PyCharm", "plugins", "pydev"])
+                              and "\\Lib\\asyncio\\" not in s
+                              and "LogSmith\\async_smartlogger.py" not in s]
+            stack_val = "".join(filtered_stack)
         else:
             stack_val = None
 

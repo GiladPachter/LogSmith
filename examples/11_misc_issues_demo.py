@@ -65,7 +65,7 @@ logger.add_console(level=levels["TRACE"], log_record_details=details)
 logger.stdout("\nDemonstrating get_record()...")
 
 logger.info("This is a test message for get_record()")
-record = SmartLogger.get_record()
+record = SmartLogger.get_record(exc_info = True, stack_info = True)
 if isinstance(record.stack_info, str):
     record.stack_info = [line[2:].replace('"', "'") for line in record.stack_info.splitlines()]
 logger.stdout("\nRecord contents:")
@@ -80,7 +80,7 @@ try:
     1 / 0
 except ZeroDivisionError:
     # ---------------------------
-    record = SmartLogger.get_record(exc_info=True)    # examine record.exc_info at your convenience
+    record = SmartLogger.get_record(exc_info=True, stack_info=True)    # examine record.exc_info at your convenience
     # ---------------------------
     logger.error("Error with Captured Exception", exc_info=True)
 

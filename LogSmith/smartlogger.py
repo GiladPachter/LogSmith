@@ -20,6 +20,7 @@ from .formatter import (
     LogRecordDetails, PassthroughFormatter, AuditFormatter, OutputMode, StructuredJSONFormatter,
     StructuredNDJSONFormatter, OptionalRecordFields,
 )
+from .helpers import contains_all
 from .levels import LevelStyle, TRACE
 from .level_registry import LEVELS
 from .colors import CPrint
@@ -503,7 +504,15 @@ class SmartLogger:
         lineno = frame.f_lineno
         func_name = frame.f_code.co_name
 
-        sinfo = "".join(traceback.format_stack()) if stack_info else None
+        # sinfo = "".join(traceback.format_stack()[0:-2]) if stack_info else None
+        if stack_info:
+            formated_stack: list = traceback.format_stack()
+            filtered_stack = [s for s in formated_stack
+                              if not contains_all(s, ["JetBrains", "PyCharm", "plugins", "pydev"])
+                              and "LogSmith\\smartlogger.py" not in s]
+            sinfo = "".join(filtered_stack)
+        else:
+            sinfo = None
 
         # Build LogRecord
         record = logging.LogRecord(
@@ -1231,7 +1240,15 @@ class SmartLogger:
         # 5. Capture diagnostics
         # ---------------------------------------------------------------
         exc_val = sys.exc_info() if exc_info else None
-        stack_val = "".join(traceback.format_stack()) if stack_info else None
+        # stack_val = "".join(traceback.format_stack()[0:-1]) if stack_info else None
+        if stack_info:
+            formated_stack: list = traceback.format_stack()
+            filtered_stack = [s for s in formated_stack
+                              if not contains_all(s, ["JetBrains", "PyCharm", "plugins", "pydev"])
+                              and "LogSmith\\smartlogger.py" not in s]
+            stack_val = "".join(filtered_stack)
+        else:
+            stack_val = None
 
         # ---------------------------------------------------------------
         # 6. Build the RetrievedRecord dataclass
